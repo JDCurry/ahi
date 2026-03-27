@@ -91,7 +91,7 @@ COUNTIES = sorted(WA_COUNTY_COORDS.keys())
 # =============================================================================
 
 COLORS = {
-    'app_bg': '#0d1117',
+    'app_bg': '#3B4A3B',
     'card_bg': '#161b22',
     'sidebar_bg': '#0d1117',
     'elevated_bg': '#1c2128',
