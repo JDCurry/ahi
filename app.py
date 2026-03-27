@@ -92,47 +92,47 @@ COUNTIES = sorted(WA_COUNTY_COORDS.keys())
 # SWAP COLOR SCHEMES BY UNCOMMENTING ONE OPTION BELOW:
 
 # OPTION 1: Sage Green (Current) — Professional, operational, resilience-focused
-COLORS = {
-    'app_bg': '#24282D',
-    'card_bg': '#161b22',
-    'sidebar_bg': '#0d1117',
-    'elevated_bg': '#1c2128',
-    'primary': '#4a7c59',        # Sage green (from LLC brand)
-    'primary_light': '#6b9e7a',
-    'primary_dark': '#2d5a3a',
-    'accent': '#8fbc8f',         # Dark sea green
-    'border': '#30363d',
-    'text_primary': '#e6edf3',
-    'text_secondary': '#8b949e',
-    'text_tertiary': '#6e7681',
+# COLORS = {
+#    'app_bg': '#24282D',
+#    'card_bg': '#161b22',
+#    'sidebar_bg': '#0d1117',
+#    'elevated_bg': '#1c2128',
+#    'primary': '#4a7c59',        # Sage green (from LLC brand)
+#    'primary_light': '#6b9e7a',
+#    'primary_dark': '#2d5a3a',
+#    'accent': '#8fbc8f',         # Dark sea green
+#    'border': '#30363d',
+#    'text_primary': '#e6edf3',
+#    'text_secondary': '#8b949e',
+#    'text_tertiary': '#6e7681',
     # Hazard-specific
-    'fire': '#e05252',
-    'flood': '#4a90d9',
-    'wind': '#9b59b6',
-    'winter': '#2ec4b6',
-    'seismic': '#e67e22',
-}
+#    'fire': '#e05252',
+#    'flood': '#4a90d9',
+#    'wind': '#9b59b6',
+#    'winter': '#2ec4b6',
+#    'seismic': '#e67e22',
+#}
 
 # OPTION 2: Navy-Teal — Tech-forward, AI/ML credibility (SBIR innovation focus)
-# COLORS = {
-#     'app_bg': '#0f1419',
-#     'card_bg': '#1a1f2e',
-#     'sidebar_bg': '#0d1117',
-#     'elevated_bg': '#252d3f',
-#     'primary': '#0ea5e9',
-#     'primary_light': '#38bdf8',
-#     'primary_dark': '#0369a1',
-#     'accent': '#06b6d4',
-#     'border': '#334155',
-#     'text_primary': '#f1f5f9',
-#     'text_secondary': '#cbd5e1',
-#     'text_tertiary': '#94a3b8',
-#     'fire': '#ef4444',
-#     'flood': '#3b82f6',
-#     'wind': '#a855f7',
-#     'winter': '#14b8a6',
-#     'seismic': '#f59e0b',
-# }
+ COLORS = {
+     'app_bg': '#0f1419',
+     'card_bg': '#1a1f2e',
+     'sidebar_bg': '#0d1117',
+     'elevated_bg': '#252d3f',
+     'primary': '#0ea5e9',
+     'primary_light': '#38bdf8',
+     'primary_dark': '#0369a1',
+     'accent': '#06b6d4',
+     'border': '#334155',
+     'text_primary': '#f1f5f9',
+     'text_secondary': '#cbd5e1',
+     'text_tertiary': '#94a3b8',
+     'fire': '#ef4444',
+     'flood': '#3b82f6',
+     'wind': '#a855f7',
+     'winter': '#14b8a6',
+     'seismic': '#f59e0b',
+ }
 
 # OPTION 3: Navy-Gray — Enterprise-stable, government credible (SBIR adoption focus)
 # COLORS = {
