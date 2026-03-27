@@ -114,7 +114,7 @@ COUNTIES = sorted(WA_COUNTY_COORDS.keys())
 #}
 
 # OPTION 2: Navy-Teal — Tech-forward, AI/ML credibility (SBIR innovation focus)
- COLORS = {
+COLORS = {
      'app_bg': '#0f1419',
      'card_bg': '#1a1f2e',
      'sidebar_bg': '#0d1117',
