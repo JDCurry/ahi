@@ -866,9 +866,9 @@ def page_about():
     st.markdown(f"""
     <div style="text-align: center; color: {COLORS['text_tertiary']}; padding: 20px;">
         <div style="font-weight: 600; color: {COLORS['text_secondary']};">Resilience Analytics Lab, LLC</div>
-        <div>Everett, Washington</div>
+        <div style="margin-top: 4px;"><a href="https://www.resilienceanalyticslab.com/" target="_blank" style="color: {COLORS['accent']}; text-decoration: none;">www.resilienceanalyticslab.com</a></div>
+        
         <div style="margin-top: 8px;">Joshua D. Curry — Founder & Principal Investigator</div>
-        <div>Pierce College Fort Steilacoom — Emergency Management Department</div>
     </div>
     """, unsafe_allow_html=True)
 
