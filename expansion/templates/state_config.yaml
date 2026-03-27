@@ -1,0 +1,92 @@
+# AHI State Configuration Template
+# Copy this file to states/{state_code}/state_config.yaml and fill in values.
+# See expansion/docs/calibration_guide.md for detailed explanations.
+
+# --- State Identity ---
+state_code: "XX"           # Two-letter state code (e.g., "OR", "CA")
+state_name: "State Name"   # Full state name
+state_fips: "00"           # Two-digit FIPS code
+num_counties: 0            # Number of counties/parishes/boroughs
+state_id: 0                # Embedding ID (see feature_spec.md for assignments)
+
+# --- Hazard Heads ---
+# Set to false to exclude hazards not relevant to this state
+hazards:
+  fire: true
+  flood: true
+  wind: true
+  winter: true              # Set false for tropical states (FL, HI)
+  seismic: true             # Set false for non-seismic states
+
+# --- Training Metadata ---
+training:
+  dataset_rows: 0           # Total rows in labeled parquet
+  date_range: "2000-2025"   # Training date range
+  counties_per_date: 0      # Should equal num_counties (verify!)
+  best_epoch: 0
+  val_auc_mean: 0.0
+
+# --- Per-Hazard AUC (Test Set) ---
+auc:
+  fire: 0.0
+  flood: 0.0
+  wind: 0.0
+  winter: 0.0
+  seismic: 0.0
+
+# --- Temperature Scales ---
+# Fitted via NLL optimization on validation set.
+# Override to 1.0 if fitted T crushes a good head. Document why.
+temperature:
+  fire: 1.0
+  flood: 1.0
+  wind: 1.0
+  winter: 1.0
+  seismic: 1.0
+
+# --- Temperature Override Notes ---
+# Document any manual T overrides here.
+# Example: "flood T fitted to 0.27 but overridden to 1.0 because raw logits
+#           are negative for most counties; sharpening crushes signal to 0%"
+temperature_overrides: {}
+
+# --- Seasonal Logit Bias ---
+# Per-hazard, per-month bias added to logits before sigmoid.
+# 0.0 = no adjustment (peak season). Negative = suppress.
+# Bias of -3.0 effectively zeroes out the hazard for that month.
+seasonal_bias:
+  fire:    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  # Jan-Dec
+  flood:   [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  wind:    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  winter:  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  seismic: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+# --- Base-Rate Ceiling ---
+# Maximum probability output per hazard.
+# Guideline: AUC > 0.85 → 0.35, AUC 0.75-0.85 → 0.25, AUC < 0.75 → 0.15
+ceiling:
+  fire: 0.35
+  flood: 0.35
+  wind: 0.25
+  winter: 0.35
+  seismic: 0.05
+
+# --- Weak-Head Bias ---
+# Negative logit bias for heads with AUC < 0.70.
+# Applied after temperature scaling. Leave at 0.0 for strong heads.
+weak_head_bias:
+  fire: 0.0
+  flood: 0.0
+  wind: 0.0
+  winter: 0.0
+  seismic: -2.5
+
+# --- Adjacency Graph ---
+adjacency:
+  k_neighbors: 5            # k-NN for county adjacency (increase for states with many small counties)
+  distance_metric: haversine
+
+# --- Notes ---
+# Free-text field for any state-specific observations, known issues,
+# or calibration decisions that don't fit the fields above.
+notes: ""
