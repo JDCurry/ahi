@@ -253,6 +253,12 @@ def inject_css():
     }}
 
     /* Header branding */
+    .ahi-header-container {{
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+    }}
     .ahi-header-text .title {{
         font-weight: 600 !important;
         color: {COLORS['text_primary']};
@@ -264,6 +270,11 @@ def inject_css():
         font-size: 0.95em;
         margin: 4px 0 0 0;
         padding: 0 !important;
+    }}
+    .ahi-logo-anchor {{
+        position: absolute;
+        right: 0;
+        top: 0;
     }}
 
     /* Risk interpretation */
@@ -925,17 +936,22 @@ def page_about():
 def main():
     inject_css()
 
-    # Header with logo
-    text_col, logo_col = st.columns([0.88, 0.12])
-    with text_col:
-        st.markdown(f"""
+    # Header with logo anchored right
+    st.markdown(f"""
+    <div class="ahi-header-container">
         <div class="ahi-header-text">
             <h2 class="title">Adaptive Hazard Intelligence</h2>
             <div class="subtitle">Calibrated hazard risk for defensible decisions</div>
         </div>
-        """, unsafe_allow_html=True)
-    with logo_col:
-        st.image("assets/logo.png", width=70)
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Logo positioned absolutely to the right
+    st.markdown("""
+    <div class="ahi-logo-anchor">
+        <img src="assets/logo.png" style="width: 70px; height: auto;">
+    </div>
+    """, unsafe_allow_html=True)
 
     # Tabs
     tab1, tab2, tab3, tab4 = st.tabs([
