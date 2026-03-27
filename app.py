@@ -210,19 +210,10 @@ def inject_css():
 
     /* Header branding */
     .ahi-header {{
-        display: flex;
-        align-items: center;
-        gap: 16px;
         margin-bottom: 8px;
     }}
-    .ahi-header img {{
-        width: 48px;
-        height: 48px;
-        border-radius: 8px;
-    }}
     .ahi-header .title {{
-        font-size: 1.8em;
-        font-weight: 700;
+        font-weight: 600 !important;
         color: {COLORS['text_primary']};
     }}
     .ahi-header .subtitle {{
@@ -890,29 +881,12 @@ def main():
     inject_css()
 
     # Header
-    logo_path = Path("assets/logo-icon.png")
-    if logo_path.exists():
-        import base64
-        with open(logo_path, "rb") as f:
-            logo_b64 = base64.b64encode(f.read()).decode()
-        st.markdown(f"""
-        <div class="ahi-header">
-            <img src="data:image/png;base64,{logo_b64}" alt="AHI">
-            <div>
-                <div class="title">Adaptive Hazard Intelligence</div>
-                <div class="subtitle">Calibrated hazard risk for defensible decisions</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown(f"""
-        <div class="ahi-header">
-            <div>
-                <div class="title">Adaptive Hazard Intelligence</div>
-                <div class="subtitle">Calibrated hazard risk for defensible decisions</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="ahi-header">
+        <h2 class="title">Adaptive Hazard Intelligence</h2>
+        <div class="subtitle">Calibrated hazard risk for defensible decisions</div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Tabs
     tab1, tab2, tab3, tab4 = st.tabs([
