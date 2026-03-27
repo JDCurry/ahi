@@ -87,9 +87,11 @@ WA_COUNTY_COORDS = {
 COUNTIES = sorted(WA_COUNTY_COORDS.keys())
 
 # =============================================================================
-# COLOR THEME — Resilience Analytics Lab green palette
+# COLOR THEME — Resilience Analytics Lab
 # =============================================================================
+# SWAP COLOR SCHEMES BY UNCOMMENTING ONE OPTION BELOW:
 
+# OPTION 1: Sage Green (Current) — Professional, operational, resilience-focused
 COLORS = {
     'app_bg': '#24282D',
     'card_bg': '#161b22',
@@ -110,6 +112,48 @@ COLORS = {
     'winter': '#2ec4b6',
     'seismic': '#e67e22',
 }
+
+# OPTION 2: Navy-Teal — Tech-forward, AI/ML credibility (SBIR innovation focus)
+# COLORS = {
+#     'app_bg': '#0f1419',
+#     'card_bg': '#1a1f2e',
+#     'sidebar_bg': '#0d1117',
+#     'elevated_bg': '#252d3f',
+#     'primary': '#0ea5e9',
+#     'primary_light': '#38bdf8',
+#     'primary_dark': '#0369a1',
+#     'accent': '#06b6d4',
+#     'border': '#334155',
+#     'text_primary': '#f1f5f9',
+#     'text_secondary': '#cbd5e1',
+#     'text_tertiary': '#94a3b8',
+#     'fire': '#ef4444',
+#     'flood': '#3b82f6',
+#     'wind': '#a855f7',
+#     'winter': '#14b8a6',
+#     'seismic': '#f59e0b',
+# }
+
+# OPTION 3: Navy-Gray — Enterprise-stable, government credible (SBIR adoption focus)
+# COLORS = {
+#     'app_bg': '#111827',
+#     'card_bg': '#1f2937',
+#     'sidebar_bg': '#0d1117',
+#     'elevated_bg': '#374151',
+#     'primary': '#3b82f6',
+#     'primary_light': '#60a5fa',
+#     'primary_dark': '#1e40af',
+#     'accent': '#8b5cf6',
+#     'border': '#4b5563',
+#     'text_primary': '#f3f4f6',
+#     'text_secondary': '#d1d5db',
+#     'text_tertiary': '#9ca3af',
+#     'fire': '#dc2626',
+#     'flood': '#2563eb',
+#     'wind': '#7c3aed',
+#     'winter': '#0891b2',
+#     'seismic': '#d97706',
+# }
 
 HAZARD_NAMES = {
     'fire': 'Fire', 'flood': 'Flood', 'wind': 'Wind',
@@ -209,16 +253,17 @@ def inject_css():
     }}
 
     /* Header branding */
-    .ahi-header {{
-        margin-bottom: 8px;
-    }}
-    .ahi-header .title {{
+    .ahi-header-text .title {{
         font-weight: 600 !important;
         color: {COLORS['text_primary']};
+        margin: 0 !important;
+        padding: 0 !important;
     }}
-    .ahi-header .subtitle {{
+    .ahi-header-text .subtitle {{
         color: {COLORS['text_secondary']};
         font-size: 0.95em;
+        margin: 4px 0 0 0;
+        padding: 0 !important;
     }}
 
     /* Risk interpretation */
@@ -880,13 +925,17 @@ def page_about():
 def main():
     inject_css()
 
-    # Header
-    st.markdown(f"""
-    <div class="ahi-header">
-        <h2 class="title">Adaptive Hazard Intelligence</h2>
-        <div class="subtitle">Calibrated hazard risk for defensible decisions</div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Header with logo
+    logo_col, text_col = st.columns([0.12, 0.88])
+    with logo_col:
+        st.image("assets/logo.png", width=70)
+    with text_col:
+        st.markdown(f"""
+        <div class="ahi-header-text">
+            <h2 class="title">Adaptive Hazard Intelligence</h2>
+            <div class="subtitle">Calibrated hazard risk for defensible decisions</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     # Tabs
     tab1, tab2, tab3, tab4 = st.tabs([
