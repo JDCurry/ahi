@@ -14,6 +14,7 @@ from pathlib import Path
 import json
 import torch
 import warnings
+import base64
 warnings.filterwarnings('ignore')
 
 # Optional imports
@@ -163,6 +164,14 @@ HAZARD_NAMES = {
 # =============================================================================
 # CUSTOM CSS
 # =============================================================================
+
+def get_logo_base64():
+    """Load logo as base64 for HTML embedding."""
+    logo_path = Path("assets/logo.png")
+    if logo_path.exists():
+        with open(logo_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return None
 
 def inject_css():
     st.markdown(f"""
@@ -925,10 +934,14 @@ def page_about():
 def main():
     inject_css()
 
-    # Header with logo above title
+    # Load logo as base64
+    logo_b64 = get_logo_base64()
+    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="width: 40px; height: 40px; flex-shrink: 0; margin-top: 2px;">' if logo_b64 else ""
+
+    # Header with logo
     st.markdown(f"""
     <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
-        <img src="assets/logo.png" style="width: 40px; height: 40px; flex-shrink: 0; margin-top: 2px;">
+        {logo_html}
         <div class="ahi-header-text">
             <h2 class="title">Adaptive Hazard Intelligence</h2>
             <div class="subtitle">Calibrated hazard risk for defensible decisions</div>
