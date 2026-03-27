@@ -693,15 +693,15 @@ def page_statewide():
                 # Color scale
                 def risk_color(prob):
                     if prob > 0.50:
-                        return '#e05252'
+                        return '#dc2626'     # Severe - red
                     elif prob > 0.35:
-                        return '#e67e22'
+                        return '#f97316'     # High - bright orange
                     elif prob > 0.20:
-                        return '#f1c40f'
+                        return '#f59e0b'     # Moderate - amber/gold
                     elif prob > 0.10:
-                        return '#6b9e7a'
+                        return '#6b9e7a'     # Elevated - sage green
                     else:
-                        return '#2d5a3a'
+                        return '#2d5a3a'     # Low - dark green
 
                 # County polygons
                 for _, row in merged.iterrows():
@@ -740,9 +740,9 @@ def page_statewide():
                 <div style="display: flex; gap: 16px; justify-content: center; margin-top: 8px; flex-wrap: wrap;">
                     <span style="color: #2d5a3a;">&#9632; Low (&lt;10%)</span>
                     <span style="color: #6b9e7a;">&#9632; Elevated (10-20%)</span>
-                    <span style="color: #f1c40f;">&#9632; Moderate (20-35%)</span>
-                    <span style="color: #e67e22;">&#9632; High (35-50%)</span>
-                    <span style="color: #e05252;">&#9632; Severe (&gt;50%)</span>
+                    <span style="color: #f59e0b;">&#9632; Moderate (20-35%)</span>
+                    <span style="color: #f97316;">&#9632; High (35-50%)</span>
+                    <span style="color: #dc2626;">&#9632; Severe (&gt;50%)</span>
                 </div>
                 """, unsafe_allow_html=True)
 
