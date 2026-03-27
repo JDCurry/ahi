@@ -926,9 +926,7 @@ def main():
     inject_css()
 
     # Header with logo
-    logo_col, text_col = st.columns([0.12, 0.88])
-    with logo_col:
-        st.image("assets/logo.png", width=70)
+    text_col, logo_col = st.columns([0.88, 0.12])
     with text_col:
         st.markdown(f"""
         <div class="ahi-header-text">
@@ -936,6 +934,8 @@ def main():
             <div class="subtitle">Calibrated hazard risk for defensible decisions</div>
         </div>
         """, unsafe_allow_html=True)
+    with logo_col:
+        st.image("assets/logo.png", width=70)
 
     # Tabs
     tab1, tab2, tab3, tab4 = st.tabs([
