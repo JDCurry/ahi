@@ -521,6 +521,118 @@ def render_interpretation_guide():
         """)
 
 
+def render_county_spotlight_map(selected_county, risks, target_date):
+    """Render an interactive county spotlight map with hazard overlay."""
+    gdf = load_geojson()
+    
+    if not FOLIUM_AVAILABLE or gdf is None:
+        st.info("Install `folium`, `streamlit-folium`, and `geopandas` for county map visualization.")
+        return
+    
+    try:
+        # Normalize county names for matching
+        gdf_copy = gdf.copy()
+        name_field = None
+        for f in ['NAME', 'name', 'COUNTY', 'county_name']:
+            if f in gdf_copy.columns:
+                name_field = f
+                break
+        
+        if not name_field:
+            st.warning("GeoJSON missing county name field.")
+            return
+        
+        gdf_copy['county_norm'] = gdf_copy[name_field].str.replace(' County', '').str.strip()
+        selected_norm = selected_county.replace(' County', '').strip()
+        
+        # Find selected county geometry
+        selected_row = gdf_copy[gdf_copy['county_norm'] == selected_norm]
+        if len(selected_row) == 0:
+            st.warning(f"Could not find {selected_county} in map data.")
+            return
+        
+        selected_geom = selected_row.iloc[0].geometry
+        bounds = selected_geom.bounds  # (minx, miny, maxx, maxy)
+        center_lat = (bounds[1] + bounds[3]) / 2
+        center_lon = (bounds[0] + bounds[2]) / 2
+        
+        # Create map centered on selected county
+        m = folium.Map(
+            location=[center_lat, center_lon],
+            zoom_start=9,
+            tiles='CartoDB dark_matter'
+        )
+        
+        # Risk color function
+        def risk_color(prob):
+            if prob > 0.50:
+                return '#dc2626'
+            elif prob > 0.35:
+                return '#f97316'
+            elif prob > 0.20:
+                return '#f59e0b'
+            elif prob > 0.10:
+                return '#6b9e7a'
+            else:
+                return '#2d5a3a'
+        
+        # Get hazard choice from sidebar
+        hazard_choice = st.selectbox(
+            "Overlay hazard on county map",
+            ['Fire', 'Flood', 'Wind', 'Winter', 'Seismic'],
+            key='county_hazard_select'
+        )
+        hazard_key = hazard_choice.lower()
+        selected_prob = risks.get(hazard_key, 0.0)
+        
+        # Draw all counties
+        for _, row in gdf_copy.iterrows():
+            county_name = row['county_norm']
+            geom = row.geometry
+            
+            # Highlight selected county
+            if county_name == selected_norm:
+                style = {
+                    'fillColor': risk_color(selected_prob),
+                    'color': '#e6edf3',
+                    'weight': 3,
+                    'fillOpacity': 0.8,
+                }
+                popup_text = f"<strong>{county_name} County (Selected)</strong><br>{hazard_choice}: {selected_prob*100:.1f}%"
+            else:
+                # Style nearby counties subtly
+                style = {
+                    'fillColor': '#2d5a3a',
+                    'color': '#30363d',
+                    'weight': 1,
+                    'fillOpacity': 0.3,
+                }
+                popup_text = f"{county_name} County"
+            
+            geo_json = folium.GeoJson(
+                geom.__geo_interface__,
+                style_function=lambda x, s=style: s,
+            )
+            geo_json.add_child(folium.Popup(popup_text, max_width=250))
+            geo_json.add_to(m)
+        
+        # Add legend
+        st.markdown(f"""
+        <div style="display: flex; gap: 16px; justify-content: center; margin: 12px 0; flex-wrap: wrap;">
+            <span style="color: #2d5a3a;">◼ Low (<10%)</span>
+            <span style="color: #6b9e7a;">◼ Elevated (10-20%)</span>
+            <span style="color: #f59e0b;">◼ Moderate (20-35%)</span>
+            <span style="color: #f97316;">◼ High (35-50%)</span>
+            <span style="color: #dc2626;">◼ Severe (>50%)</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st_folium(m, width=900, height=450, returned_objects=[])
+        
+    except Exception as e:
+        st.warning(f"Map rendering failed: {e}")
+
+
 # =============================================================================
 # PAGE: QUICK PREDICT
 # =============================================================================
@@ -599,6 +711,10 @@ def page_quick_predict():
             render_hazard_cards(last['risks'])
             st.markdown("")
             render_risk_summary(last['risks'])
+            st.markdown("---")
+            st.markdown("### County Spotlight")
+            render_county_spotlight_map(selected_county, last['risks'], last.get('date'))
+            st.markdown("---")
             render_interpretation_guide()
 
 
