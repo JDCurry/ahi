@@ -925,19 +925,16 @@ def page_about():
 def main():
     inject_css()
 
-    # Header with logo on right
-    col_text, col_logo = st.columns([0.85, 0.15], gap="small")
-    
-    with col_text:
-        st.markdown(f"""
+    # Header with logo above title
+    st.markdown(f"""
+    <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
+        <img src="assets/logo.png" style="width: 40px; height: 40px; flex-shrink: 0; margin-top: 2px;">
         <div class="ahi-header-text">
             <h2 class="title">Adaptive Hazard Intelligence</h2>
             <div class="subtitle">Calibrated hazard risk for defensible decisions</div>
         </div>
-        """, unsafe_allow_html=True)
-    
-    with col_logo:
-        st.image("assets/logo.png", width=70, use_column_width=False)
+    </div>
+    """, unsafe_allow_html=True)
 
     # Tabs
     tab1, tab2, tab3, tab4 = st.tabs([
