@@ -526,8 +526,8 @@ def render_interpretation_guide():
 # =============================================================================
 
 def page_quick_predict():
-    st.markdown("## Quick Predict")
-    st.caption("Run the AHI v2 model for a single county. Predictions based on 25 years of historical hazard patterns.")
+    st.markdown("## County Risk Assessment")
+    st.caption("Analyze hazard risk for a single county. Assessment based on 25 years of historical hazard patterns.")
 
     col1, col2 = st.columns([2, 1])
     with col1:
@@ -951,7 +951,7 @@ def main():
 
     # Tabs
     tab1, tab2, tab3, tab4 = st.tabs([
-        "Quick Predict",
+        "County Risk Assessment",
         "Statewide",
         "Model",
         "About"
