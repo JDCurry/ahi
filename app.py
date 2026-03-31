@@ -1037,7 +1037,6 @@ def page_about():
     <div style="text-align: center; color: {COLORS['text_tertiary']}; padding: 20px;">
         <div style="font-weight: 600; color: {COLORS['text_secondary']};">Resilience Analytics Lab, LLC</div>
         <div style="margin-top: 4px;"><a href="https://www.resilienceanalyticslab.com/" target="_blank" style="color: {COLORS['accent']}; text-decoration: none;">www.resilienceanalyticslab.com</a></div>
-        
         <div style="margin-top: 8px;">Joshua D. Curry — Founder & Principal Investigator</div>
     </div>
     """, unsafe_allow_html=True)
