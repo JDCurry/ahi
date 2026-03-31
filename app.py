@@ -999,8 +999,7 @@ def page_about():
 
     st.markdown("### Published Research")
     st.markdown("""
-    - Curry, J.D. (2025). *Heat Kernel Attention: Diffusion-Based Attention for Transformer Architectures.* SSRN.
-    - Curry, J.D. (2026). *Meta-Meta Attention: Content-Aware Bias Fields for Heterogeneous Feature Routing.* SSRN 6316718.
+    - Curry, J.D. (2025). *Heat Kernel Attention: Diffusion-Based Attention for Transformer Architectures.* SSRN 5959898.
     - Curry, J.D. (2026). *Simplicial Computation: Topology as Control in Heterogeneous Attention.* SSRN 6037977.
     """)
 
@@ -1037,7 +1036,6 @@ def page_about():
     <div style="text-align: center; color: {COLORS['text_tertiary']}; padding: 20px;">
         <div style="font-weight: 600; color: {COLORS['text_secondary']};">Resilience Analytics Lab, LLC</div>
         <div style="margin-top: 4px;"><a href="https://www.resilienceanalyticslab.com/" target="_blank" style="color: {COLORS['accent']}; text-decoration: none;">www.resilienceanalyticslab.com</a></div>
-        <div style="margin-top: 8px;">Joshua D. Curry — Founder & Principal Investigator</div>
     </div>
     """, unsafe_allow_html=True)
 
