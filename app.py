@@ -54,7 +54,7 @@ except ImportError:
 
 st.set_page_config(
     page_title="AHI — Adaptive Hazard Intelligence",
-    page_icon="assets/logo-icon.png",
+    page_icon="assets/favicon.ico",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -284,10 +284,14 @@ def inject_css():
         margin-bottom: 12px;
     }}
 
-    /* Hide hamburger + footer */
+    /* Hide hamburger, footer, header, and Streamlit badge */
     #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
     header {{visibility: hidden;}}
+    [data-testid="stStatusWidget"] {{display: none;}}
+    .viewerBadge_container__r5tak {{display: none !important;}}
+    [data-testid="stDecoration"] {{display: none !important;}}
+    .stDeployButton {{display: none !important;}}
     </style>
     """, unsafe_allow_html=True)
 
