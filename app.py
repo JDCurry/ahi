@@ -77,7 +77,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+DEVICE = 'cpu'  # Resolved lazily; Render has no GPU
 DATA_DIR = Path("data")
 MAX_FORECAST_DAYS = 14
 
