@@ -383,44 +383,19 @@ def load_county_metadata():
 # =============================================================================
 
 def predict_single_county(county_name, target_date):
-    """Run AHI v2 inference for one county. Returns (risks_dict, error_msg)."""
-    model, adjacency, ok = load_v2_model()
-    if not ok or model is None:
-        return None, "Model not loaded — check outputs/ahi_v2/best_model.pt"
+    """Run AHI v2.5 inference for one county via ONNX. Returns (risks_dict, error_msg)."""
+    _, _, ok = load_v2_model()
+    if not ok:
+        return None, "Model not loaded — check outputs/ahi_v2/model.onnx"
 
     hazard_df = load_hazard_data()
     if hazard_df is None or len(hazard_df) == 0:
         return None, "Hazard dataset not found"
 
     try:
-        import inference_core as _ic
+        from inference_onnx import predict_county_risks_simple as _predict
 
-        if not _ic._COUNTY_MAP:
-            _ic._build_maps(hazard_df)
-
-        county_upper = county_name.upper().replace(' COUNTY', '').strip()
-        mask = hazard_df['county'].str.upper().str.replace(' COUNTY', '').str.strip() == county_upper
-        county_rows = hazard_df[mask]
-
-        if len(county_rows) == 0:
-            return None, f"No data for county: {county_name}"
-
-        if 'date' in county_rows.columns:
-            county_rows = county_rows.sort_values('date', ascending=False)
-        county_row = county_rows.iloc[0]
-        actual_county = county_row.get('county', county_name)
-
-        static_cont, temporal, region_ids, state_ids, nlcd_ids = \
-            _ic.build_tensors_from_county_data(county_row, actual_county, target_date)
-
-        num_nodes = adjacency.size(0)
-        spatial_mask = get_batch_adjacency(adjacency, region_ids, num_nodes)
-
-        month = target_date.month
-        risks = predict_from_ahi_v2(
-            model, static_cont, temporal, region_ids, state_ids, nlcd_ids,
-            adjacency_mask=spatial_mask, month=month,
-        )
+        risks = _predict(None, county_name, hazard_df, target_date)
         return risks, None
 
     except Exception as e:
@@ -917,7 +892,7 @@ def page_model_info():
             learning per-hazard memory horizons</li>
             <li><strong>Spatial Mesh</strong> (2 layers) — Standard softmax attention with k-nearest-neighbor county adjacency
             masking captures cross-county correlations</li>
-            <li><strong>Gated Coupling</strong> — Learned gate (g ≈ {gate_val:.3f}) controls spatial contribution</li>
+            <li><strong>Gated Coupling</strong> — Learned gate (g ≈ 0.083) controls spatial contribution</li>
             <li><strong>5 Prediction Heads</strong> — Per-hazard LoRA adapters with cross-hazard interaction layer</li>
         </ul>
     </div>
