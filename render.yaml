@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ahi
+    runtime: python
+    plan: starter  # $7/mo — always-on, no sleeping, custom domains
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true --browser.gatherUsageStats false
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: STREAMLIT_SERVER_ENABLE_CORS
+        value: "false"
+      - key: STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION
+        value: "false"
+    autoDeploy: true  # Auto-deploy on git push
