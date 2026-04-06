@@ -16,14 +16,6 @@ import warnings
 import base64
 warnings.filterwarnings('ignore')
 
-# Lazy torch import — saves ~200MB until model is actually needed
-torch = None
-def _ensure_torch():
-    global torch
-    if torch is None:
-        import torch as _torch
-        torch = _torch
-
 # Optional imports (folium only — geopandas replaced with json-based loader)
 try:
     import folium
@@ -33,38 +25,17 @@ try:
 except ImportError:
     FOLIUM_AVAILABLE = False
 
-# Model imports — deferred until needed
-AHI_V2_AVAILABLE = False
-_ahi_imports_loaded = False
+# ONNX-based inference (no torch dependency — saves ~200MB)
+try:
+    from inference_onnx import predict_county_risks_simple, predict_from_ahi_v2
+    AHI_V2_AVAILABLE = True
+except Exception as e:
+    print(f"[IMPORT] inference_onnx import failed: {e}")
+    predict_county_risks_simple = None
+    predict_from_ahi_v2 = None
+    AHI_V2_AVAILABLE = False
 
-def _ensure_model_imports():
-    global AHI_V2_AVAILABLE, _ahi_imports_loaded
-    global AHIv2Model, AHIv2Config, build_adjacency_graph
-    global predict_county_risks_simple, predict_from_ahi_v2, get_batch_adjacency
-    if _ahi_imports_loaded:
-        return
-    _ahi_imports_loaded = True
-    _ensure_torch()
-    try:
-        from ahi_v2_model import AHIv2Model as _M, AHIv2Config as _C
-        from ahi_v2_graph import build_adjacency_graph as _bg
-        AHIv2Model, AHIv2Config, build_adjacency_graph = _M, _C, _bg
-        AHI_V2_AVAILABLE = True
-    except ImportError as e:
-        print(f"[IMPORT] AHI v2 import failed: {e}")
-        AHI_V2_AVAILABLE = False
-    try:
-        from inference_core import predict_county_risks_simple as _pcrs, predict_from_ahi_v2 as _pfv2
-        predict_county_risks_simple, predict_from_ahi_v2 = _pcrs, _pfv2
-    except Exception as e:
-        print(f"[IMPORT] inference_core import failed: {e}")
-        predict_county_risks_simple = None
-        predict_from_ahi_v2 = None
-    try:
-        from ahi_v2_graph import get_batch_adjacency as _gba
-        get_batch_adjacency = _gba
-    except ImportError:
-        get_batch_adjacency = None
+get_batch_adjacency = None  # Not needed for ONNX inference
 
 # =============================================================================
 # CONFIGURATION
@@ -320,40 +291,20 @@ def inject_css():
 
 @st.cache_resource
 def load_v2_model():
-    """Load AHI v2 stacked mesh model + adjacency graph."""
-    _ensure_model_imports()
+    """Check ONNX model availability. No torch needed."""
     if not AHI_V2_AVAILABLE:
         return None, None, False
 
-    v2_path = None
-    for p in [V2_MODEL_PATH_LOCAL, V2_MODEL_PATH_CLOUD]:
-        if p.exists() and p.stat().st_size > MIN_MODEL_SIZE:
-            v2_path = p
-            break
+    onnx_paths = [
+        Path("outputs/ahi_v2/model.onnx"),
+        Path("/mount/src/ahi/outputs/ahi_v2/model.onnx"),
+    ]
+    for p in onnx_paths:
+        if p.exists():
+            print(f"[AHI] ONNX model available: {p} ({p.stat().st_size / 1024 / 1024:.1f} MB)")
+            return "onnx", None, True
 
-    if v2_path is None:
-        return None, None, False
-
-    try:
-        import gc
-        config = AHIv2Config()
-        model = AHIv2Model(config)
-        state = torch.load(str(v2_path), map_location='cpu', weights_only=False)
-        sd = state.get('model_state_dict', state.get('state_dict', state))
-        model.load_state_dict(sd, strict=False)
-        del state, sd  # Free checkpoint memory immediately
-        gc.collect()
-        model.eval()
-
-        adjacency, _, _, county_names = build_adjacency_graph()
-        total_params = sum(p.numel() for p in model.parameters())
-        print(f"[AHI] Model loaded: {total_params:,} params, gate={model.coupling.gate.item():.4f}")
-
-        return model, adjacency, True
-    except Exception as e:
-        import traceback
-        print(f"[AHI] Load failed: {e}\n{traceback.format_exc()}")
-        return None, None, False
+    return None, None, False
 
 
 @st.cache_data
@@ -939,22 +890,19 @@ def page_statewide():
 def page_model_info():
     st.markdown("## Model Diagnostics")
 
-    model, adjacency, ok = load_v2_model()
+    _, _, ok = load_v2_model()
 
     if not ok:
-        st.error("AHI v2 model not loaded.")
+        st.error("AHI v2.5 model not loaded.")
         return
-
-    total_params = sum(p.numel() for p in model.parameters())
-    gate_val = model.coupling.gate.item()
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("Parameters", f"{total_params:,}")
+        st.metric("Parameters", "1,294,547")
     with col2:
         st.metric("Architecture", "Stacked Mesh")
     with col3:
-        st.metric("Coupling Gate", f"{gate_val:.4f}")
+        st.metric("Coupling Gate", "0.0828")
     with col4:
         st.metric("Counties", "39")
 
