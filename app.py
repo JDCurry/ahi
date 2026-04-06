@@ -12,41 +12,59 @@ import plotly.express as px
 from datetime import datetime, timedelta
 from pathlib import Path
 import json
-import torch
 import warnings
 import base64
 warnings.filterwarnings('ignore')
 
-# Optional imports
+# Lazy torch import — saves ~200MB until model is actually needed
+torch = None
+def _ensure_torch():
+    global torch
+    if torch is None:
+        import torch as _torch
+        torch = _torch
+
+# Optional imports (folium only — geopandas replaced with json-based loader)
 try:
     import folium
     from folium.features import GeoJsonTooltip
     from streamlit_folium import st_folium
-    import geopandas as gpd
     FOLIUM_AVAILABLE = True
 except ImportError:
     FOLIUM_AVAILABLE = False
 
-# Model imports
-try:
-    from ahi_v2_model import AHIv2Model, AHIv2Config
-    from ahi_v2_graph import build_adjacency_graph
-    AHI_V2_AVAILABLE = True
-except ImportError as e:
-    print(f"[IMPORT] AHI v2 import failed: {e}")
-    AHI_V2_AVAILABLE = False
+# Model imports — deferred until needed
+AHI_V2_AVAILABLE = False
+_ahi_imports_loaded = False
 
-try:
-    from inference_core import predict_county_risks_simple, predict_from_ahi_v2
-except Exception as e:
-    print(f"[IMPORT] inference_core import failed: {e}")
-    predict_county_risks_simple = None
-    predict_from_ahi_v2 = None
-
-try:
-    from ahi_v2_graph import get_batch_adjacency
-except ImportError:
-    get_batch_adjacency = None
+def _ensure_model_imports():
+    global AHI_V2_AVAILABLE, _ahi_imports_loaded
+    global AHIv2Model, AHIv2Config, build_adjacency_graph
+    global predict_county_risks_simple, predict_from_ahi_v2, get_batch_adjacency
+    if _ahi_imports_loaded:
+        return
+    _ahi_imports_loaded = True
+    _ensure_torch()
+    try:
+        from ahi_v2_model import AHIv2Model as _M, AHIv2Config as _C
+        from ahi_v2_graph import build_adjacency_graph as _bg
+        AHIv2Model, AHIv2Config, build_adjacency_graph = _M, _C, _bg
+        AHI_V2_AVAILABLE = True
+    except ImportError as e:
+        print(f"[IMPORT] AHI v2 import failed: {e}")
+        AHI_V2_AVAILABLE = False
+    try:
+        from inference_core import predict_county_risks_simple as _pcrs, predict_from_ahi_v2 as _pfv2
+        predict_county_risks_simple, predict_from_ahi_v2 = _pcrs, _pfv2
+    except Exception as e:
+        print(f"[IMPORT] inference_core import failed: {e}")
+        predict_county_risks_simple = None
+        predict_from_ahi_v2 = None
+    try:
+        from ahi_v2_graph import get_batch_adjacency as _gba
+        get_batch_adjacency = _gba
+    except ImportError:
+        get_batch_adjacency = None
 
 # =============================================================================
 # CONFIGURATION
@@ -303,6 +321,7 @@ def inject_css():
 @st.cache_resource
 def load_v2_model():
     """Load AHI v2 stacked mesh model + adjacency graph."""
+    _ensure_model_imports()
     if not AHI_V2_AVAILABLE:
         return None, None, False
 
@@ -316,11 +335,14 @@ def load_v2_model():
         return None, None, False
 
     try:
+        import gc
         config = AHIv2Config()
         model = AHIv2Model(config)
         state = torch.load(str(v2_path), map_location='cpu', weights_only=False)
         sd = state.get('model_state_dict', state.get('state_dict', state))
         model.load_state_dict(sd, strict=False)
+        del state, sd  # Free checkpoint memory immediately
+        gc.collect()
         model.eval()
 
         adjacency, _, _, county_names = build_adjacency_graph()
@@ -348,11 +370,49 @@ def load_hazard_data():
 
 @st.cache_data
 def load_geojson():
-    """Load WA county boundaries."""
+    """Load WA county boundaries as plain GeoJSON dict (no geopandas)."""
     path = DATA_DIR / 'wa_counties.geojson'
     if path.exists() and FOLIUM_AVAILABLE:
-        return gpd.read_file(str(path))
+        with open(path) as f:
+            return json.load(f)
     return None
+
+
+def _get_geojson_features(geojson_data):
+    """Extract features with county names from GeoJSON dict."""
+    if geojson_data is None:
+        return []
+    features = geojson_data.get('features', [])
+    result = []
+    for feat in features:
+        props = feat.get('properties', {})
+        name = None
+        for f in ['NAME', 'name', 'COUNTY', 'county_name']:
+            if f in props:
+                name = props[f]
+                break
+        if name:
+            name_norm = name.replace(' County', '').strip()
+            result.append({'name': name_norm, 'geometry': feat.get('geometry'), 'properties': props})
+    return result
+
+
+def _geometry_bounds(geom):
+    """Get (minx, miny, maxx, maxy) bounds from a GeoJSON geometry dict."""
+    coords = []
+    def _extract(obj):
+        if isinstance(obj, (list, tuple)):
+            if len(obj) >= 2 and isinstance(obj[0], (int, float)):
+                coords.append((obj[0], obj[1]))
+            else:
+                for item in obj:
+                    _extract(item)
+    _extract(geom.get('coordinates', []))
+    if not coords:
+        return (-122, 47, -120, 48)
+    lons = [c[0] for c in coords]
+    lats = [c[1] for c in coords]
+    return (min(lons), min(lats), max(lons), max(lats))
 
 
 @st.cache_data
@@ -527,46 +587,38 @@ def render_interpretation_guide():
 
 def render_county_spotlight_map(selected_county, risks, target_date):
     """Render an interactive county spotlight map with hazard overlay."""
-    gdf = load_geojson()
-    
-    if not FOLIUM_AVAILABLE or gdf is None:
-        st.info("Install `folium`, `streamlit-folium`, and `geopandas` for county map visualization.")
+    geojson_data = load_geojson()
+    features = _get_geojson_features(geojson_data)
+
+    if not FOLIUM_AVAILABLE or not features:
+        st.info("Install `folium` and `streamlit-folium` for county map visualization.")
         return
-    
+
     try:
-        # Normalize county names for matching
-        gdf_copy = gdf.copy()
-        name_field = None
-        for f in ['NAME', 'name', 'COUNTY', 'county_name']:
-            if f in gdf_copy.columns:
-                name_field = f
-                break
-        
-        if not name_field:
-            st.warning("GeoJSON missing county name field.")
-            return
-        
-        gdf_copy['county_norm'] = gdf_copy[name_field].str.replace(' County', '').str.strip()
         selected_norm = selected_county.replace(' County', '').strip()
-        
+
         # Find selected county geometry
-        selected_row = gdf_copy[gdf_copy['county_norm'] == selected_norm]
-        if len(selected_row) == 0:
+        selected_feat = None
+        for feat in features:
+            if feat['name'] == selected_norm:
+                selected_feat = feat
+                break
+
+        if selected_feat is None:
             st.warning(f"Could not find {selected_county} in map data.")
             return
-        
-        selected_geom = selected_row.iloc[0].geometry
-        bounds = selected_geom.bounds  # (minx, miny, maxx, maxy)
+
+        bounds = _geometry_bounds(selected_feat['geometry'])
         center_lat = (bounds[1] + bounds[3]) / 2
         center_lon = (bounds[0] + bounds[2]) / 2
-        
+
         # Create map centered on selected county
         m = folium.Map(
             location=[center_lat, center_lon],
             zoom_start=9,
             tiles='CartoDB dark_matter'
         )
-        
+
         # Risk color function
         def risk_color(prob):
             if prob > 0.50:
@@ -579,7 +631,7 @@ def render_county_spotlight_map(selected_county, risks, target_date):
                 return '#6b9e7a'
             else:
                 return '#2d5a3a'
-        
+
         # Get hazard choice from sidebar
         hazard_choice = st.selectbox(
             "Overlay hazard on county map",
@@ -588,12 +640,12 @@ def render_county_spotlight_map(selected_county, risks, target_date):
         )
         hazard_key = hazard_choice.lower()
         selected_prob = risks.get(hazard_key, 0.0)
-        
+
         # Draw all counties
-        for _, row in gdf_copy.iterrows():
-            county_name = row['county_norm']
-            geom = row.geometry
-            
+        for feat in features:
+            county_name = feat['name']
+            geom = feat['geometry']
+
             # Highlight selected county
             if county_name == selected_norm:
                 style = {
@@ -612,14 +664,14 @@ def render_county_spotlight_map(selected_county, risks, target_date):
                     'fillOpacity': 0.3,
                 }
                 popup_text = f"{county_name} County"
-            
+
             geo_json = folium.GeoJson(
-                geom.__geo_interface__,
+                geom,
                 style_function=lambda x, s=style: s,
             )
             geo_json.add_child(folium.Popup(popup_text, max_width=250))
             geo_json.add_to(m)
-        
+
         # Add legend
         st.markdown(f"""
         <div style="display: flex; gap: 16px; justify-content: center; margin: 12px 0; flex-wrap: wrap;">
@@ -630,9 +682,9 @@ def render_county_spotlight_map(selected_county, risks, target_date):
             <span style="color: #dc2626;">◼ Severe (>50%)</span>
         </div>
         """, unsafe_allow_html=True)
-        
+
         st_folium(m, width=900, height=450, returned_objects=[])
-        
+
     except Exception as e:
         st.warning(f"Map rendering failed: {e}")
 
@@ -787,87 +839,78 @@ def page_statewide():
     )
     col_name = hazard_choice.lower() + '_p'
 
-    gdf = load_geojson()
+    geojson_data = load_geojson()
+    features = _get_geojson_features(geojson_data)
 
-    if FOLIUM_AVAILABLE and gdf is not None:
+    # Build county -> prediction lookup
+    df_copy = df.copy()
+    df_copy['county_norm'] = df_copy['county'].str.replace(' County', '').str.strip()
+    county_probs = dict(zip(df_copy['county_norm'], df_copy.get(col_name, 0.0)))
+
+    if FOLIUM_AVAILABLE and features:
         try:
-            gdf_copy = gdf.copy()
-            name_field = None
-            for f in ['NAME', 'name', 'COUNTY', 'county_name']:
-                if f in gdf_copy.columns:
-                    name_field = f
-                    break
+            # Build choropleth-style map with county polygons
+            m = folium.Map(
+                location=[47.4, -120.5], zoom_start=7,
+                tiles='CartoDB dark_matter'
+            )
 
-            if name_field:
-                gdf_copy['county_norm'] = gdf_copy[name_field].str.replace(' County', '').str.strip()
-                df_copy = df.copy()
-                df_copy['county_norm'] = df_copy['county'].str.replace(' County', '').str.strip()
-                merged = gdf_copy.merge(df_copy, on='county_norm', how='left')
+            # Color scale
+            def risk_color(prob):
+                if prob > 0.50:
+                    return '#dc2626'     # Severe - red
+                elif prob > 0.35:
+                    return '#f97316'     # High - bright orange
+                elif prob > 0.20:
+                    return '#f59e0b'     # Moderate - amber/gold
+                elif prob > 0.10:
+                    return '#6b9e7a'     # Elevated - sage green
+                else:
+                    return '#2d5a3a'     # Low - dark green
 
-                # Build choropleth-style map with county polygons
-                m = folium.Map(
-                    location=[47.4, -120.5], zoom_start=7,
-                    tiles='CartoDB dark_matter'
-                )
+            # County polygons
+            for feat in features:
+                try:
+                    county = feat['name']
+                    prob = float(county_probs.get(county, 0.0) or 0.0)
+                    color = risk_color(prob)
+                    geom = feat['geometry']
 
-                # Color scale
-                def risk_color(prob):
-                    if prob > 0.50:
-                        return '#dc2626'     # Severe - red
-                    elif prob > 0.35:
-                        return '#f97316'     # High - bright orange
-                    elif prob > 0.20:
-                        return '#f59e0b'     # Moderate - amber/gold
-                    elif prob > 0.10:
-                        return '#6b9e7a'     # Elevated - sage green
-                    else:
-                        return '#2d5a3a'     # Low - dark green
+                    if geom is not None:
+                        geo_json = folium.GeoJson(
+                            geom,
+                            style_function=lambda x, c=color, p=prob: {
+                                'fillColor': c,
+                                'color': '#30363d',
+                                'weight': 1,
+                                'fillOpacity': 0.55 + min(p, 0.4),
+                            },
+                        )
+                        popup_html = f"""
+                        <div style="font-family: Inter, sans-serif; min-width: 180px;">
+                            <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">{county} County</div>
+                            <div style="font-size: 13px;">{hazard_choice}: <strong>{prob*100:.1f}%</strong></div>
+                        </div>
+                        """
+                        geo_json.add_child(folium.Popup(popup_html, max_width=250))
+                        geo_json.add_child(folium.Tooltip(f"{county}: {prob*100:.1f}%"))
+                        geo_json.add_to(m)
+                except Exception:
+                    continue
 
-                # County polygons
-                for _, row in merged.iterrows():
-                    try:
-                        prob = float(row.get(col_name, 0.0) or 0.0)
-                        county = row.get('county_norm', 'Unknown')
-                        color = risk_color(prob)
-                        geom = row.get('geometry')
+            st_folium(m, width=900, height=520, returned_objects=[])
 
-                        if geom is not None:
-                            geo_json = folium.GeoJson(
-                                geom.__geo_interface__,
-                                style_function=lambda x, c=color, p=prob: {
-                                    'fillColor': c,
-                                    'color': '#30363d',
-                                    'weight': 1,
-                                    'fillOpacity': 0.55 + min(p, 0.4),
-                                },
-                            )
-                            popup_html = f"""
-                            <div style="font-family: Inter, sans-serif; min-width: 180px;">
-                                <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">{county} County</div>
-                                <div style="font-size: 13px;">{hazard_choice}: <strong>{prob*100:.1f}%</strong></div>
-                            </div>
-                            """
-                            geo_json.add_child(folium.Popup(popup_html, max_width=250))
-                            geo_json.add_child(folium.Tooltip(f"{county}: {prob*100:.1f}%"))
-                            geo_json.add_to(m)
-                    except Exception:
-                        continue
+            # Legend
+            st.markdown(f"""
+            <div style="display: flex; gap: 16px; justify-content: center; margin-top: 8px; flex-wrap: wrap;">
+                <span style="color: #2d5a3a;">&#9632; Low (&lt;10%)</span>
+                <span style="color: #6b9e7a;">&#9632; Elevated (10-20%)</span>
+                <span style="color: #f59e0b;">&#9632; Moderate (20-35%)</span>
+                <span style="color: #f97316;">&#9632; High (35-50%)</span>
+                <span style="color: #dc2626;">&#9632; Severe (&gt;50%)</span>
+            </div>
+            """, unsafe_allow_html=True)
 
-                st_folium(m, width=900, height=520, returned_objects=[])
-
-                # Legend
-                st.markdown(f"""
-                <div style="display: flex; gap: 16px; justify-content: center; margin-top: 8px; flex-wrap: wrap;">
-                    <span style="color: #2d5a3a;">&#9632; Low (&lt;10%)</span>
-                    <span style="color: #6b9e7a;">&#9632; Elevated (10-20%)</span>
-                    <span style="color: #f59e0b;">&#9632; Moderate (20-35%)</span>
-                    <span style="color: #f97316;">&#9632; High (35-50%)</span>
-                    <span style="color: #dc2626;">&#9632; Severe (&gt;50%)</span>
-                </div>
-                """, unsafe_allow_html=True)
-
-            else:
-                st.warning("GeoJSON missing county name field.")
         except Exception as e:
             st.warning(f"Map rendering failed: {e}")
     else:
@@ -886,7 +929,7 @@ def page_statewide():
                 ).add_to(m)
             st_folium(m, width=900, height=520)
         else:
-            st.info("Install `folium`, `streamlit-folium`, and `geopandas` for map visualization.")
+            st.info("Install `folium` and `streamlit-folium` for map visualization.")
 
 
 # =============================================================================
