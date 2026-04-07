@@ -523,23 +523,29 @@ def render_statewide_choropleth(df, hazard_key, hazard_label):
         marker_line_color=COLORS['border'],
         marker_line_width=0.8,
         colorbar=dict(
-            title=f"{hazard_label} Risk (%)",
-            thickness=14,
-            len=0.75,
-            tickfont=dict(color=COLORS['text_secondary']),
-            title_font=dict(color=COLORS['text_secondary']),
+            title=f"{hazard_label}<br>Risk (%)",
+            thickness=12,
+            len=0.6,
+            x=1.02,
+            xanchor='left',
+            tickfont=dict(color=COLORS['text_secondary'], size=10),
+            title_font=dict(color=COLORS['text_secondary'], size=11),
         ),
         hovertemplate="<b>%{location} County</b><br>" + hazard_label + ": %{z:.1f}%<extra></extra>",
     ))
+    # Fixed WA bounding box — prevents squish from dynamic fitbounds
     fig.update_geos(
-        fitbounds="locations", visible=False,
+        visible=False,
         bgcolor=COLORS['card_bg'],
+        projection_type='mercator',
+        lonaxis_range=[-125, -116.5],
+        lataxis_range=[45.3, 49.2],
     )
     fig.update_layout(
         paper_bgcolor=COLORS['card_bg'],
         plot_bgcolor=COLORS['card_bg'],
         margin=dict(l=0, r=0, t=10, b=10),
-        height=520,
+        height=540,
         font=dict(color=COLORS['text_secondary'], family='Inter'),
     )
     st.plotly_chart(fig, use_container_width=True)
@@ -565,9 +571,18 @@ def render_county_spotlight_map(selected_county, risks, target_date):
 
     selected_norm = selected_county.replace(' County', '').strip()
 
+    # Order overlay dropdown by this county's risks (highest first)
+    ordered_hazards = sorted(
+        [('Fire', 'fire'), ('Flood', 'flood'), ('Wind', 'wind'),
+         ('Winter', 'winter'), ('Seismic', 'seismic')],
+        key=lambda kv: risks.get(kv[1], 0.0),
+        reverse=True
+    )
+    hazard_options = [label for label, _ in ordered_hazards]
+
     hazard_choice = st.selectbox(
-        "Overlay hazard",
-        ['Fire', 'Flood', 'Wind', 'Winter', 'Seismic'],
+        "Overlay hazard (ranked by this county's risk)",
+        hazard_options,
         key='county_hazard_select'
     )
     hkey = hazard_choice.lower()
@@ -599,12 +614,18 @@ def render_county_spotlight_map(selected_county, risks, target_date):
         marker_line_width=2,
         hovertemplate=f"<b>{selected_norm} County</b><br>{hazard_choice}: %{{z:.1f}}%<extra></extra>",
     ))
-    fig.update_geos(fitbounds="locations", visible=False, bgcolor=COLORS['card_bg'])
+    fig.update_geos(
+        visible=False,
+        bgcolor=COLORS['card_bg'],
+        projection_type='mercator',
+        lonaxis_range=[-125, -116.5],
+        lataxis_range=[45.3, 49.2],
+    )
     fig.update_layout(
         paper_bgcolor=COLORS['card_bg'],
         plot_bgcolor=COLORS['card_bg'],
         margin=dict(l=0, r=0, t=10, b=10),
-        height=380,
+        height=400,
         font=dict(color=COLORS['text_secondary'], family='Inter'),
     )
     st.plotly_chart(fig, use_container_width=True)
@@ -821,7 +842,8 @@ def page_risk_assessment():
     rank_col1, rank_col2 = st.columns([1, 3])
     with rank_col1:
         rank_hazard = st.selectbox("Hazard", [HAZARD_NAMES[h] for h in hazards], index=0, key='rank_hazard')
-        top_n = st.slider("Top N", 5, 39, 10, key='rank_topn')
+        top_n = st.slider("Counties to show", 5, 39, 10, key='rank_topn',
+                          help="Highest-risk counties for the selected hazard, in descending order.")
     with rank_col2:
         rank_key = {v: k for k, v in HAZARD_NAMES.items()}[rank_hazard]
         col = f'{rank_key}_p'
@@ -1049,8 +1071,15 @@ def page_model_info():
     | **USGS Earthquakes** | WA seismic catalog | Seismic event labels |
     | **FEMA** | Disaster declarations (geocoded) | Supplementary validation labels |
     | **GridMET** | Daily gridded weather | Temperature, precipitation, humidity, wind, fire weather (ERC) |
-    | **US Census / CDC SVI** | Demographics & Social Vulnerability | Population, housing density, community resilience factors |
+    | **US Census (TIGER)** | County-level population density | Static demographic feature for exposure weighting |
+    | **NLCD / Land Cover** | Forest & urban fractions, elevation | Static geographic features for terrain-aware inference |
     """)
+
+    st.caption(
+        "Note: AHI v2.5 uses population density as its only demographic feature. "
+        "CDC Social Vulnerability Index (SVI) data was evaluated but not incorporated into the "
+        "training pipeline; it is reserved for future fairness/equity analysis."
+    )
 
 
 # =============================================================================
