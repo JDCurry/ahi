@@ -462,9 +462,9 @@ def render_interpretation_guide(forecast_days):
     with st.expander("How to interpret these numbers", expanded=False):
         st.markdown(f"""
         **What the percentages mean:**
-        - These are **calibrated risk probabilities** for the **{forecast_days}-day forecast window**
-        - They represent the likelihood of hazard conditions based on **25 years of historical patterns** (2000–2025)
-        - Probabilities reflect statewide learned patterns across all 39 WA counties, not solely this county's history
+        - These are **calibrated risk probabilities for a single point-in-time**: conditions on the forecast date ({forecast_days} days from today), not an average across the window
+        - Changing the forecast date changes the target date for inference — different dates have different seasonal weights, so a 7-day and 14-day run can produce different rankings if the window crosses a seasonal transition
+        - Probabilities are based on **25 years of historical patterns** (2000–2025) across all 39 WA counties
         - A county with few historical events can still show elevated risk if current seasonal/geographic conditions match patterns that preceded events elsewhere
 
         **Risk thresholds:**
@@ -666,7 +666,7 @@ def page_quick_predict():
     with col1:
         selected_county = st.selectbox("Select County", COUNTIES, index=COUNTIES.index('King'))
     with col2:
-        forecast_horizon = st.selectbox("Forecast Horizon", ["7 days", "14 days"], index=1)
+        forecast_horizon = st.selectbox("Forecast Date (days out)", ["7 days", "14 days"], index=1)
 
     days = int(forecast_horizon.split()[0])
     today = datetime.now().date()
@@ -692,8 +692,8 @@ def page_quick_predict():
                 <div style="color: {COLORS['text_primary']}; font-size: 1.1em; font-weight: 600;">{selected_county} County, Washington</div>
             </div>
             <div>
-                <div style="color: {COLORS['text_tertiary']}; font-size: 0.85em;">Forecast Window</div>
-                <div style="color: {COLORS['text_primary']}; font-size: 1.1em;">{days} days (through {target_date.strftime('%B %d, %Y')})</div>
+                <div style="color: {COLORS['text_tertiary']}; font-size: 0.85em;">Forecast Date</div>
+                <div style="color: {COLORS['text_primary']}; font-size: 1.1em;">{target_date.strftime('%B %d, %Y')} <span style="color: {COLORS['text_tertiary']}; font-size: 0.85em;">({days}-day outlook)</span></div>
             </div>
             <div>
                 <div style="color: {COLORS['text_tertiary']}; font-size: 0.85em;">Season</div>
