@@ -563,7 +563,7 @@ def render_statewide_choropleth(df, hazard_key, hazard_label):
 
 
 def render_county_spotlight_map(selected_county, risks, target_date):
-    """Small plotly map zoomed on selected county."""
+    """State map with all 39 WA counties shown; selected county highlighted."""
     geojson_data = load_geojson()
     geojson_norm = _normalize_geojson_names(geojson_data)
     if geojson_norm is None:
@@ -588,32 +588,55 @@ def render_county_spotlight_map(selected_county, risks, target_date):
     hkey = hazard_choice.lower()
     sel_prob = risks.get(hkey, 0.0) * 100
 
-    # Build single-county choropleth
-    locs = [selected_norm]
-    zs = [sel_prob]
+    # Collect all county names from the GeoJSON for the background layer
+    all_names = []
+    for feat in geojson_norm.get('features', []):
+        n = feat.get('properties', {}).get('NAME_NORM')
+        if n:
+            all_names.append(n)
 
+    risk_colorscale = [
+        [0.00, '#2d5a3a'],
+        [0.10, '#2d5a3a'],
+        [0.10, '#6b9e7a'],
+        [0.20, '#6b9e7a'],
+        [0.20, '#f59e0b'],
+        [0.35, '#f59e0b'],
+        [0.35, '#f97316'],
+        [0.50, '#f97316'],
+        [0.50, '#dc2626'],
+        [1.00, '#dc2626'],
+    ]
+
+    # Trace 1: all counties as a muted background
+    background_names = [n for n in all_names if n != selected_norm]
     fig = go.Figure(go.Choropleth(
         geojson=geojson_norm,
-        locations=locs,
-        z=zs,
+        locations=background_names,
+        z=[0] * len(background_names),
         featureidkey="properties.NAME_NORM",
-        colorscale=[
-            [0.00, '#2d5a3a'],
-            [0.10, '#2d5a3a'],
-            [0.10, '#6b9e7a'],
-            [0.20, '#6b9e7a'],
-            [0.20, '#f59e0b'],
-            [0.35, '#f59e0b'],
-            [0.35, '#f97316'],
-            [0.50, '#f97316'],
-            [0.50, '#dc2626'],
-            [1.00, '#dc2626'],
-        ],
-        zmin=0, zmax=100, showscale=False,
+        colorscale=[[0, '#2a3140'], [1, '#2a3140']],  # flat dark gray
+        zmin=0, zmax=100,
+        showscale=False,
+        marker_line_color='#4a5568',
+        marker_line_width=1,
+        hovertemplate="<b>%{location} County</b><extra></extra>",
+    ))
+
+    # Trace 2: selected county highlighted with risk color
+    fig.add_trace(go.Choropleth(
+        geojson=geojson_norm,
+        locations=[selected_norm],
+        z=[sel_prob],
+        featureidkey="properties.NAME_NORM",
+        colorscale=risk_colorscale,
+        zmin=0, zmax=100,
+        showscale=False,
         marker_line_color='#e6edf3',
-        marker_line_width=2,
+        marker_line_width=2.5,
         hovertemplate=f"<b>{selected_norm} County</b><br>{hazard_choice}: %{{z:.1f}}%<extra></extra>",
     ))
+
     fig.update_geos(
         visible=False,
         bgcolor=COLORS['card_bg'],
