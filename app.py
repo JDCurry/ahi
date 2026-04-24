@@ -903,9 +903,25 @@ def page_risk_assessment():
     st.caption("Portfolio-level view of model predictions across all 39 Washington counties.")
 
     if 'statewide' not in st.session_state:
-        st.info("Run **Statewide Predictions** first — this tab summarizes those results.")
-        if st.button("Go to Statewide Predictions ▶"):
-            st.session_state['_nav_hint'] = 'statewide'
+        st.info("No statewide predictions yet. Run them now to populate this view.")
+        if st.button("Run Statewide Predictions ▶", type="primary"):
+            target_date = datetime.now().date() + timedelta(days=MAX_FORECAST_DAYS)
+            progress = st.progress(0)
+            status = st.empty()
+
+            def _callback(i, total, county):
+                progress.progress((i + 1) / total)
+                status.text(f"Inferring {county}… ({i+1}/{total})")
+
+            df_sw = predict_all_counties(target_date, progress_callback=_callback)
+            progress.progress(1.0)
+            status.text("Complete.")
+
+            if df_sw is not None and len(df_sw) > 0:
+                st.session_state['statewide'] = df_sw
+                st.rerun()
+            else:
+                st.error("No predictions generated. Check model availability.")
         return
 
     df = st.session_state['statewide'].copy()
