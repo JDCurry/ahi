@@ -102,7 +102,7 @@ RISK_TIERS = [
     (0.10, 0.20, '#6b9e7a', 'Elevated', '10–20%',  'Above baseline — increased awareness recommended'),
     (0.20, 0.35, '#f59e0b', 'Moderate', '20–35%',  'Notable risk — review preparedness plans'),
     (0.35, 0.50, '#f97316', 'High',     '35–50%',  'Significant risk — consider pre-positioning resources'),
-    (0.50, 1.01, '#dc2626', 'Severe',   '> 50%',   'Elevated readiness recommended'),
+    (0.50, 1.01, '#dc2626', 'Severe',   '> 50%',   'Activate operations — emergency response posture'),
 ]
 
 def risk_color(prob):
@@ -123,11 +123,41 @@ HAZARD_NAMES = {
 }
 
 HAZARD_GUIDANCE = {
-    'fire': 'Review evacuation routes. Coordinate with fire districts on resource availability. Assess defensible space near critical facilities. Verify water supply access points.',
-    'flood': 'Inspect drainage systems and culverts. Verify flood gauge monitoring. Pre-stage pumps and sandbags at flood-prone areas. Coordinate road closure plans.',
-    'wind': 'Coordinate with utilities on power line inspections. Secure outdoor equipment. Pre-position generators at critical facilities. Alert manufactured housing communities.',
-    'winter': 'Verify road treatment supplies. Check backup power at warming shelters. Coordinate with WSDOT on plowing priorities. Prepare travel advisory messaging.',
-    'seismic': 'Review structural assessments for critical buildings. Confirm communications redundancy. Verify search and rescue readiness. Review tsunami evacuation routes for coastal areas.',
+    'fire': {
+        'Low':      'Monitor fire weather outlook. Continue standard defensible-space inspection schedule.',
+        'Elevated': 'Increase awareness. Review evacuation routes. Verify water supply access points at critical facilities.',
+        'Moderate': 'Review preparedness. Coordinate with fire districts on resource availability. Confirm mutual-aid agreements.',
+        'High':     'Pre-position resources. Stage suppression assets. Brief incident command. Alert at-risk populations.',
+        'Severe':   'Activate operations. Implement evacuation protocols for highest-risk zones. Confirm shelter capacity.',
+    },
+    'flood': {
+        'Low':      'Routine monitoring of flood gauges. Maintain standard drainage inspection cycle.',
+        'Elevated': 'Inspect drainage systems and culverts. Verify flood gauge telemetry. Review road closure plans.',
+        'Moderate': 'Pre-stage pumps and sandbags at historically flood-prone areas. Brief public works.',
+        'High':     'Deploy mobile pumps. Alert at-risk occupancies in floodplain. Coordinate with WSDOT on closure triggers.',
+        'Severe':   'Activate flood response. Execute pre-planned closures. Open shelters. Coordinate swiftwater rescue posture.',
+    },
+    'wind': {
+        'Low':      'Routine monitoring. No special action required.',
+        'Elevated': 'Increase awareness. Coordinate with utilities on line-inspection schedules. Secure outdoor equipment at critical facilities.',
+        'Moderate': 'Pre-position generators at critical facilities. Alert manufactured-housing communities. Brief utilities.',
+        'High':     'Stage mutual-aid crews for utility response. Pre-position backup power. Review debris-management posture.',
+        'Severe':   'Activate operations. Coordinate widespread outage response. Confirm 911 redundancy and EOC staffing.',
+    },
+    'winter': {
+        'Low':      'Routine monitoring. Verify seasonal readiness of plowing and treatment supplies.',
+        'Elevated': 'Check backup power at warming shelters. Verify road-treatment supply levels.',
+        'Moderate': 'Coordinate with WSDOT on plowing priorities. Prepare travel-advisory messaging templates.',
+        'High':     'Open warming shelters as needed. Pre-position treatment supplies on priority routes. Issue travel advisories.',
+        'Severe':   'Activate cold-weather response. Expand shelter capacity. Coordinate welfare checks on vulnerable populations.',
+    },
+    'seismic': {
+        'Low':      'Baseline seismic risk. Maintain standard preparedness posture.',
+        'Elevated': 'Baseline seismic risk (constant geographic prior). Periodic review of structural assessments for critical buildings recommended.',
+        'Moderate': 'Baseline seismic risk. Confirm communications redundancy and SAR readiness on standard schedule.',
+        'High':     'Baseline seismic risk. Note: AHI does not forecast seismic events — this value reflects geographic risk only.',
+        'Severe':   'Baseline seismic risk. Note: AHI does not forecast seismic events — see USGS for real-time hazard information.',
+    },
 }
 
 # =============================================================================
@@ -446,7 +476,7 @@ def render_risk_summary(risks):
     st.markdown("#### Top Hazards — Recommended Actions")
     for hazard, prob in sorted_risks[:3]:
         level, interpretation = risk_level(prob)
-        guidance = HAZARD_GUIDANCE.get(hazard, '')
+        guidance = HAZARD_GUIDANCE.get(hazard, {}).get(level, '')
         color = COLORS.get(hazard, COLORS['text_primary'])
         st.markdown(f"""
         <div class="risk-section">
@@ -455,6 +485,15 @@ def render_risk_summary(risks):
             <p style="color: {COLORS['text_primary']}; margin: 6px 0 0 0; font-size: 0.9em;"><strong>Suggested actions:</strong> {guidance}</p>
         </div>
         """, unsafe_allow_html=True)
+    st.markdown(
+        f"""<p style="color: {COLORS['text_tertiary']}; font-size: 0.75em;
+        font-style: italic; margin-top: 8px;">
+        Guidance reflects hazard-tier operational doctrine. County-specific resource
+        integration (local fire districts, utility contacts, critical facility registry)
+        is a Phase I Aim 3 deliverable developed in partnership with pilot sites.
+        </p>""",
+        unsafe_allow_html=True
+    )
 
 
 def render_interpretation_guide(forecast_days):
@@ -474,7 +513,7 @@ def render_interpretation_guide(forecast_days):
         | Elevated | 10–20% | Increased awareness |
         | Moderate | 20–35% | Review preparedness |
         | High | 35–50% | Pre-position resources |
-        | Severe | > 50% | Elevated readiness |
+        | Severe | > 50% | Activate operations |
 
         **Important:** AHI uses historical pattern detection, not live weather feeds.
         Predictions reflect seasonal and geographic baselines — always cross-reference with
