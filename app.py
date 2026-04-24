@@ -125,7 +125,7 @@ HAZARD_NAMES = {
 HAZARD_GUIDANCE = {
     'fire': {
         'Low':      'Monitor fire weather outlook. Continue standard defensible-space inspection schedule.',
-        'Elevated': 'Increase awareness. Review evacuation routes. Verify water supply access points at critical facilities.',
+        'Elevated': 'Review evacuation routes. Verify water supply access points at critical facilities.',
         'Moderate': 'Review preparedness. Coordinate with fire districts on resource availability. Confirm mutual-aid agreements.',
         'High':     'Pre-position resources. Stage suppression assets. Brief incident command. Alert at-risk populations.',
         'Severe':   'Activate operations. Implement evacuation protocols for highest-risk zones. Confirm shelter capacity.',
@@ -139,7 +139,7 @@ HAZARD_GUIDANCE = {
     },
     'wind': {
         'Low':      'Routine monitoring. No special action required.',
-        'Elevated': 'Increase awareness. Coordinate with utilities on line-inspection schedules. Secure outdoor equipment at critical facilities.',
+        'Elevated': 'Coordinate with utilities on line-inspection schedules. Secure outdoor equipment at critical facilities.',
         'Moderate': 'Pre-position generators at critical facilities. Alert manufactured-housing communities. Brief utilities.',
         'High':     'Stage mutual-aid crews for utility response. Pre-position backup power. Review debris-management posture.',
         'Severe':   'Activate operations. Coordinate widespread outage response. Confirm 911 redundancy and EOC staffing.',
@@ -158,6 +158,51 @@ HAZARD_GUIDANCE = {
         'High':     'Baseline seismic risk. Note: AHI does not forecast seismic events — this value reflects geographic risk only.',
         'Severe':   'Baseline seismic risk. Note: AHI does not forecast seismic events — see USGS for real-time hazard information.',
     },
+}
+
+# Primary utility by county (wind/winter guidance only).
+# Sourced from WA UTC service territory maps and county PUD records.
+# Two entries = split territory; first listed is dominant by population served.
+COUNTY_UTILITY = {
+    'Adams':       'Pacific Power / Big Bend Electric Co-op',
+    'Asotin':      'Pacific Power / Asotin County PUD',
+    'Benton':      'Benton PUD / Pacific Power',
+    'Chelan':      'Chelan PUD',
+    'Clallam':     'Clallam County PUD',
+    'Clark':       'Clark Public Utilities / Pacific Power',
+    'Columbia':    'Pacific Power / Columbia REA',
+    'Cowlitz':     'Cowlitz PUD / Pacific Power',
+    'Douglas':     'Douglas County PUD',
+    'Ferry':       'Ferry County PUD / Inland Power & Light',
+    'Franklin':    'Franklin PUD',
+    'Garfield':    'Pacific Power / Columbia REA',
+    'Grant':       'Grant County PUD',
+    'Grays Harbor':'Grays Harbor PUD',
+    'Island':      'Puget Sound Energy (PSE)',
+    'Jefferson':   'Jefferson County PUD',
+    'King':        'Seattle City Light (Seattle) / Puget Sound Energy (remainder)',
+    'Kitsap':      'Puget Sound Energy (PSE)',
+    'Kittitas':    'Puget Sound Energy (west) / Pacific Power (east)',
+    'Klickitat':   'Pacific Power / Klickitat PUD',
+    'Lewis':       'Pacific Power / Puget Sound Energy',
+    'Lincoln':     'Inland Power & Light / Lincoln Electric Co-op',
+    'Mason':       'Mason County PUD',
+    'Okanogan':    'Okanogan County PUD',
+    'Pacific':     'Pacific County PUD',
+    'Pend Oreille':'Pend Oreille County PUD / Avista',
+    'Pierce':      'Puget Sound Energy (PSE) / Tacoma Public Utilities',
+    'San Juan':    'San Juan County PUD',
+    'Skagit':      'Puget Sound Energy (PSE)',
+    'Skamania':    'Pacific Power / Skamania County PUD',
+    'Snohomish':   'Snohomish County PUD (SnoPUD)',
+    'Spokane':     'Avista Utilities',
+    'Stevens':     'Avista Utilities / Inland Power & Light',
+    'Thurston':    'Puget Sound Energy (PSE)',
+    'Wahkiakum':   'Wahkiakum County PUD',
+    'Walla Walla': 'Pacific Power / City of Walla Walla utilities',
+    'Whatcom':     'Puget Sound Energy (PSE)',
+    'Whitman':     'Pacific Power / Avista',
+    'Yakima':      'Pacific Power',
 }
 
 # =============================================================================
@@ -471,12 +516,16 @@ def render_hazard_cards(risks):
             """, unsafe_allow_html=True)
 
 
-def render_risk_summary(risks):
+def render_risk_summary(risks, county=''):
     sorted_risks = sorted(risks.items(), key=lambda x: x[1], reverse=True)
     st.markdown("#### Top Hazards — Recommended Actions")
     for hazard, prob in sorted_risks[:3]:
         level, interpretation = risk_level(prob)
         guidance = HAZARD_GUIDANCE.get(hazard, {}).get(level, '')
+        # Append county utility contact for wind/winter at Elevated tier and above
+        if hazard in ('wind', 'winter') and level != 'Low' and county:
+            utility = COUNTY_UTILITY.get(county, 'contact local utility provider')
+            guidance = f"{guidance} Primary utility: {utility}."
         color = COLORS.get(hazard, COLORS['text_primary'])
         st.markdown(f"""
         <div class="risk-section">
@@ -488,9 +537,10 @@ def render_risk_summary(risks):
     st.markdown(
         f"""<p style="color: {COLORS['text_tertiary']}; font-size: 0.75em;
         font-style: italic; margin-top: 8px;">
-        Guidance reflects hazard-tier operational doctrine. County-specific resource
-        integration (local fire districts, utility contacts, critical facility registry)
-        is a Phase I Aim 3 deliverable developed in partnership with pilot sites.
+        Guidance reflects hazard-tier operational doctrine. Fire, flood, and seismic
+        county-specific resource integration (local fire districts, flood authorities,
+        critical facility registry) is a Phase I Aim 3 deliverable developed in
+        partnership with pilot sites.
         </p>""",
         unsafe_allow_html=True
     )
@@ -777,7 +827,7 @@ def page_quick_predict():
             render_primary_risk_callout(last['risks'])
             render_hazard_cards(last['risks'])
             st.markdown("")
-            render_risk_summary(last['risks'])
+            render_risk_summary(last['risks'], county=last.get('county', ''))
             st.markdown("---")
             with st.expander("County Spotlight Map", expanded=False):
                 render_county_spotlight_map(selected_county, last['risks'], last.get('date'))
