@@ -31,6 +31,15 @@ Thumbs.db
 .env
 *.local
 
-# Training pipeline (private)
+# Training pipeline (private — Resilience Analytics Lab IP)
 train_ahi_v2.py
 export_onnx.py
+
+# Model architecture source (private IP)
+ahi_v2_model.py
+ahi_v2_graph.py
+hazard_lm_diffusion.py
+
+# PyTorch weights (private — use model.onnx for deployment)
+*.pt
+outputs/ahi_v2/best_model.pt
