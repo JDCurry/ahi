@@ -107,6 +107,24 @@ Phase I goal: integrate live NOAA/NWS weather feeds to transition from historica
 
 ---
 
+## Research
+
+AHI's architecture is grounded in a series of papers on heat kernel attention and topological computation. All papers are authored by Joshua D. Curry and available on SSRN.
+
+**Diffusion Attention: Replacing Softmax with Heat Kernel Dynamics**
+Proposes replacing the softmax operation in transformer attention with a heat kernel diffusion process, proving that standard softmax attention is a special case of a broader family of diffusion-based attention mechanisms. This is the theoretical foundation for the temporal mesh used in AHI.
+[https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5953096](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5953096)
+
+**Heat Kernel Attention: Provable Sparsity via Diffusion Dynamics**
+Reformulates attention as heat diffusion on a discrete sequence graph, introducing a positional decay term that enforces locality with mathematical guarantees on attention propagation. Directly informs the sparsity and locality properties of AHI's temporal attention layers.
+[https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5959898](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5959898)
+
+**Simplicial Computation: Topology as a Control Variable**
+Introduces a framework in which mesh topology is dynamically reconfigured to enforce a spatially-varying target timescale. Treats topology itself as a control variable that influences solution evolution rates, extending the mesh computation concepts applied in AHI's stacked spatial-temporal design.
+[https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6037977](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6037977)
+
+---
+
 ## License
 
 MIT License. See `LICENSE` for details.
