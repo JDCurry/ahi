@@ -333,9 +333,22 @@ def generate_audit_report(county: str, forecast_date_str: str,
         f"not a cumulative probability across {horizon_days} days.",
     ]
 
+    # Ranking stability classification
+    if margin < 0.02:
+        ranking_stability = "Low separation — multiple hazards are within close range and should all be monitored."
+    elif margin < 0.05:
+        ranking_stability = "Moderate separation — primary hazard leads, but the secondary hazard warrants active attention."
+    else:
+        ranking_stability = "Clear separation — primary hazard is dominant in this forecast."
+
+    from datetime import datetime as _dt2
+    generated_ts = _dt2.utcnow().strftime('%Y-%m-%d %H:%M UTC')
+
     return {
-        "model_version": MODEL_VERSION,
-        "data_version":  DATA_VERSION,
+        "model_version":   MODEL_VERSION,
+        "data_version":    DATA_VERSION,
+        "forecast_type":   "Point-in-time calibrated risk estimate",
+        "generated":       generated_ts,
         "county":          county,
         "forecast_date":   forecast_date_str,
         "horizon_days":    horizon_days,
@@ -348,9 +361,10 @@ def generate_audit_report(county: str, forecast_date_str: str,
              "percent": f"{s*100:.1f}%"}
             for h, s in ranked
         ],
-        "ranking_note":   ranking_note,
-        "top_factors":    factors,
-        "limitations":    limitations,
+        "ranking_note":       ranking_note,
+        "ranking_stability":  ranking_stability,
+        "top_factors":        factors,
+        "limitations":        limitations,
     }
 
 
@@ -379,7 +393,7 @@ def render_decision_audit(audit: dict):
 
         # Ranking context
         st.markdown(f"""
-        <div style="margin-bottom:12px;">
+        <div style="margin-bottom:8px;">
           <div style="color:{COLORS['text_tertiary']}; font-size:0.8em; font-weight:600;
                text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">
             Ranking context
@@ -390,6 +404,22 @@ def render_decision_audit(audit: dict):
         </div>
         """, unsafe_allow_html=True)
 
+        # Ranking stability
+        stability = audit.get('ranking_stability', '')
+        if stability:
+            st.markdown(f"""
+            <div style="margin-bottom:12px; padding:6px 10px;
+                 background:{COLORS['elevated_bg']}; border-radius:4px;
+                 border-left:2px solid {COLORS['text_tertiary']};">
+              <span style="color:{COLORS['text_tertiary']}; font-size:0.75em;
+                    font-weight:600; text-transform:uppercase;
+                    letter-spacing:0.05em;">Ranking stability &nbsp;·&nbsp; </span>
+              <span style="color:{COLORS['text_secondary']}; font-size:0.82em;">
+                {stability}
+              </span>
+            </div>
+            """, unsafe_allow_html=True)
+
         # Full ranking table
         cols = st.columns(len(audit['hazard_ranking']))
         for col, entry in zip(cols, audit['hazard_ranking']):
@@ -397,11 +427,11 @@ def render_decision_audit(audit: dict):
 
         st.markdown("<hr style='border-color:#333; margin:12px 0;'>", unsafe_allow_html=True)
 
-        # Likely contributors
+        # Audit Factors
         st.markdown(f"""
         <div style="color:{COLORS['text_tertiary']}; font-size:0.8em; font-weight:600;
              text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">
-          Likely contributors
+          Audit Factors
         </div>
         """, unsafe_allow_html=True)
         for f in audit['top_factors']:
@@ -431,11 +461,30 @@ def render_decision_audit(audit: dict):
                 unsafe_allow_html=True
             )
 
-        # Model/data version trace
+        # Operational caveat
         st.markdown(f"""
-        <div style="margin-top:12px; color:{COLORS['text_tertiary']}; font-size:0.75em;
-             font-style:italic;">
-          Model: {audit['model_version']} &nbsp;|&nbsp; Data: {audit['data_version']}
+        <div style="margin-top:10px; padding:8px 12px;
+             background:{COLORS['elevated_bg']}; border-radius:4px;
+             border-left:3px solid {COLORS['primary']};">
+          <span style="color:{COLORS['text_secondary']}; font-size:0.84em;">
+            <strong style="color:{COLORS['primary_light']};">Operational caveat:</strong>
+            Use this output alongside current NWS watches/warnings, local observations,
+            and agency-specific thresholds. It does not replace official forecasts or
+            on-the-ground situational awareness.
+          </span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Model/data trace — expanded 4-field block
+        st.markdown(f"""
+        <div style="margin-top:14px; padding:8px 12px;
+             background:{COLORS['card_bg']}; border-radius:4px;
+             color:{COLORS['text_tertiary']}; font-size:0.74em; font-style:italic;
+             line-height:1.7;">
+          <strong style="font-style:normal;">Model version:</strong> {audit['model_version']}<br>
+          <strong style="font-style:normal;">Data basis:</strong> {audit['data_version']}<br>
+          <strong style="font-style:normal;">Forecast type:</strong> {audit.get('forecast_type', 'Point-in-time calibrated risk estimate')}<br>
+          <strong style="font-style:normal;">Generated:</strong> {audit.get('generated', '—')}
         </div>
         """, unsafe_allow_html=True)
 
