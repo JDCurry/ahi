@@ -206,6 +206,243 @@ COUNTY_UTILITY = {
 }
 
 # =============================================================================
+# AUDIT LAYER — versioning, factor templates, report generation
+# =============================================================================
+
+MODEL_VERSION = "AHI v2.5"
+DATA_VERSION  = "NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025"
+
+_MONTH_TO_SEASON = {
+    12: 'winter', 1: 'winter',  2: 'winter',
+     3: 'spring', 4: 'spring',  5: 'spring',
+     6: 'summer', 7: 'summer',  8: 'summer',
+     9: 'fall',  10: 'fall',   11: 'fall',
+}
+
+# Rule-based seasonal factor explanations, keyed (hazard, season).
+_AUDIT_FACTORS = {
+    ('fire',   'summer'): "Peak fire season in Washington — elevated fuel aridity and low humidity historically precede fire events in summer months.",
+    ('fire',   'spring'): "Spring transition: drying vegetation and variable winds can elevate fire risk, though below the summer peak.",
+    ('fire',   'fall'):   "Post-summer fuel loads and early dry periods can sustain fire risk into October across eastern and central WA.",
+    ('fire',   'winter'): "Winter fire risk is suppressed by the learned seasonal bias; this ranking reflects residual geographic patterns.",
+    ('flood',  'spring'): "Spring snowmelt from the Cascades is a primary flood driver — historically the highest flood-rate period across western WA.",
+    ('flood',  'winter'): "Atmospheric river events drive winter flooding in western Washington; historically the highest-risk season for flood declarations.",
+    ('flood',  'fall'):   "Early-season rainfall on dry soils and initial Pacific storm systems begin elevating flood potential.",
+    ('flood',  'summer'): "Summer flood risk is generally low; elevated values may reflect downstream snowmelt or isolated convective systems.",
+    ('wind',   'fall'):   "Fall transition storms and Puget Sound convergence zones historically produce the most frequent high-wind events in WA.",
+    ('wind',   'winter'): "Winter Pacific storm systems deliver the most severe wind events along the WA coast and lowland corridors.",
+    ('wind',   'spring'): "Spring transitional wind variability is moderate; below fall/winter peak but above summer baseline.",
+    ('wind',   'summer'): "Summer wind risk is generally low; elevated values may reflect thermal patterns or convective activity in eastern WA.",
+    ('winter', 'winter'): "Peak winter storm season — snow, ice, and freezing rain events are historically concentrated in December–February.",
+    ('winter', 'fall'):   "Early-season winter storm risk — the model detects patterns consistent with late-fall snow and ice events, particularly at elevation.",
+    ('winter', 'spring'): "Late-season winter storm risk — March/April can still produce significant snow events, especially in the Cascades foothills.",
+    ('winter', 'summer'): "Summer winter storm risk is near-zero; the learned seasonal bias suppresses this head; value reflects residual calibration only.",
+    ('seismic', 'winter'): "Seismic risk reflects geographic proximity to the Cascadia subduction zone and crustal fault systems — not weather conditions.",
+    ('seismic', 'spring'): "Seismic risk reflects geographic proximity to the Cascadia subduction zone and crustal fault systems — not weather conditions.",
+    ('seismic', 'summer'): "Seismic risk reflects geographic proximity to the Cascadia subduction zone and crustal fault systems — not weather conditions.",
+    ('seismic', 'fall'):   "Seismic risk reflects geographic proximity to the Cascadia subduction zone and crustal fault systems — not weather conditions.",
+}
+
+
+def generate_audit_report(county: str, forecast_date_str: str,
+                          risks: dict, horizon_days: int) -> dict:
+    """
+    Build a structured audit record for a single county prediction.
+    Tier 1 (rule-based): no ML explainability required.
+    """
+    from datetime import datetime as _dt
+    try:
+        fdate = _dt.fromisoformat(forecast_date_str)
+        month = fdate.month
+        season = _MONTH_TO_SEASON.get(month, 'spring')
+        date_display = fdate.strftime('%B %d, %Y')
+        month_name = fdate.strftime('%B')
+    except Exception:
+        month, season, date_display, month_name = 4, 'spring', forecast_date_str, 'April'
+
+    ranked = sorted(risks.items(), key=lambda x: x[1], reverse=True)
+    primary_key, primary_score = ranked[0]
+    second_key,  second_score  = ranked[1] if len(ranked) > 1 else ('', 0.0)
+    margin = primary_score - second_score
+    level, _ = risk_level(primary_score)
+
+    # Ranking / close-call note
+    primary_name = HAZARD_NAMES.get(primary_key, primary_key)
+    second_name  = HAZARD_NAMES.get(second_key,  second_key)
+    if margin < 0.02:
+        ranking_note = (
+            f"{primary_name} leads the ranking by only {margin*100:.1f} percentage points over "
+            f"{second_name}. Treat both as comparable elevated concerns — do not treat this as "
+            f"a single definitive priority."
+        )
+    elif margin < 0.05:
+        ranking_note = (
+            f"{primary_name} leads by {margin*100:.1f} percentage points. "
+            f"{second_name} should be monitored as a close secondary concern."
+        )
+    else:
+        ranking_note = (
+            f"{primary_name} is the clear primary hazard, leading by "
+            f"{margin*100:.1f} percentage points."
+        )
+
+    # Top factors
+    seasonal_text = _AUDIT_FACTORS.get(
+        (primary_key, season),
+        f"Historical {month_name} patterns for {primary_name.lower()} risk in Washington State informed this prediction.",
+    )
+    if primary_key == 'seismic':
+        factors = [
+            {"factor": "Geographic risk baseline",
+             "explanation": seasonal_text},
+            {"factor": "Model limitation",
+             "explanation": "AHI cannot predict individual earthquake events. "
+                            "The seismic value is a calibrated long-run background risk. "
+                            "Cross-reference USGS hazard maps for authoritative seismic exposure data."},
+        ]
+    else:
+        factors = [
+            {"factor": "Seasonal pattern",
+             "explanation": seasonal_text},
+            {"factor": "Geographic context",
+             "explanation": f"{county} County's location, elevation, and land-cover profile "
+                            f"contribute to its baseline {primary_name.lower()} risk relative to "
+                            f"other WA counties. These static features are baked into the model's learned weights."},
+            {"factor": "Regional spatial signal",
+             "explanation": "Neighboring county patterns are incorporated via the spatial attention "
+                            "mesh. Cross-county phenomena — atmospheric rivers, smoke drift, watershed "
+                            "drainage — influence the regional ranking even for the focal county."},
+        ]
+
+    limitations = [
+        f"AHI uses historical pattern detection ({DATA_VERSION.split(',')[1].strip() if ',' in DATA_VERSION else '2000–2025'}), "
+        "not live weather feeds. Results reflect seasonal and geographic baselines.",
+        "This output is a decision-support tool, not an official forecast. Cross-reference with "
+        "current NWS watches, warnings, and local situational awareness before operational action.",
+        f"Risk probability is a calibrated point-in-time estimate for {date_display} — "
+        f"not a cumulative probability across {horizon_days} days.",
+    ]
+
+    return {
+        "model_version": MODEL_VERSION,
+        "data_version":  DATA_VERSION,
+        "county":          county,
+        "forecast_date":   forecast_date_str,
+        "horizon_days":    horizon_days,
+        "season":          season,
+        "primary_hazard":  primary_name,
+        "risk_probability": round(primary_score, 4),
+        "risk_level":       level,
+        "hazard_ranking": [
+            {"hazard": HAZARD_NAMES.get(h, h), "probability": round(s, 4),
+             "percent": f"{s*100:.1f}%"}
+            for h, s in ranked
+        ],
+        "ranking_note":   ranking_note,
+        "top_factors":    factors,
+        "limitations":    limitations,
+    }
+
+
+def render_decision_audit(audit: dict):
+    """Render the audit record as a collapsible UI section with JSON export."""
+    import json as _json
+    primary = audit['primary_hazard']
+    level   = audit['risk_level']
+    county  = audit['county']
+    prob    = audit['risk_probability'] * 100
+
+    with st.expander("Decision Audit", expanded=False):
+        # Header summary
+        st.markdown(f"""
+        <div style="background:{COLORS['card_bg']}; border-left:3px solid {COLORS['text_tertiary']};
+             padding:12px 16px; border-radius:4px; margin-bottom:12px;">
+          <div style="color:{COLORS['text_tertiary']}; font-size:0.75em; text-transform:uppercase;
+               letter-spacing:0.05em;">Primary result</div>
+          <div style="color:{COLORS['text_primary']}; font-size:1em; margin-top:4px;">
+            <strong>{primary}</strong> is the top-ranked hazard for {county} County on
+            {audit['forecast_date']} with an estimated probability of
+            <strong>{prob:.1f}%</strong> ({level}).
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Ranking context
+        st.markdown(f"""
+        <div style="margin-bottom:12px;">
+          <div style="color:{COLORS['text_tertiary']}; font-size:0.8em; font-weight:600;
+               text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">
+            Ranking context
+          </div>
+          <div style="color:{COLORS['text_secondary']}; font-size:0.9em;">
+            {audit['ranking_note']}
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Full ranking table
+        cols = st.columns(len(audit['hazard_ranking']))
+        for col, entry in zip(cols, audit['hazard_ranking']):
+            col.metric(entry['hazard'], entry['percent'])
+
+        st.markdown("<hr style='border-color:#333; margin:12px 0;'>", unsafe_allow_html=True)
+
+        # Likely contributors
+        st.markdown(f"""
+        <div style="color:{COLORS['text_tertiary']}; font-size:0.8em; font-weight:600;
+             text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">
+          Likely contributors
+        </div>
+        """, unsafe_allow_html=True)
+        for f in audit['top_factors']:
+            st.markdown(f"""
+            <div style="margin-bottom:8px; padding-left:12px;
+                 border-left:2px solid {COLORS['text_tertiary']};">
+              <span style="color:{COLORS['text_primary']}; font-size:0.85em;
+                    font-weight:600;">{f['factor']}</span>
+              <span style="color:{COLORS['text_secondary']}; font-size:0.85em;">
+                — {f['explanation']}</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<hr style='border-color:#333; margin:12px 0;'>", unsafe_allow_html=True)
+
+        # Limitations
+        st.markdown(f"""
+        <div style="color:{COLORS['text_tertiary']}; font-size:0.8em; font-weight:600;
+             text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">
+          Limitations
+        </div>
+        """, unsafe_allow_html=True)
+        for lim in audit['limitations']:
+            st.markdown(
+                f'<div style="color:{COLORS["text_secondary"]}; font-size:0.82em; '
+                f'margin-bottom:6px;">• {lim}</div>',
+                unsafe_allow_html=True
+            )
+
+        # Model/data version trace
+        st.markdown(f"""
+        <div style="margin-top:12px; color:{COLORS['text_tertiary']}; font-size:0.75em;
+             font-style:italic;">
+          Model: {audit['model_version']} &nbsp;|&nbsp; Data: {audit['data_version']}
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("<hr style='border-color:#333; margin:12px 0;'>", unsafe_allow_html=True)
+
+        # Export
+        audit_json = _json.dumps(audit, indent=2)
+        st.download_button(
+            label="⬇ Download audit record (JSON)",
+            data=audit_json,
+            file_name=f"ahi_audit_{county.lower().replace(' ', '_')}_{audit['forecast_date']}.json",
+            mime="application/json",
+            use_container_width=False,
+        )
+
+
+# =============================================================================
 # CSS
 # =============================================================================
 
@@ -813,11 +1050,15 @@ def page_quick_predict():
             status.info("Applying calibration (temperature scaling + seasonal bias)…")
             time.sleep(0.15)
             status.empty()
+            audit = generate_audit_report(
+                selected_county, str(target_date), risks, days
+            )
             st.session_state['last_prediction'] = {
                 'county': selected_county,
                 'date': str(target_date),
                 'risks': risks,
-                'horizon': days
+                'horizon': days,
+                'audit': audit,
             }
 
     if 'last_prediction' in st.session_state:
@@ -831,6 +1072,8 @@ def page_quick_predict():
             st.markdown("---")
             with st.expander("County Spotlight Map", expanded=False):
                 render_county_spotlight_map(selected_county, last['risks'], last.get('date'))
+            if 'audit' in last:
+                render_decision_audit(last['audit'])
             render_interpretation_guide(last.get('horizon', days))
 
 
