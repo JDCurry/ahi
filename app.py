@@ -269,21 +269,31 @@ def generate_audit_report(county: str, forecast_date_str: str,
     # Ranking / close-call note
     primary_name = HAZARD_NAMES.get(primary_key, primary_key)
     second_name  = HAZARD_NAMES.get(second_key,  second_key)
+
+    def _pp(m: float) -> str:
+        """Format a probability margin as a readable 'percentage point(s)' string."""
+        pct = m * 100
+        if pct < 1.0:
+            return "less than 1 percentage point"
+        elif round(pct, 1) == 1.0:
+            return "1 percentage point"
+        else:
+            return f"{pct:.1f} percentage points"
+
     if margin < 0.02:
         ranking_note = (
-            f"{primary_name} leads the ranking by only {margin*100:.1f} percentage points over "
+            f"{primary_name} leads the ranking by only {_pp(margin)} over "
             f"{second_name}. Treat both as comparable elevated concerns — do not treat this as "
             f"a single definitive priority."
         )
     elif margin < 0.05:
         ranking_note = (
-            f"{primary_name} leads by {margin*100:.1f} percentage points. "
+            f"{primary_name} leads by {_pp(margin)}. "
             f"{second_name} should be monitored as a close secondary concern."
         )
     else:
         ranking_note = (
-            f"{primary_name} is the clear primary hazard, leading by "
-            f"{margin*100:.1f} percentage points."
+            f"{primary_name} is the clear primary hazard, leading by {_pp(margin)}."
         )
 
     # Top factors
