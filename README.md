@@ -17,7 +17,7 @@ The system is designed to support emergency management decision-making at the co
 
 The AHI dashboard is deployed and accessible at:
 
-**[https://ahi.onrender.com](https://ahi.onrender.com)**
+**[https://ahi.run](https://ahi.run)**
 
 The dashboard provides:
 
