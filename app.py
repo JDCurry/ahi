@@ -1171,14 +1171,24 @@ def page_statewide():
     df = st.session_state['statewide']
     hazards = ['fire', 'flood', 'wind', 'winter', 'seismic']
 
+    # Keep as floats (0–100 range) so column-header click sorts numerically.
+    # st.column_config.NumberColumn handles the "%" suffix at render time.
+    # (Previous version stored "10.4%" as a string, causing alphabetical sort
+    # like 1.x% < 10.x% < 11.x% < 2.x% — the bug users were noticing.)
     display = df.copy()
     for h in hazards:
         col = f'{h}_p'
         if col in display.columns:
-            display[h.title()] = (display[col] * 100).round(1).astype(str) + '%'
+            display[h.title()] = (display[col] * 100).round(1)
     st.dataframe(
         display[['county'] + [h.title() for h in hazards]].rename(columns={'county': 'County'}),
-        use_container_width=True, hide_index=True
+        use_container_width=True, hide_index=True,
+        column_config={
+            h.title(): st.column_config.NumberColumn(
+                h.title(), format="%.1f%%",
+            )
+            for h in hazards
+        },
     )
 
     csv = df.to_csv(index=False)
@@ -1257,13 +1267,23 @@ def page_risk_assessment():
         idx_max = df[col].idxmax()
         hazard_rows.append({
             'Hazard': HAZARD_NAMES[h],
-            'Statewide Mean': f"{df[col].mean()*100:.1f}%",
-            'Median': f"{df[col].median()*100:.1f}%",
-            'Max': f"{df[col].max()*100:.1f}%",
+            # Floats so column-header sort works numerically; column_config below
+            # handles "%" suffix display.
+            'Statewide Mean': round(df[col].mean() * 100, 1),
+            'Median':         round(df[col].median() * 100, 1),
+            'Max':            round(df[col].max() * 100, 1),
             'Highest County': df.loc[idx_max, 'county'],
             'Counties ≥ 20%': int((df[col] >= 0.20).sum()),
         })
-    st.dataframe(pd.DataFrame(hazard_rows), use_container_width=True, hide_index=True)
+    st.dataframe(
+        pd.DataFrame(hazard_rows),
+        use_container_width=True, hide_index=True,
+        column_config={
+            'Statewide Mean': st.column_config.NumberColumn('Statewide Mean', format="%.1f%%"),
+            'Median':         st.column_config.NumberColumn('Median',         format="%.1f%%"),
+            'Max':            st.column_config.NumberColumn('Max',            format="%.1f%%"),
+        },
+    )
 
     st.markdown("---")
 
