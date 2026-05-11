@@ -1,0 +1,207 @@
+state_code: UT
+state_name: Utah
+region: mountain_west
+default_county: Salt Lake
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -113.82
+  - -109.19
+  lat:
+  - 36.93
+  - 42.08
+geojson_county_property: NAME
+county_coords:
+  Beaver:
+  - 38.3577
+  - -113.2356
+  Box Elder:
+  - 41.5211
+  - -113.0826
+  Cache:
+  - 41.7221
+  - -111.7434
+  Carbon:
+  - 39.6485
+  - -110.5887
+  Daggett:
+  - 40.8876
+  - -109.5076
+  Davis:
+  - 40.9901
+  - -112.1113
+  Duchesne:
+  - 40.2974
+  - -110.4253
+  Emery:
+  - 38.996
+  - -110.7005
+  Garfield:
+  - 37.8563
+  - -111.444
+  Grand:
+  - 38.9813
+  - -109.5698
+  Iron:
+  - 37.8595
+  - -113.2895
+  Juab:
+  - 39.7044
+  - -112.7842
+  Kane:
+  - 37.2862
+  - -111.8883
+  Millard:
+  - 39.0735
+  - -113.101
+  Morgan:
+  - 41.0891
+  - -111.5735
+  Piute:
+  - 38.3366
+  - -112.1271
+  Rich:
+  - 41.6315
+  - -111.2444
+  Salt Lake:
+  - 40.6672
+  - -111.9236
+  San Juan:
+  - 37.6246
+  - -109.8069
+  Sanpete:
+  - 39.3734
+  - -111.5769
+  Sevier:
+  - 38.7478
+  - -111.8048
+  Summit:
+  - 40.8686
+  - -110.9561
+  Tooele:
+  - 40.4484
+  - -113.131
+  Uintah:
+  - 40.1229
+  - -109.5187
+  Utah:
+  - 40.1198
+  - -111.6697
+  Wasatch:
+  - 40.3304
+  - -111.1677
+  Washington:
+  - 37.2805
+  - -113.5045
+  Wayne:
+  - 38.3254
+  - -110.9036
+  Weber:
+  - 41.27
+  - -111.9137
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

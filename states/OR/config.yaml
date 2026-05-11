@@ -1,0 +1,228 @@
+state_code: OR
+state_name: Oregon
+region: pnw
+default_county: Multnomah
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -124.78
+  - -116.62
+  lat:
+  - 42.07
+  - 46.32
+geojson_county_property: NAME
+county_coords:
+  Baker:
+  - 44.709
+  - -117.6764
+  Benton:
+  - 44.4916
+  - -123.4295
+  Clackamas:
+  - 45.1879
+  - -122.2207
+  Clatsop:
+  - 46.0173
+  - -123.7169
+  Columbia:
+  - 45.9436
+  - -123.0881
+  Coos:
+  - 43.1845
+  - -124.0933
+  Crook:
+  - 44.142
+  - -120.3557
+  Curry:
+  - 42.4656
+  - -124.2146
+  Deschutes:
+  - 43.915
+  - -121.2269
+  Douglas:
+  - 43.2848
+  - -123.1779
+  Gilliam:
+  - 45.3776
+  - -120.2105
+  Grant:
+  - 44.4905
+  - -119.0075
+  Harney:
+  - 43.0597
+  - -118.9666
+  Hood River:
+  - 45.5188
+  - -121.6511
+  Jackson:
+  - 42.4314
+  - -122.7289
+  Jefferson:
+  - 44.6297
+  - -121.1764
+  Josephine:
+  - 42.365
+  - -123.5555
+  Klamath:
+  - 42.6835
+  - -121.6493
+  Lake:
+  - 42.7907
+  - -120.3843
+  Lane:
+  - 43.9423
+  - -122.8753
+  Lincoln:
+  - 44.6451
+  - -123.9077
+  Linn:
+  - 44.4889
+  - -122.5344
+  Malheur:
+  - 43.186
+  - -117.623
+  Marion:
+  - 44.9035
+  - -122.5837
+  Morrow:
+  - 45.4181
+  - -119.5837
+  Multnomah:
+  - 45.5471
+  - -122.4148
+  Polk:
+  - 44.9035
+  - -123.4133
+  Sherman:
+  - 45.4048
+  - -120.6895
+  Tillamook:
+  - 45.4561
+  - -123.759
+  Umatilla:
+  - 45.591
+  - -118.7374
+  Union:
+  - 45.3097
+  - -118.009
+  Wallowa:
+  - 45.5791
+  - -117.1803
+  Wasco:
+  - 45.1593
+  - -121.1675
+  Washington:
+  - 45.56
+  - -123.098
+  Wheeler:
+  - 44.7256
+  - -120.0272
+  Yamhill:
+  - 45.2326
+  - -123.3084
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

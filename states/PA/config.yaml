@@ -1,0 +1,321 @@
+state_code: PA
+state_name: Pennsylvania
+region: northeast
+default_county: Philadelphia
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -80.77
+  - -74.61
+  lat:
+  - 39.55
+  - 42.42
+geojson_county_property: NAME
+county_coords:
+  Adams:
+  - 39.8714
+  - -77.2179
+  Allegheny:
+  - 40.4687
+  - -79.9812
+  Armstrong:
+  - 40.8119
+  - -79.4646
+  Beaver:
+  - 40.6821
+  - -80.3494
+  Bedford:
+  - 40.0062
+  - -78.4904
+  Berks:
+  - 40.4162
+  - -75.9259
+  Blair:
+  - 40.4809
+  - -78.3484
+  Bradford:
+  - 41.7886
+  - -76.5154
+  Bucks:
+  - 40.3368
+  - -75.1064
+  Butler:
+  - 40.9118
+  - -79.9134
+  Cambria:
+  - 40.495
+  - -78.7137
+  Cameron:
+  - 41.4367
+  - -78.2037
+  Carbon:
+  - 40.9181
+  - -75.7089
+  Centre:
+  - 40.919
+  - -77.8201
+  Chester:
+  - 39.973
+  - -75.7487
+  Clarion:
+  - 41.1922
+  - -79.4211
+  Clearfield:
+  - 40.9999
+  - -78.4744
+  Clinton:
+  - 41.2339
+  - -77.638
+  Columbia:
+  - 41.0484
+  - -76.4051
+  Crawford:
+  - 41.6848
+  - -80.1064
+  Cumberland:
+  - 40.1637
+  - -77.2657
+  Dauphin:
+  - 40.4152
+  - -76.7794
+  Delaware:
+  - 39.9168
+  - -75.3989
+  Elk:
+  - 41.4251
+  - -78.6489
+  Erie:
+  - 42.1173
+  - -80.0982
+  Fayette:
+  - 39.92
+  - -79.6475
+  Forest:
+  - 41.5131
+  - -79.236
+  Franklin:
+  - 39.9272
+  - -77.7213
+  Fulton:
+  - 39.9252
+  - -78.1129
+  Greene:
+  - 39.8538
+  - -80.2229
+  Huntingdon:
+  - 40.4165
+  - -77.9812
+  Indiana:
+  - 40.6518
+  - -79.0878
+  Jefferson:
+  - 41.128
+  - -78.9994
+  Juniata:
+  - 40.5311
+  - -77.4026
+  Lackawanna:
+  - 41.4365
+  - -75.6092
+  Lancaster:
+  - 40.0423
+  - -76.2476
+  Lawrence:
+  - 40.9912
+  - -80.3347
+  Lebanon:
+  - 40.3672
+  - -76.4576
+  Lehigh:
+  - 40.6127
+  - -75.5922
+  Luzerne:
+  - 41.1769
+  - -75.9892
+  Lycoming:
+  - 41.3434
+  - -77.0642
+  Mckean:
+  - 41.8077
+  - -78.5691
+  Mercer:
+  - 41.3021
+  - -80.2577
+  Mifflin:
+  - 40.6103
+  - -77.6174
+  Monroe:
+  - 41.058
+  - -75.3396
+  Montgomery:
+  - 40.2108
+  - -75.367
+  Montour:
+  - 41.0279
+  - -76.6585
+  Northampton:
+  - 40.7541
+  - -75.3077
+  Northumberland:
+  - 40.8517
+  - -76.7093
+  Perry:
+  - 40.3984
+  - -77.2626
+  Philadelphia:
+  - 40.0075
+  - -75.1343
+  Pike:
+  - 41.3319
+  - -75.0338
+  Potter:
+  - 41.7447
+  - -77.8958
+  Schuylkill:
+  - 40.7058
+  - -76.2162
+  Snyder:
+  - 40.7699
+  - -77.0702
+  Somerset:
+  - 39.9723
+  - -79.0286
+  Sullivan:
+  - 41.4462
+  - -76.5121
+  Susquehanna:
+  - 41.8213
+  - -75.8007
+  Tioga:
+  - 41.7721
+  - -77.2542
+  Union:
+  - 40.9629
+  - -77.0624
+  Venango:
+  - 41.4008
+  - -79.7581
+  Warren:
+  - 41.8146
+  - -79.2741
+  Washington:
+  - 40.1893
+  - -80.2481
+  Wayne:
+  - 41.6483
+  - -75.3033
+  Westmoreland:
+  - 40.3108
+  - -79.4667
+  Wyoming:
+  - 41.5184
+  - -76.0164
+  York:
+  - 39.9199
+  - -76.7262
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

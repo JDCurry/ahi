@@ -1,0 +1,351 @@
+state_code: OK
+state_name: Oklahoma
+region: southern_plains
+default_county: Oklahoma
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -103.15
+  - -94.03
+  lat:
+  - 33.65
+  - 37.14
+geojson_county_property: NAME
+county_coords:
+  Adair:
+  - 35.8837
+  - -94.6587
+  Alfalfa:
+  - 36.7308
+  - -98.324
+  Atoka:
+  - 34.3736
+  - -96.0381
+  Beaver:
+  - 36.7498
+  - -100.4768
+  Beckham:
+  - 35.2687
+  - -99.6821
+  Blaine:
+  - 35.875
+  - -98.4335
+  Bryan:
+  - 33.9623
+  - -96.2598
+  Caddo:
+  - 35.1741
+  - -98.375
+  Canadian:
+  - 35.5425
+  - -97.9824
+  Carter:
+  - 34.2509
+  - -97.2857
+  Cherokee:
+  - 35.9065
+  - -94.9997
+  Choctaw:
+  - 34.0268
+  - -95.5522
+  Cimarron:
+  - 36.7484
+  - -102.5177
+  Cleveland:
+  - 35.203
+  - -97.3263
+  Coal:
+  - 34.5882
+  - -96.2978
+  Comanche:
+  - 34.6621
+  - -98.4717
+  Cotton:
+  - 34.2902
+  - -98.3723
+  Craig:
+  - 36.7616
+  - -95.2084
+  Creek:
+  - 35.9024
+  - -96.3709
+  Custer:
+  - 35.6389
+  - -99.0015
+  Delaware:
+  - 36.408
+  - -94.8026
+  Dewey:
+  - 35.9877
+  - -99.0079
+  Ellis:
+  - 36.218
+  - -99.7544
+  Garfield:
+  - 36.379
+  - -97.7827
+  Garvin:
+  - 34.7046
+  - -97.3094
+  Grady:
+  - 35.0166
+  - -97.8841
+  Grant:
+  - 36.7961
+  - -97.7861
+  Greer:
+  - 34.9357
+  - -99.5607
+  Harmon:
+  - 34.744
+  - -99.8461
+  Harper:
+  - 36.7888
+  - -99.6673
+  Haskell:
+  - 35.2248
+  - -95.1167
+  Hughes:
+  - 35.0482
+  - -96.2503
+  Jackson:
+  - 34.5879
+  - -99.4149
+  Jefferson:
+  - 34.111
+  - -97.8358
+  Johnston:
+  - 34.3165
+  - -96.6606
+  Kay:
+  - 36.818
+  - -97.1441
+  Kingfisher:
+  - 35.9453
+  - -97.9421
+  Kiowa:
+  - 34.9163
+  - -98.9809
+  Latimer:
+  - 34.876
+  - -95.2505
+  Le Flore:
+  - 34.8998
+  - -94.7035
+  Lincoln:
+  - 35.7028
+  - -96.8809
+  Logan:
+  - 35.9192
+  - -97.4432
+  Love:
+  - 33.9499
+  - -97.2441
+  Major:
+  - 36.3118
+  - -98.5359
+  Marshall:
+  - 34.0245
+  - -96.7691
+  Mayes:
+  - 36.3018
+  - -95.2308
+  Mcclain:
+  - 35.0093
+  - -97.444
+  Mccurtain:
+  - 34.1149
+  - -94.7713
+  Mcintosh:
+  - 35.3736
+  - -95.667
+  Murray:
+  - 34.4823
+  - -97.0679
+  Muskogee:
+  - 35.6161
+  - -95.3792
+  Noble:
+  - 36.3885
+  - -97.2306
+  Nowata:
+  - 36.7984
+  - -95.6174
+  Okfuskee:
+  - 35.4654
+  - -96.3226
+  Oklahoma:
+  - 35.5515
+  - -97.4072
+  Okmulgee:
+  - 35.6465
+  - -95.9643
+  Osage:
+  - 36.6289
+  - -96.3983
+  Ottawa:
+  - 36.8354
+  - -94.8104
+  Pawnee:
+  - 36.3169
+  - -96.6989
+  Payne:
+  - 36.0774
+  - -96.9756
+  Pittsburg:
+  - 34.9237
+  - -95.7486
+  Pontotoc:
+  - 34.728
+  - -96.6844
+  Pottawatomie:
+  - 35.2064
+  - -96.9484
+  Pushmataha:
+  - 34.4161
+  - -95.3761
+  Roger Mills:
+  - 35.6882
+  - -99.6958
+  Rogers:
+  - 36.3713
+  - -95.6044
+  Seminole:
+  - 35.1673
+  - -96.6156
+  Sequoyah:
+  - 35.4954
+  - -94.7551
+  Stephens:
+  - 34.4856
+  - -97.8515
+  Texas:
+  - 36.748
+  - -101.4901
+  Tillman:
+  - 34.3728
+  - -98.9241
+  Tulsa:
+  - 36.1209
+  - -95.9415
+  Wagoner:
+  - 35.9611
+  - -95.5211
+  Washington:
+  - 36.7149
+  - -95.9044
+  Washita:
+  - 35.2904
+  - -98.9922
+  Woods:
+  - 36.7668
+  - -98.8647
+  Woodward:
+  - 36.4225
+  - -99.2652
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

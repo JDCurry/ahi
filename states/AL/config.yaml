@@ -1,0 +1,321 @@
+state_code: AL
+state_name: Alabama
+region: southeast_gulf
+default_county: Jefferson
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -88.56
+  - -84.89
+  lat:
+  - 30.32
+  - 35.24
+geojson_county_property: NAME
+county_coords:
+  Autauga:
+  - 32.5349
+  - -86.6428
+  Baldwin:
+  - 30.6603
+  - -87.7498
+  Barbour:
+  - 31.8695
+  - -85.3934
+  Bibb:
+  - 32.9986
+  - -87.1265
+  Blount:
+  - 33.9808
+  - -86.5675
+  Bullock:
+  - 32.1006
+  - -85.7157
+  Butler:
+  - 31.7524
+  - -86.6803
+  Calhoun:
+  - 33.7714
+  - -85.8261
+  Chambers:
+  - 32.9143
+  - -85.392
+  Cherokee:
+  - 34.1758
+  - -85.6038
+  Chilton:
+  - 32.8478
+  - -86.7189
+  Choctaw:
+  - 32.0194
+  - -88.2633
+  Clarke:
+  - 31.6764
+  - -87.8307
+  Clay:
+  - 33.269
+  - -85.8607
+  Cleburne:
+  - 33.6744
+  - -85.5189
+  Coffee:
+  - 31.4025
+  - -85.9882
+  Colbert:
+  - 34.7005
+  - -87.8049
+  Conecuh:
+  - 31.4293
+  - -86.9937
+  Coosa:
+  - 32.9362
+  - -86.2476
+  Covington:
+  - 31.2484
+  - -86.4512
+  Crenshaw:
+  - 31.7313
+  - -86.3135
+  Cullman:
+  - 34.1319
+  - -86.8678
+  Dale:
+  - 31.4318
+  - -85.6111
+  Dallas:
+  - 32.3259
+  - -87.1065
+  Dekalb:
+  - 34.4596
+  - -85.8045
+  Elmore:
+  - 32.5967
+  - -86.1491
+  Escambia:
+  - 31.1264
+  - -87.1616
+  Etowah:
+  - 34.0453
+  - -86.0348
+  Fayette:
+  - 33.7212
+  - -87.7388
+  Franklin:
+  - 34.4417
+  - -87.8438
+  Geneva:
+  - 31.0952
+  - -85.839
+  Greene:
+  - 32.853
+  - -87.9522
+  Hale:
+  - 32.7625
+  - -87.6292
+  Henry:
+  - 31.5146
+  - -85.2414
+  Houston:
+  - 31.1532
+  - -85.3024
+  Jackson:
+  - 34.7794
+  - -85.9994
+  Jefferson:
+  - 33.5543
+  - -86.8967
+  Lamar:
+  - 33.779
+  - -88.0969
+  Lauderdale:
+  - 34.9016
+  - -87.6539
+  Lawrence:
+  - 34.5215
+  - -87.3111
+  Lee:
+  - 32.6012
+  - -85.3555
+  Limestone:
+  - 34.81
+  - -86.9813
+  Lowndes:
+  - 32.1547
+  - -86.6501
+  Macon:
+  - 32.386
+  - -85.6927
+  Madison:
+  - 34.763
+  - -86.5502
+  Marengo:
+  - 32.2475
+  - -87.7896
+  Marion:
+  - 34.1365
+  - -87.887
+  Marshall:
+  - 34.3669
+  - -86.3066
+  Mobile:
+  - 30.6845
+  - -88.1976
+  Monroe:
+  - 31.5707
+  - -87.3659
+  Montgomery:
+  - 32.2202
+  - -86.2075
+  Morgan:
+  - 34.4535
+  - -86.8529
+  Perry:
+  - 32.6384
+  - -87.2946
+  Pickens:
+  - 33.2807
+  - -88.0888
+  Pike:
+  - 31.8027
+  - -85.9409
+  Randolph:
+  - 33.2937
+  - -85.459
+  Russell:
+  - 32.2883
+  - -85.185
+  Shelby:
+  - 33.2642
+  - -86.6608
+  St. Clair:
+  - 33.7156
+  - -86.3147
+  Sumter:
+  - 32.5908
+  - -88.1987
+  Talladega:
+  - 33.3799
+  - -86.1663
+  Tallapoosa:
+  - 32.8622
+  - -85.7975
+  Tuscaloosa:
+  - 33.2894
+  - -87.525
+  Walker:
+  - 33.8033
+  - -87.2973
+  Washington:
+  - 31.4075
+  - -88.2078
+  Wilcox:
+  - 31.9893
+  - -87.3081
+  Winston:
+  - 34.1492
+  - -87.3737
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

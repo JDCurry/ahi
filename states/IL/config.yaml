@@ -1,0 +1,426 @@
+state_code: IL
+state_name: Illinois
+region: great_lakes
+default_county: Cook
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -91.49
+  - -87.26
+  lat:
+  - 36.75
+  - 42.77
+geojson_county_property: NAME
+county_coords:
+  Adams:
+  - 39.9777
+  - -91.1906
+  Alexander:
+  - 37.1608
+  - -89.3503
+  Bond:
+  - 38.8879
+  - -89.4467
+  Boone:
+  - 42.3222
+  - -88.8229
+  Brown:
+  - 39.969
+  - -90.717
+  Bureau:
+  - 41.3726
+  - -89.5106
+  Calhoun:
+  - 39.1343
+  - -90.6559
+  Carroll:
+  - 42.0645
+  - -89.9268
+  Cass:
+  - 39.9926
+  - -90.2391
+  Champaign:
+  - 40.1394
+  - -88.2017
+  Christian:
+  - 39.5819
+  - -89.2795
+  Clark:
+  - 39.329
+  - -87.8071
+  Clay:
+  - 38.7555
+  - -88.4771
+  Clinton:
+  - 38.576
+  - -89.4241
+  Coles:
+  - 39.5308
+  - -88.2163
+  Cook:
+  - 41.817
+  - -87.5597
+  Crawford:
+  - 39.0092
+  - -87.7612
+  Cumberland:
+  - 39.2753
+  - -88.2403
+  De Witt:
+  - 40.1689
+  - -88.9122
+  Dekalb:
+  - 41.8934
+  - -88.7715
+  Douglas:
+  - 39.7651
+  - -88.2203
+  Dupage:
+  - 41.847
+  - -88.0908
+  Edgar:
+  - 39.6818
+  - -87.7496
+  Edwards:
+  - 38.4136
+  - -88.0596
+  Effingham:
+  - 39.0598
+  - -88.5836
+  Fayette:
+  - 38.9799
+  - -89.0318
+  Ford:
+  - 40.6903
+  - -88.1802
+  Franklin:
+  - 37.9935
+  - -88.9251
+  Fulton:
+  - 40.4494
+  - -90.1843
+  Gallatin:
+  - 37.7498
+  - -88.2181
+  Greene:
+  - 39.3195
+  - -90.3814
+  Grundy:
+  - 41.2856
+  - -88.4181
+  Hamilton:
+  - 38.0816
+  - -88.5391
+  Hancock:
+  - 40.4172
+  - -91.1428
+  Hardin:
+  - 37.4983
+  - -88.2405
+  Henderson:
+  - 40.8498
+  - -90.9201
+  Henry:
+  - 41.3678
+  - -90.1449
+  Iroquois:
+  - 40.7502
+  - -87.8258
+  Jackson:
+  - 37.7614
+  - -89.4067
+  Jasper:
+  - 39.0134
+  - -88.1541
+  Jefferson:
+  - 38.2982
+  - -88.9239
+  Jersey:
+  - 39.0995
+  - -90.3744
+  Jo Daviess:
+  - 42.3536
+  - -90.1915
+  Johnson:
+  - 37.4467
+  - -88.8772
+  Kane:
+  - 41.9373
+  - -88.432
+  Kankakee:
+  - 41.1461
+  - -87.8847
+  Kendall:
+  - 41.5915
+  - -88.4289
+  Knox:
+  - 40.9321
+  - -90.2132
+  Lake:
+  - 42.3167
+  - -87.7667
+  Lasalle:
+  - 41.2811
+  - -88.8758
+  Lawrence:
+  - 38.7111
+  - -87.7142
+  Lee:
+  - 41.7395
+  - -89.2865
+  Livingston:
+  - 40.8762
+  - -88.5868
+  Logan:
+  - 40.1223
+  - -89.3737
+  Macon:
+  - 39.8582
+  - -88.9817
+  Macoupin:
+  - 39.2614
+  - -89.9251
+  Madison:
+  - 38.8279
+  - -89.854
+  Marion:
+  - 38.6503
+  - -88.9187
+  Marshall:
+  - 41.031
+  - -89.3428
+  Mason:
+  - 40.2381
+  - -89.8571
+  Massac:
+  - 37.2073
+  - -88.7179
+  Mcdonough:
+  - 40.4559
+  - -90.6774
+  Mchenry:
+  - 42.3247
+  - -88.4522
+  Mclean:
+  - 40.5161
+  - -88.8634
+  Menard:
+  - 40.0285
+  - -89.787
+  Mercer:
+  - 41.2021
+  - -90.7595
+  Monroe:
+  - 38.2992
+  - -90.1368
+  Montgomery:
+  - 39.2513
+  - -89.4209
+  Morgan:
+  - 39.6965
+  - -90.1725
+  Moultrie:
+  - 39.6269
+  - -88.641
+  Ogle:
+  - 42.0477
+  - -89.3137
+  Peoria:
+  - 40.7486
+  - -89.7677
+  Perry:
+  - 38.0835
+  - -89.3579
+  Piatt:
+  - 40.0364
+  - -88.604
+  Pike:
+  - 39.6261
+  - -90.9244
+  Pope:
+  - 37.3434
+  - -88.5999
+  Pulaski:
+  - 37.202
+  - -89.1554
+  Putnam:
+  - 41.2125
+  - -89.3145
+  Randolph:
+  - 38.0227
+  - -89.8576
+  Richland:
+  - 38.714
+  - -88.0959
+  Rock Island:
+  - 41.5442
+  - -90.3191
+  Saline:
+  - 37.7537
+  - -88.5404
+  Sangamon:
+  - 39.7498
+  - -89.7053
+  Schuyler:
+  - 40.1332
+  - -90.6434
+  Scott:
+  - 39.6522
+  - -90.4797
+  Shelby:
+  - 39.4223
+  - -88.7484
+  St. Clair:
+  - 38.4444
+  - -89.943
+  Stark:
+  - 41.104
+  - -89.8116
+  Stephenson:
+  - 42.3493
+  - -89.6607
+  Tazewell:
+  - 40.5337
+  - -89.5298
+  Union:
+  - 37.465
+  - -89.2617
+  Vermilion:
+  - 40.1858
+  - -87.7364
+  Wabash:
+  - 38.4058
+  - -87.8595
+  Warren:
+  - 40.85
+  - -90.6151
+  Washington:
+  - 38.3638
+  - -89.4248
+  Wayne:
+  - 38.4272
+  - -88.4237
+  White:
+  - 38.0822
+  - -88.1695
+  Whiteside:
+  - 41.7591
+  - -89.9379
+  Will:
+  - 41.4499
+  - -87.8891
+  Williamson:
+  - 37.732
+  - -88.9296
+  Winnebago:
+  - 42.3289
+  - -89.1691
+  Woodford:
+  - 40.7696
+  - -89.2564
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

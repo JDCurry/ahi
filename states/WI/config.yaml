@@ -1,0 +1,336 @@
+state_code: WI
+state_name: Wisconsin
+region: northern_plains
+default_county: Milwaukee
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -92.9
+  - -86.58
+  lat:
+  - 42.33
+  - 47.01
+geojson_county_property: NAME
+county_coords:
+  Adams:
+  - 43.9481
+  - -89.7768
+  Ashland:
+  - 46.6458
+  - -90.684
+  Barron:
+  - 45.4237
+  - -91.8487
+  Bayfield:
+  - 46.6841
+  - -91.1891
+  Brown:
+  - 44.46
+  - -87.9776
+  Buffalo:
+  - 44.317
+  - -91.724
+  Burnett:
+  - 45.8984
+  - -92.3543
+  Calumet:
+  - 44.072
+  - -88.2236
+  Chippewa:
+  - 45.0737
+  - -91.2876
+  Clark:
+  - 44.7305
+  - -90.6191
+  Columbia:
+  - 43.4626
+  - -89.3032
+  Crawford:
+  - 43.205
+  - -90.883
+  Dane:
+  - 43.0714
+  - -89.4247
+  Dodge:
+  - 43.4148
+  - -88.7032
+  Door:
+  - 45.0667
+  - -87.0167
+  Douglas:
+  - 46.5249
+  - -91.9227
+  Dunn:
+  - 44.9442
+  - -91.8932
+  Eau Claire:
+  - 44.7274
+  - -91.2858
+  Florence:
+  - 45.8607
+  - -88.3895
+  Fond Du Lac:
+  - 43.7546
+  - -88.5229
+  Forest:
+  - 45.7158
+  - -88.7363
+  Grant:
+  - 42.8667
+  - -90.7633
+  Green:
+  - 42.6811
+  - -89.6024
+  Green Lake:
+  - 43.8093
+  - -89.0408
+  Iowa:
+  - 43.0086
+  - -90.1334
+  Iron:
+  - 46.3919
+  - -90.3426
+  Jackson:
+  - 44.322
+  - -90.7416
+  Jefferson:
+  - 43.0227
+  - -88.7768
+  Juneau:
+  - 43.9461
+  - -90.1342
+  Kenosha:
+  - 42.65
+  - -87.725
+  Kewaunee:
+  - 44.525
+  - -87.3917
+  La Crosse:
+  - 43.9048
+  - -91.1293
+  Lafayette:
+  - 42.661
+  - -90.1316
+  Langlade:
+  - 45.2459
+  - -89.0522
+  Lincoln:
+  - 45.3391
+  - -89.7348
+  Manitowoc:
+  - 44.1147
+  - -87.5346
+  Marathon:
+  - 44.903
+  - -89.7697
+  Marinette:
+  - 45.2874
+  - -88.0035
+  Marquette:
+  - 43.8114
+  - -89.3829
+  Menominee:
+  - 44.995
+  - -88.7346
+  Milwaukee:
+  - 42.9417
+  - -87.7667
+  Monroe:
+  - 43.9405
+  - -90.6117
+  Oconto:
+  - 45.0208
+  - -88.2146
+  Oneida:
+  - 45.6957
+  - -89.5448
+  Outagamie:
+  - 44.414
+  - -88.4638
+  Ozaukee:
+  - 43.4417
+  - -87.725
+  Pepin:
+  - 44.552
+  - -92.087
+  Pierce:
+  - 44.7055
+  - -92.4327
+  Polk:
+  - 45.4669
+  - -92.4224
+  Portage:
+  - 44.4619
+  - -89.475
+  Price:
+  - 45.6796
+  - -90.3607
+  Racine:
+  - 42.7333
+  - -87.725
+  Richland:
+  - 43.3642
+  - -90.4287
+  Rock:
+  - 42.6721
+  - -89.0721
+  Rusk:
+  - 45.4657
+  - -91.1091
+  Sauk:
+  - 43.3908
+  - -89.8988
+  Sawyer:
+  - 45.8916
+  - -91.1093
+  Shawano:
+  - 44.8068
+  - -88.7376
+  Sheboygan:
+  - 43.7208
+  - -87.6412
+  St. Croix:
+  - 45.0358
+  - -92.4625
+  Taylor:
+  - 45.2066
+  - -90.4853
+  Trempealeau:
+  - 44.2935
+  - -91.3477
+  Vernon:
+  - 43.5787
+  - -90.7792
+  Vilas:
+  - 46.0717
+  - -89.4307
+  Walworth:
+  - 42.6671
+  - -88.5416
+  Washburn:
+  - 45.8982
+  - -91.7871
+  Washington:
+  - 43.3682
+  - -88.232
+  Waukesha:
+  - 43.0185
+  - -88.3043
+  Waupaca:
+  - 44.4649
+  - -88.98
+  Waushara:
+  - 44.1112
+  - -89.2417
+  Winnebago:
+  - 44.0715
+  - -88.645
+  Wood:
+  - 44.4644
+  - -90.0211
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

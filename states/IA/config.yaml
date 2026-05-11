@@ -1,0 +1,417 @@
+state_code: IA
+state_name: Iowa
+region: northern_plains
+default_county: Polk
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -96.67
+  - -90.08
+  lat:
+  - 40.34
+  - 43.68
+geojson_county_property: NAME
+county_coords:
+  Adair:
+  - 41.3307
+  - -94.4709
+  Adams:
+  - 41.029
+  - -94.6992
+  Allamakee:
+  - 43.2841
+  - -91.378
+  Appanoose:
+  - 40.7431
+  - -92.8686
+  Audubon:
+  - 41.6845
+  - -94.9058
+  Benton:
+  - 42.08
+  - -92.0657
+  Black Hawk:
+  - 42.47
+  - -92.3088
+  Boone:
+  - 42.0364
+  - -93.9316
+  Bremer:
+  - 42.7746
+  - -92.3181
+  Buchanan:
+  - 42.4707
+  - -91.8378
+  Buena Vista:
+  - 42.7354
+  - -95.1511
+  Butler:
+  - 42.7315
+  - -92.7902
+  Calhoun:
+  - 42.3851
+  - -94.6404
+  Carroll:
+  - 42.0361
+  - -94.8606
+  Cass:
+  - 41.3314
+  - -94.9278
+  Cedar:
+  - 41.7722
+  - -91.1324
+  Cerro Gordo:
+  - 43.0815
+  - -93.2608
+  Cherokee:
+  - 42.7355
+  - -95.6238
+  Chickasaw:
+  - 43.06
+  - -92.3177
+  Clarke:
+  - 41.029
+  - -93.7852
+  Clay:
+  - 43.0825
+  - -95.1509
+  Clayton:
+  - 42.8446
+  - -91.3413
+  Clinton:
+  - 41.8981
+  - -90.532
+  Crawford:
+  - 42.0372
+  - -95.382
+  Dallas:
+  - 41.6848
+  - -94.0397
+  Davis:
+  - 40.7476
+  - -92.4097
+  Decatur:
+  - 40.7376
+  - -93.7863
+  Delaware:
+  - 42.4711
+  - -91.3673
+  Des Moines:
+  - 40.9231
+  - -91.1815
+  Dickinson:
+  - 43.378
+  - -95.1508
+  Dubuque:
+  - 42.4687
+  - -90.8825
+  Emmet:
+  - 43.378
+  - -94.6785
+  Fayette:
+  - 42.8624
+  - -91.8443
+  Floyd:
+  - 43.0599
+  - -92.789
+  Franklin:
+  - 42.7324
+  - -93.2625
+  Fremont:
+  - 40.7455
+  - -95.6046
+  Greene:
+  - 42.0361
+  - -94.3968
+  Grundy:
+  - 42.4018
+  - -92.7915
+  Guthrie:
+  - 41.6837
+  - -94.501
+  Hamilton:
+  - 42.3837
+  - -93.7068
+  Hancock:
+  - 43.0818
+  - -93.7343
+  Hardin:
+  - 42.3838
+  - -93.2404
+  Harrison:
+  - 41.6828
+  - -95.8169
+  Henry:
+  - 40.9879
+  - -91.5445
+  Howard:
+  - 43.3567
+  - -92.3172
+  Humboldt:
+  - 42.7764
+  - -94.2072
+  Ida:
+  - 42.3867
+  - -95.5134
+  Iowa:
+  - 41.6862
+  - -92.0655
+  Jackson:
+  - 42.1717
+  - -90.5741
+  Jasper:
+  - 41.686
+  - -93.0538
+  Jefferson:
+  - 41.0317
+  - -91.9489
+  Johnson:
+  - 41.6714
+  - -91.588
+  Jones:
+  - 42.1211
+  - -91.1315
+  Keokuk:
+  - 41.3364
+  - -92.1786
+  Kossuth:
+  - 43.2037
+  - -94.2067
+  Lee:
+  - 40.6419
+  - -91.4793
+  Linn:
+  - 42.0788
+  - -91.599
+  Louisa:
+  - 41.2185
+  - -91.2594
+  Lucas:
+  - 41.0293
+  - -93.3277
+  Lyon:
+  - 43.3806
+  - -96.2103
+  Madison:
+  - 41.3306
+  - -94.0156
+  Mahaska:
+  - 41.3351
+  - -92.6409
+  Marion:
+  - 41.3344
+  - -93.0994
+  Marshall:
+  - 42.0358
+  - -92.9988
+  Mills:
+  - 41.0334
+  - -95.6213
+  Mitchell:
+  - 43.3564
+  - -92.7891
+  Monona:
+  - 42.0516
+  - -95.9598
+  Monroe:
+  - 41.0298
+  - -92.869
+  Montgomery:
+  - 41.0301
+  - -95.1564
+  Muscatine:
+  - 41.4839
+  - -91.1129
+  O'Brien:
+  - 43.0837
+  - -95.6249
+  Osceola:
+  - 43.3786
+  - -95.6237
+  Page:
+  - 40.7391
+  - -95.1502
+  Palo Alto:
+  - 43.082
+  - -94.6781
+  Plymouth:
+  - 42.7379
+  - -96.214
+  Pocahontas:
+  - 42.734
+  - -94.6787
+  Polk:
+  - 41.6853
+  - -93.5734
+  Pottawattamie:
+  - 41.3367
+  - -95.5423
+  Poweshiek:
+  - 41.6863
+  - -92.5315
+  Ringgold:
+  - 40.7351
+  - -94.244
+  Sac:
+  - 42.3862
+  - -95.1053
+  Scott:
+  - 41.6371
+  - -90.6233
+  Shelby:
+  - 41.685
+  - -95.3102
+  Sioux:
+  - 43.0826
+  - -96.1779
+  Story:
+  - 42.0362
+  - -93.465
+  Tama:
+  - 42.0796
+  - -92.5325
+  Taylor:
+  - 40.7374
+  - -94.6964
+  Union:
+  - 41.0277
+  - -94.2424
+  Van Buren:
+  - 40.7532
+  - -91.95
+  Wapello:
+  - 41.0306
+  - -92.4095
+  Warren:
+  - 41.3342
+  - -93.5614
+  Washington:
+  - 41.3355
+  - -91.7179
+  Wayne:
+  - 40.7394
+  - -93.3274
+  Webster:
+  - 42.4278
+  - -94.1817
+  Winnebago:
+  - 43.3776
+  - -93.7342
+  Winneshiek:
+  - 43.2905
+  - -91.8437
+  Woodbury:
+  - 42.3897
+  - -96.0447
+  Worth:
+  - 43.3774
+  - -93.2608
+  Wright:
+  - 42.733
+  - -93.7351
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

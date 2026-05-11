@@ -1,0 +1,189 @@
+state_code: WY
+state_name: Wyoming
+region: mountain_west
+default_county: Laramie
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -111.16
+  - -103.85
+  lat:
+  - 40.99
+  - 45.09
+geojson_county_property: NAME
+county_coords:
+  Albany:
+  - 41.652
+  - -105.7244
+  Big Horn:
+  - 44.5263
+  - -107.9942
+  Campbell:
+  - 44.2453
+  - -105.5483
+  Carbon:
+  - 41.6928
+  - -106.9322
+  Converse:
+  - 42.9711
+  - -105.5074
+  Crook:
+  - 44.5879
+  - -104.5699
+  Fremont:
+  - 43.0392
+  - -108.6259
+  Goshen:
+  - 42.0866
+  - -104.3533
+  Hot Springs:
+  - 43.7192
+  - -108.4412
+  Johnson:
+  - 44.0375
+  - -106.5844
+  Laramie:
+  - 41.3071
+  - -104.6894
+  Lincoln:
+  - 42.2603
+  - -110.6543
+  Natrona:
+  - 42.9613
+  - -106.7985
+  Niobrara:
+  - 43.0556
+  - -104.4754
+  Park:
+  - 44.5201
+  - -109.5861
+  Platte:
+  - 42.132
+  - -104.9658
+  Sheridan:
+  - 44.7907
+  - -106.8791
+  Sublette:
+  - 42.7659
+  - -109.9137
+  Sweetwater:
+  - 41.6592
+  - -108.8804
+  Teton:
+  - 43.9325
+  - -110.5894
+  Uinta:
+  - 41.2874
+  - -110.5476
+  Washakie:
+  - 43.905
+  - -107.682
+  Weston:
+  - 43.8401
+  - -104.5678
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

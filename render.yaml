@@ -1,8 +1,8 @@
 services:
   - type: web
-    name: ahi
+    name: ahi-platform
     runtime: python
-    plan: starter  # $7/mo — always-on, no sleeping, custom domains
+    plan: standard  # 2GB RAM — needed for parquet load + ONNX session + streamlit
     buildCommand: pip install -r requirements.txt
     startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true --browser.gatherUsageStats false
     envVars:
@@ -12,4 +12,4 @@ services:
         value: "false"
       - key: STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION
         value: "false"
-    autoDeploy: true  # Auto-deploy on git push
+    autoDeploy: true

@@ -1,0 +1,345 @@
+state_code: AR
+state_name: Arkansas
+region: southeast_gulf
+default_county: Pulaski
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -94.61
+  - -89.71
+  lat:
+  - 32.87
+  - 36.68
+geojson_county_property: NAME
+county_coords:
+  Arkansas:
+  - 34.289
+  - -91.374
+  Ashley:
+  - 33.1912
+  - -91.7685
+  Baxter:
+  - 36.287
+  - -92.3369
+  Benton:
+  - 36.3388
+  - -94.2562
+  Boone:
+  - 36.3085
+  - -93.0915
+  Bradley:
+  - 33.4663
+  - -92.1624
+  Calhoun:
+  - 33.5579
+  - -92.503
+  Carroll:
+  - 36.341
+  - -93.538
+  Chicot:
+  - 33.2668
+  - -91.2937
+  Clark:
+  - 34.0508
+  - -93.1761
+  Clay:
+  - 36.3684
+  - -90.4173
+  Cleburne:
+  - 35.5381
+  - -92.0267
+  Cleveland:
+  - 33.8983
+  - -92.1851
+  Columbia:
+  - 33.2142
+  - -93.2274
+  Conway:
+  - 35.2623
+  - -92.7016
+  Craighead:
+  - 35.8309
+  - -90.6329
+  Crawford:
+  - 35.588
+  - -94.2429
+  Crittenden:
+  - 35.2055
+  - -90.308
+  Cross:
+  - 35.2958
+  - -90.7712
+  Dallas:
+  - 33.9699
+  - -92.6544
+  Desha:
+  - 33.8308
+  - -91.2552
+  Drew:
+  - 33.5894
+  - -91.72
+  Faulkner:
+  - 35.1469
+  - -92.3321
+  Franklin:
+  - 35.5122
+  - -93.8907
+  Fulton:
+  - 36.3818
+  - -91.8183
+  Garland:
+  - 34.5767
+  - -93.1504
+  Grant:
+  - 34.29
+  - -92.4236
+  Greene:
+  - 36.1177
+  - -90.5591
+  Hempstead:
+  - 33.7352
+  - -93.6684
+  Hot Spring:
+  - 34.3177
+  - -92.9461
+  Howard:
+  - 34.0886
+  - -93.9933
+  Independence:
+  - 35.7415
+  - -91.5697
+  Izard:
+  - 36.0948
+  - -91.9134
+  Jackson:
+  - 35.599
+  - -91.2147
+  Jefferson:
+  - 34.2683
+  - -91.9303
+  Johnson:
+  - 35.5696
+  - -93.4601
+  Lafayette:
+  - 33.2415
+  - -93.6071
+  Lawrence:
+  - 36.0412
+  - -91.107
+  Lee:
+  - 34.7805
+  - -90.7808
+  Lincoln:
+  - 33.957
+  - -91.7345
+  Little River:
+  - 33.7009
+  - -94.2351
+  Logan:
+  - 35.215
+  - -93.7169
+  Lonoke:
+  - 34.754
+  - -91.8886
+  Madison:
+  - 36.0108
+  - -93.7246
+  Marion:
+  - 36.2682
+  - -92.6841
+  Miller:
+  - 33.3122
+  - -93.8921
+  Mississippi:
+  - 35.7623
+  - -90.0523
+  Monroe:
+  - 34.6776
+  - -91.2038
+  Montgomery:
+  - 34.5389
+  - -93.6596
+  Nevada:
+  - 33.6639
+  - -93.3071
+  Newton:
+  - 35.9199
+  - -93.2179
+  Ouachita:
+  - 33.5933
+  - -92.882
+  Perry:
+  - 34.9476
+  - -92.9315
+  Phillips:
+  - 34.4273
+  - -90.849
+  Pike:
+  - 34.1635
+  - -93.6562
+  Poinsett:
+  - 35.5742
+  - -90.6629
+  Polk:
+  - 34.4857
+  - -94.2283
+  Pope:
+  - 35.4477
+  - -93.0346
+  Prairie:
+  - 34.8296
+  - -91.5528
+  Pulaski:
+  - 34.77
+  - -92.3119
+  Randolph:
+  - 36.3415
+  - -91.0275
+  Saline:
+  - 34.6467
+  - -92.6763
+  Scott:
+  - 34.8608
+  - -94.0633
+  Searcy:
+  - 35.9109
+  - -92.6995
+  Sebastian:
+  - 35.1988
+  - -94.2744
+  Sevier:
+  - 33.9972
+  - -94.2411
+  Sharp:
+  - 36.161
+  - -91.4799
+  St. Francis:
+  - 35.0221
+  - -90.7479
+  Stone:
+  - 35.8599
+  - -92.1567
+  Union:
+  - 33.1715
+  - -92.5971
+  Van Buren:
+  - 35.5806
+  - -92.5157
+  Washington:
+  - 35.979
+  - -94.2157
+  White:
+  - 35.2563
+  - -91.7457
+  Woodruff:
+  - 35.1862
+  - -91.2431
+  Yell:
+  - 35.0025
+  - -93.4111
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

@@ -1,0 +1,306 @@
+state_code: NY
+state_name: New York
+region: northeast
+default_county: New York
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -79.94
+  - -72.15
+  lat:
+  - 40.23
+  - 45.08
+geojson_county_property: NAME
+county_coords:
+  Albany:
+  - 42.6001
+  - -73.9737
+  Allegany:
+  - 42.2571
+  - -78.0275
+  Bronx:
+  - 40.8492
+  - -73.8531
+  Broome:
+  - 42.1602
+  - -75.8193
+  Cattaraugus:
+  - 42.2485
+  - -78.6789
+  Cayuga:
+  - 43.0089
+  - -76.5738
+  Chautauqua:
+  - 42.3026
+  - -79.4058
+  Chemung:
+  - 42.1412
+  - -76.76
+  Chenango:
+  - 42.4932
+  - -75.6116
+  Clinton:
+  - 44.7459
+  - -73.6782
+  Columbia:
+  - 42.2498
+  - -73.6321
+  Cortland:
+  - 42.5949
+  - -76.0703
+  Delaware:
+  - 42.198
+  - -74.9668
+  Dutchess:
+  - 41.7649
+  - -73.7429
+  Erie:
+  - 42.7579
+  - -78.7799
+  Essex:
+  - 44.1167
+  - -73.7732
+  Franklin:
+  - 44.592
+  - -74.3037
+  Fulton:
+  - 43.1139
+  - -74.4221
+  Genesee:
+  - 43.0009
+  - -78.1937
+  Greene:
+  - 42.2765
+  - -74.1229
+  Hamilton:
+  - 43.6602
+  - -74.4972
+  Herkimer:
+  - 43.4172
+  - -74.9623
+  Jefferson:
+  - 43.9986
+  - -76.0531
+  Kings:
+  - 40.6344
+  - -73.9502
+  Lewis:
+  - 43.7846
+  - -75.4489
+  Livingston:
+  - 42.7278
+  - -77.7755
+  Madison:
+  - 42.9126
+  - -75.6694
+  Monroe:
+  - 43.3087
+  - -77.6801
+  Montgomery:
+  - 42.9023
+  - -74.4396
+  Nassau:
+  - 40.732
+  - -73.5856
+  New York:
+  - 40.774
+  - -73.97
+  Niagara:
+  - 43.3358
+  - -78.7709
+  Oneida:
+  - 43.2415
+  - -75.4358
+  Onondaga:
+  - 43.0056
+  - -76.1945
+  Ontario:
+  - 42.8528
+  - -77.3
+  Orange:
+  - 41.4022
+  - -74.3056
+  Orleans:
+  - 43.382
+  - -78.2304
+  Oswego:
+  - 43.4638
+  - -76.2087
+  Otsego:
+  - 42.6336
+  - -75.0329
+  Putnam:
+  - 41.4267
+  - -73.7496
+  Queens:
+  - 40.6546
+  - -73.8409
+  Rensselaer:
+  - 42.7108
+  - -73.5099
+  Richmond:
+  - 40.5619
+  - -74.1384
+  Rockland:
+  - 41.1525
+  - -74.0242
+  Saratoga:
+  - 43.1071
+  - -73.8637
+  Schenectady:
+  - 42.8181
+  - -74.0586
+  Schoharie:
+  - 42.5881
+  - -74.4421
+  Schuyler:
+  - 42.3938
+  - -76.8752
+  Seneca:
+  - 42.7808
+  - -76.8237
+  St. Lawrence:
+  - 44.4958
+  - -75.069
+  Steuben:
+  - 42.2675
+  - -77.3837
+  Suffolk:
+  - 40.9409
+  - -72.6868
+  Sullivan:
+  - 41.7162
+  - -74.768
+  Tioga:
+  - 42.1702
+  - -76.3064
+  Tompkins:
+  - 42.4519
+  - -76.4737
+  Ulster:
+  - 41.8879
+  - -74.2584
+  Warren:
+  - 43.5608
+  - -73.8461
+  Washington:
+  - 43.313
+  - -73.4308
+  Wayne:
+  - 43.325
+  - -77.0482
+  Westchester:
+  - 41.1513
+  - -73.7535
+  Wyoming:
+  - 42.7024
+  - -78.2244
+  Yates:
+  - 42.6334
+  - -77.1054
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

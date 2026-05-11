@@ -1,0 +1,440 @@
+# State metadata — single source of truth for state-aware data pipeline scripts
+#
+# Used by:
+#   build_clean_labels_v3.py  — needs noaa_name, fips_state, county_fips_map
+#   build_state.py            — orchestrator for one state's full pipeline
+#   build_region.py           — orchestrator for all states in a region
+#   download_gridmet.py       — uses bbox
+#   download_usgs_earthquakes.py — uses bbox
+#
+# Fields:
+#   fips_state    Two-digit FIPS state code (zero-padded)
+#   noaa_name     STATE field value in NOAA Storm Events CSVs (uppercase)
+#   wfigs_code    "US-XX" identifier in WFIGS POOState field
+#   region        Strategy C region assignment (model.onnx folder name)
+#   default_county Default county for app dashboard
+#   county_count  Approximate; used for sanity checks
+#   bbox          [lon_min, lat_min, lon_max, lat_max] — for GRIDMET / USGS downloads
+#                 (slightly buffered beyond actual state extent to ensure full coverage)
+
+# === Pacific ===
+WA:
+  fips_state: "53"
+  noaa_name: WASHINGTON
+  wfigs_code: US-WA
+  region: pacific
+  default_county: King
+  county_count: 39
+  bbox: [-124.85, 45.50, -116.85, 49.10]
+OR:
+  fips_state: "41"
+  noaa_name: OREGON
+  wfigs_code: US-OR
+  region: pacific
+  default_county: Multnomah
+  county_count: 36
+  bbox: [-124.70, 41.90, -116.40, 46.30]
+CA:
+  fips_state: "06"
+  noaa_name: CALIFORNIA
+  wfigs_code: US-CA
+  region: pacific
+  default_county: Los Angeles
+  county_count: 58
+  bbox: [-124.50, 32.50, -114.10, 42.10]
+AK:
+  fips_state: "02"
+  noaa_name: ALASKA
+  wfigs_code: US-AK
+  region: pacific
+  default_county: Anchorage
+  county_count: 30   # boroughs + census areas
+  bbox: [-179.20, 51.20, -129.90, 71.50]
+HI:
+  fips_state: "15"
+  noaa_name: HAWAII
+  wfigs_code: US-HI
+  region: pacific
+  default_county: Honolulu
+  county_count: 5
+  bbox: [-160.30, 18.90, -154.80, 22.30]
+
+# === Mountain West ===
+CO:
+  fips_state: "08"
+  noaa_name: COLORADO
+  wfigs_code: US-CO
+  region: mountain_west
+  default_county: El Paso
+  county_count: 64
+  bbox: [-109.10, 36.99, -102.04, 41.00]
+UT:
+  fips_state: "49"
+  noaa_name: UTAH
+  wfigs_code: US-UT
+  region: mountain_west
+  default_county: Salt Lake
+  county_count: 29
+  bbox: [-114.10, 36.99, -109.04, 42.00]
+NV:
+  fips_state: "32"
+  noaa_name: NEVADA
+  wfigs_code: US-NV
+  region: mountain_west
+  default_county: Clark
+  county_count: 17
+  bbox: [-120.10, 35.00, -114.04, 42.00]
+AZ:
+  fips_state: "04"
+  noaa_name: ARIZONA
+  wfigs_code: US-AZ
+  region: mountain_west
+  default_county: Maricopa
+  county_count: 15
+  bbox: [-114.85, 31.30, -109.04, 37.00]
+NM:
+  fips_state: "35"
+  noaa_name: NEW MEXICO
+  wfigs_code: US-NM
+  region: mountain_west
+  default_county: Bernalillo
+  county_count: 33
+  bbox: [-109.10, 31.30, -103.00, 37.00]
+ID:
+  fips_state: "16"
+  noaa_name: IDAHO
+  wfigs_code: US-ID
+  region: mountain_west
+  default_county: Ada
+  county_count: 44
+  bbox: [-117.30, 41.99, -110.99, 49.10]
+MT:
+  fips_state: "30"
+  noaa_name: MONTANA
+  wfigs_code: US-MT
+  region: mountain_west
+  default_county: Yellowstone
+  county_count: 56
+  bbox: [-116.10, 44.30, -103.99, 49.10]
+WY:
+  fips_state: "56"
+  noaa_name: WYOMING
+  wfigs_code: US-WY
+  region: mountain_west
+  default_county: Laramie
+  county_count: 23
+  bbox: [-111.10, 40.99, -104.04, 45.10]
+
+# === Great Lakes / Midwest ===
+IL:
+  fips_state: "17"
+  noaa_name: ILLINOIS
+  wfigs_code: US-IL
+  region: great_lakes
+  default_county: Cook
+  county_count: 102
+  bbox: [-91.60, 36.90, -87.40, 42.60]
+IN:
+  fips_state: "18"
+  noaa_name: INDIANA
+  wfigs_code: US-IN
+  region: great_lakes
+  default_county: Marion
+  county_count: 92
+  bbox: [-88.20, 37.70, -84.70, 41.80]
+OH:
+  fips_state: "39"
+  noaa_name: OHIO
+  wfigs_code: US-OH
+  region: great_lakes
+  default_county: Franklin
+  county_count: 88
+  bbox: [-85.00, 38.30, -80.40, 42.10]
+MI:
+  fips_state: "26"
+  noaa_name: MICHIGAN
+  wfigs_code: US-MI
+  region: great_lakes
+  default_county: Wayne
+  county_count: 83
+  bbox: [-90.50, 41.60, -82.10, 48.40]
+KY:
+  fips_state: "21"
+  noaa_name: KENTUCKY
+  wfigs_code: US-KY
+  region: great_lakes
+  default_county: Jefferson
+  county_count: 120
+  bbox: [-89.70, 36.40, -81.80, 39.30]
+TN:
+  fips_state: "47"
+  noaa_name: TENNESSEE
+  wfigs_code: US-TN
+  region: great_lakes
+  default_county: Davidson
+  county_count: 95
+  bbox: [-90.40, 34.90, -81.60, 36.80]
+WV:
+  fips_state: "54"
+  noaa_name: WEST VIRGINIA
+  wfigs_code: US-WV
+  region: great_lakes
+  default_county: Kanawha
+  county_count: 55
+  bbox: [-82.70, 37.10, -77.70, 40.70]
+
+# === Northern Plains ===
+ND:
+  fips_state: "38"
+  noaa_name: NORTH DAKOTA
+  wfigs_code: US-ND
+  region: northern_plains
+  default_county: Cass
+  county_count: 53
+  bbox: [-104.10, 45.90, -96.50, 49.10]
+SD:
+  fips_state: "46"
+  noaa_name: SOUTH DAKOTA
+  wfigs_code: US-SD
+  region: northern_plains
+  default_county: Minnehaha
+  county_count: 66
+  bbox: [-104.10, 42.40, -96.40, 46.00]
+MN:
+  fips_state: "27"
+  noaa_name: MINNESOTA
+  wfigs_code: US-MN
+  region: northern_plains
+  default_county: Hennepin
+  county_count: 87
+  bbox: [-97.30, 43.40, -89.40, 49.40]
+IA:
+  fips_state: "19"
+  noaa_name: IOWA
+  wfigs_code: US-IA
+  region: northern_plains
+  default_county: Polk
+  county_count: 99
+  bbox: [-96.70, 40.30, -90.10, 43.60]
+MO:
+  fips_state: "29"
+  noaa_name: MISSOURI
+  wfigs_code: US-MO
+  region: northern_plains
+  default_county: St. Louis
+  county_count: 115
+  bbox: [-95.80, 35.90, -89.00, 40.70]
+WI:
+  fips_state: "55"
+  noaa_name: WISCONSIN
+  wfigs_code: US-WI
+  region: northern_plains
+  default_county: Milwaukee
+  county_count: 72
+  bbox: [-92.90, 42.40, -86.70, 47.10]
+
+# === Southern Plains ===
+TX:
+  fips_state: "48"
+  noaa_name: TEXAS
+  wfigs_code: US-TX
+  region: southern_plains
+  default_county: Harris
+  county_count: 254
+  bbox: [-106.70, 25.80, -93.40, 36.60]
+OK:
+  fips_state: "40"
+  noaa_name: OKLAHOMA
+  wfigs_code: US-OK
+  region: southern_plains
+  default_county: Oklahoma
+  county_count: 77
+  bbox: [-103.10, 33.50, -94.40, 37.10]
+KS:
+  fips_state: "20"
+  noaa_name: KANSAS
+  wfigs_code: US-KS
+  region: southern_plains
+  default_county: Sedgwick
+  county_count: 105
+  bbox: [-102.10, 36.90, -94.50, 40.10]
+NE:
+  fips_state: "31"
+  noaa_name: NEBRASKA
+  wfigs_code: US-NE
+  region: southern_plains
+  default_county: Douglas
+  county_count: 93
+  bbox: [-104.10, 39.90, -95.30, 43.10]
+
+# === Southeast / Gulf ===
+LA:
+  fips_state: "22"
+  noaa_name: LOUISIANA
+  wfigs_code: US-LA
+  region: southeast_gulf
+  default_county: Orleans
+  county_count: 64   # parishes
+  bbox: [-94.10, 28.90, -88.70, 33.10]
+MS:
+  fips_state: "28"
+  noaa_name: MISSISSIPPI
+  wfigs_code: US-MS
+  region: southeast_gulf
+  default_county: Hinds
+  county_count: 82
+  bbox: [-91.70, 30.10, -88.00, 35.10]
+AL:
+  fips_state: "01"
+  noaa_name: ALABAMA
+  wfigs_code: US-AL
+  region: southeast_gulf
+  default_county: Jefferson
+  county_count: 67
+  bbox: [-88.50, 30.10, -84.80, 35.10]
+FL:
+  fips_state: "12"
+  noaa_name: FLORIDA
+  wfigs_code: US-FL
+  region: southeast_gulf
+  default_county: Miami-Dade
+  county_count: 67
+  bbox: [-87.70, 24.40, -79.90, 31.10]
+GA:
+  fips_state: "13"
+  noaa_name: GEORGIA
+  wfigs_code: US-GA
+  region: southeast_gulf
+  default_county: Fulton
+  county_count: 159
+  bbox: [-85.70, 30.30, -80.70, 35.10]
+SC:
+  fips_state: "45"
+  noaa_name: SOUTH CAROLINA
+  wfigs_code: US-SC
+  region: southeast_gulf
+  default_county: Charleston
+  county_count: 46
+  bbox: [-83.40, 32.00, -78.40, 35.30]
+NC:
+  fips_state: "37"
+  noaa_name: NORTH CAROLINA
+  wfigs_code: US-NC
+  region: southeast_gulf
+  default_county: Mecklenburg
+  county_count: 100
+  bbox: [-84.40, 33.80, -75.40, 36.70]
+AR:
+  fips_state: "05"
+  noaa_name: ARKANSAS
+  wfigs_code: US-AR
+  region: southeast_gulf
+  default_county: Pulaski
+  county_count: 75
+  bbox: [-94.70, 33.00, -89.60, 36.60]
+
+# === Northeast ===
+ME:
+  fips_state: "23"
+  noaa_name: MAINE
+  wfigs_code: US-ME
+  region: northeast
+  default_county: Cumberland
+  county_count: 16
+  bbox: [-71.20, 43.00, -66.80, 47.50]
+NH:
+  fips_state: "33"
+  noaa_name: NEW HAMPSHIRE
+  wfigs_code: US-NH
+  region: northeast
+  default_county: Hillsborough
+  county_count: 10
+  bbox: [-72.60, 42.60, -70.50, 45.40]
+VT:
+  fips_state: "50"
+  noaa_name: VERMONT
+  wfigs_code: US-VT
+  region: northeast
+  default_county: Chittenden
+  county_count: 14
+  bbox: [-73.50, 42.70, -71.40, 45.10]
+MA:
+  fips_state: "25"
+  noaa_name: MASSACHUSETTS
+  wfigs_code: US-MA
+  region: northeast
+  default_county: Middlesex
+  county_count: 14
+  bbox: [-73.60, 41.20, -69.80, 42.90]
+RI:
+  fips_state: "44"
+  noaa_name: RHODE ISLAND
+  wfigs_code: US-RI
+  region: northeast
+  default_county: Providence
+  county_count: 5
+  bbox: [-71.90, 41.10, -71.10, 42.10]
+CT:
+  fips_state: "09"
+  noaa_name: CONNECTICUT
+  wfigs_code: US-CT
+  region: northeast
+  default_county: Hartford
+  county_count: 8
+  bbox: [-73.80, 40.90, -71.70, 42.10]
+NY:
+  fips_state: "36"
+  noaa_name: NEW YORK
+  wfigs_code: US-NY
+  region: northeast
+  default_county: New York
+  county_count: 62
+  bbox: [-79.80, 40.40, -71.80, 45.10]
+NJ:
+  fips_state: "34"
+  noaa_name: NEW JERSEY
+  wfigs_code: US-NJ
+  region: northeast
+  default_county: Bergen
+  county_count: 21
+  bbox: [-75.60, 38.90, -73.80, 41.40]
+PA:
+  fips_state: "42"
+  noaa_name: PENNSYLVANIA
+  wfigs_code: US-PA
+  region: northeast
+  default_county: Philadelphia
+  county_count: 67
+  bbox: [-80.60, 39.60, -74.60, 42.30]
+DE:
+  fips_state: "10"
+  noaa_name: DELAWARE
+  wfigs_code: US-DE
+  region: northeast
+  default_county: New Castle
+  county_count: 3
+  bbox: [-75.90, 38.40, -74.90, 39.90]
+MD:
+  fips_state: "24"
+  noaa_name: MARYLAND
+  wfigs_code: US-MD
+  region: northeast
+  default_county: Montgomery
+  county_count: 24
+  bbox: [-79.50, 37.80, -75.00, 39.80]
+VA:
+  fips_state: "51"
+  noaa_name: VIRGINIA
+  wfigs_code: US-VA
+  region: northeast
+  default_county: Fairfax
+  county_count: 95   # plus 38 independent cities
+  bbox: [-83.70, 36.50, -75.10, 39.50]
+DC:
+  fips_state: "11"
+  noaa_name: DISTRICT OF COLUMBIA
+  wfigs_code: US-DC
+  region: northeast
+  default_county: District of Columbia
+  county_count: 1
+  bbox: [-77.20, 38.70, -76.80, 39.10]

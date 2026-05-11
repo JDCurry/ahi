@@ -1,0 +1,252 @@
+state_code: ID
+state_name: Idaho
+region: mountain_west
+default_county: Ada
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -117.23
+  - -110.76
+  lat:
+  - 41.65
+  - 49.29
+geojson_county_property: NAME
+county_coords:
+  Ada:
+  - 43.4507
+  - -116.2409
+  Adams:
+  - 44.8889
+  - -116.4536
+  Bannock:
+  - 42.6678
+  - -112.2239
+  Bear Lake:
+  - 42.2845
+  - -111.3296
+  Benewah:
+  - 47.2175
+  - -116.6586
+  Bingham:
+  - 43.2168
+  - -112.398
+  Blaine:
+  - 43.4113
+  - -113.9766
+  Boise:
+  - 43.9891
+  - -115.7309
+  Bonner:
+  - 48.2994
+  - -116.6004
+  Bonneville:
+  - 43.3879
+  - -111.6137
+  Boundary:
+  - 48.7666
+  - -116.4627
+  Butte:
+  - 43.7221
+  - -113.1722
+  Camas:
+  - 43.4629
+  - -114.8055
+  Canyon:
+  - 43.6249
+  - -116.709
+  Caribou:
+  - 42.7705
+  - -111.5622
+  Cassia:
+  - 42.2839
+  - -113.6004
+  Clark:
+  - 44.284
+  - -112.3521
+  Clearwater:
+  - 46.674
+  - -115.6574
+  Custer:
+  - 44.2408
+  - -114.28
+  Elmore:
+  - 43.3526
+  - -115.4698
+  Franklin:
+  - 42.181
+  - -111.8133
+  Fremont:
+  - 44.2283
+  - -111.4825
+  Gem:
+  - 44.0609
+  - -116.3981
+  Gooding:
+  - 42.9707
+  - -114.8114
+  Idaho:
+  - 45.8428
+  - -115.4698
+  Jefferson:
+  - 43.8201
+  - -112.311
+  Jerome:
+  - 42.6899
+  - -114.2637
+  Kootenai:
+  - 47.6739
+  - -116.7017
+  Latah:
+  - 46.8159
+  - -116.7118
+  Lemhi:
+  - 44.942
+  - -113.9301
+  Lewis:
+  - 46.2369
+  - -116.4266
+  Lincoln:
+  - 43.0024
+  - -114.1381
+  Madison:
+  - 43.7841
+  - -111.6591
+  Minidoka:
+  - 42.8537
+  - -113.6379
+  Nez Perce:
+  - 46.3263
+  - -116.7506
+  Oneida:
+  - 42.195
+  - -112.5394
+  Owyhee:
+  - 42.5803
+  - -116.1676
+  Payette:
+  - 44.0067
+  - -116.761
+  Power:
+  - 42.6933
+  - -112.8402
+  Shoshone:
+  - 47.3515
+  - -115.8909
+  Teton:
+  - 43.7593
+  - -111.2076
+  Twin Falls:
+  - 42.3554
+  - -114.6669
+  Valley:
+  - 44.7658
+  - -115.5675
+  Washington:
+  - 44.4521
+  - -116.7845
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

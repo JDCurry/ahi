@@ -1,0 +1,399 @@
+state_code: NE
+state_name: Nebraska
+region: southern_plains
+default_county: Douglas
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -104.4
+  - -95.07
+  lat:
+  - 39.83
+  - 43.2
+geojson_county_property: NAME
+county_coords:
+  Adams:
+  - 40.5244
+  - -98.5012
+  Antelope:
+  - 42.1766
+  - -98.0667
+  Arthur:
+  - 41.5689
+  - -101.6958
+  Banner:
+  - 41.546
+  - -103.7105
+  Blaine:
+  - 41.9127
+  - -99.9769
+  Boone:
+  - 41.7066
+  - -98.0673
+  Box Butte:
+  - 42.2197
+  - -103.0857
+  Boyd:
+  - 42.8999
+  - -98.7663
+  Brown:
+  - 42.4295
+  - -99.9294
+  Buffalo:
+  - 40.8551
+  - -99.075
+  Burt:
+  - 41.8515
+  - -96.3285
+  Butler:
+  - 41.226
+  - -97.1318
+  Cass:
+  - 40.9098
+  - -96.1409
+  Cedar:
+  - 42.599
+  - -97.2523
+  Chase:
+  - 40.5242
+  - -101.6979
+  Cherry:
+  - 42.5449
+  - -101.1184
+  Cheyenne:
+  - 41.2197
+  - -102.995
+  Clay:
+  - 40.5243
+  - -98.0513
+  Colfax:
+  - 41.5739
+  - -97.0865
+  Cuming:
+  - 41.9163
+  - -96.7874
+  Custer:
+  - 41.394
+  - -99.7261
+  Dakota:
+  - 42.3911
+  - -96.5645
+  Dawes:
+  - 42.7195
+  - -103.1354
+  Dawson:
+  - 40.87
+  - -99.8195
+  Deuel:
+  - 41.1116
+  - -102.334
+  Dixon:
+  - 42.4929
+  - -96.8677
+  Dodge:
+  - 41.5778
+  - -96.6539
+  Douglas:
+  - 41.2954
+  - -96.1544
+  Dundy:
+  - 40.1763
+  - -101.688
+  Fillmore:
+  - 40.5246
+  - -97.5965
+  Franklin:
+  - 40.1763
+  - -98.9528
+  Frontier:
+  - 40.5301
+  - -100.3943
+  Furnas:
+  - 40.1764
+  - -99.9123
+  Gage:
+  - 40.2617
+  - -96.6894
+  Garden:
+  - 41.6188
+  - -102.3353
+  Garfield:
+  - 41.9143
+  - -98.9914
+  Gosper:
+  - 40.5147
+  - -99.8308
+  Grant:
+  - 41.915
+  - -101.7406
+  Greeley:
+  - 41.5674
+  - -98.5212
+  Hall:
+  - 40.8725
+  - -98.5022
+  Hamilton:
+  - 40.8729
+  - -98.023
+  Harlan:
+  - 40.1764
+  - -99.4046
+  Hayes:
+  - 40.5247
+  - -101.0618
+  Hitchcock:
+  - 40.1763
+  - -101.0423
+  Holt:
+  - 42.4552
+  - -98.7837
+  Hooker:
+  - 41.9159
+  - -101.1353
+  Howard:
+  - 41.22
+  - -98.5171
+  Jefferson:
+  - 40.1757
+  - -97.1427
+  Johnson:
+  - 40.3926
+  - -96.2651
+  Kearney:
+  - 40.5067
+  - -98.948
+  Keith:
+  - 41.1988
+  - -101.6614
+  Keya Paha:
+  - 42.879
+  - -99.7123
+  Kimball:
+  - 41.1976
+  - -103.7149
+  Knox:
+  - 42.6368
+  - -97.8919
+  Lancaster:
+  - 40.7839
+  - -96.6878
+  Lincoln:
+  - 41.0475
+  - -100.7452
+  Logan:
+  - 41.5665
+  - -100.4827
+  Loup:
+  - 41.9138
+  - -99.4544
+  Madison:
+  - 41.9166
+  - -97.6008
+  Mcpherson:
+  - 41.5681
+  - -101.0604
+  Merrick:
+  - 41.169
+  - -98.0383
+  Morrill:
+  - 41.7157
+  - -103.0104
+  Nance:
+  - 41.3973
+  - -97.9923
+  Nemaha:
+  - 40.3876
+  - -95.8498
+  Nuckolls:
+  - 40.1763
+  - -98.0472
+  Otoe:
+  - 40.6486
+  - -96.1347
+  Pawnee:
+  - 40.1315
+  - -96.2371
+  Perkins:
+  - 40.851
+  - -101.6496
+  Phelps:
+  - 40.5111
+  - -99.4145
+  Pierce:
+  - 42.2643
+  - -97.6013
+  Platte:
+  - 41.5712
+  - -97.5211
+  Polk:
+  - 41.1868
+  - -97.5685
+  Red Willow:
+  - 40.1758
+  - -100.4769
+  Richardson:
+  - 40.1251
+  - -95.7175
+  Rock:
+  - 42.4207
+  - -99.4499
+  Saline:
+  - 40.524
+  - -97.1409
+  Sarpy:
+  - 41.113
+  - -96.112
+  Saunders:
+  - 41.2263
+  - -96.6373
+  Scotts Bluff:
+  - 41.8506
+  - -103.708
+  Seward:
+  - 40.8723
+  - -97.1395
+  Sheridan:
+  - 42.5036
+  - -102.4088
+  Sherman:
+  - 41.2205
+  - -98.9762
+  Sioux:
+  - 42.4865
+  - -103.7588
+  Stanton:
+  - 41.9168
+  - -97.1939
+  Thayer:
+  - 40.1762
+  - -97.5949
+  Thomas:
+  - 41.9135
+  - -100.5559
+  Thurston:
+  - 42.1582
+  - -96.544
+  Valley:
+  - 41.5672
+  - -98.9819
+  Washington:
+  - 41.531
+  - -96.2219
+  Wayne:
+  - 42.2093
+  - -97.1192
+  Webster:
+  - 40.1764
+  - -98.4999
+  Wheeler:
+  - 41.9147
+  - -98.5282
+  York:
+  - 40.8727
+  - -97.5971
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

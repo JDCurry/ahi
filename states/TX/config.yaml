@@ -1,0 +1,882 @@
+state_code: TX
+state_name: Texas
+region: southern_plains
+default_county: Harris
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -107.23
+  - -92.75
+  lat:
+  - 25.34
+  - 37.09
+geojson_county_property: NAME
+county_coords:
+  Anderson:
+  - 31.8133
+  - -95.6524
+  Andrews:
+  - 32.3051
+  - -102.6378
+  Angelina:
+  - 31.2548
+  - -94.6116
+  Aransas:
+  - 28.0847
+  - -96.9915
+  Archer:
+  - 33.6152
+  - -98.6877
+  Armstrong:
+  - 34.9648
+  - -101.3574
+  Atascosa:
+  - 28.8935
+  - -98.527
+  Austin:
+  - 29.887
+  - -96.2777
+  Bailey:
+  - 34.0684
+  - -102.8299
+  Bandera:
+  - 29.7474
+  - -99.2461
+  Bastrop:
+  - 30.1035
+  - -97.312
+  Baylor:
+  - 33.6164
+  - -99.2135
+  Bee:
+  - 28.4173
+  - -97.7409
+  Bell:
+  - 31.0374
+  - -97.4788
+  Bexar:
+  - 29.4489
+  - -98.52
+  Blanco:
+  - 30.2663
+  - -98.3999
+  Borden:
+  - 32.7436
+  - -101.4317
+  Bosque:
+  - 31.9003
+  - -97.6342
+  Bowie:
+  - 33.4458
+  - -94.4232
+  Brazoria:
+  - 29.1677
+  - -95.4344
+  Brazos:
+  - 30.6607
+  - -96.3023
+  Brewster:
+  - 29.8111
+  - -103.2517
+  Briscoe:
+  - 34.5302
+  - -101.2086
+  Brooks:
+  - 27.0315
+  - -98.2187
+  Brown:
+  - 31.7741
+  - -98.9998
+  Burleson:
+  - 30.4925
+  - -96.6214
+  Burnet:
+  - 30.7882
+  - -98.1824
+  Caldwell:
+  - 29.8368
+  - -97.6199
+  Calhoun:
+  - 28.439
+  - -96.6152
+  Callahan:
+  - 32.2976
+  - -99.3735
+  Cameron:
+  - 26.151
+  - -97.452
+  Camp:
+  - 32.9732
+  - -94.9785
+  Carson:
+  - 35.4034
+  - -101.3542
+  Cass:
+  - 33.0775
+  - -94.3436
+  Castro:
+  - 34.5299
+  - -102.2617
+  Chambers:
+  - 29.7083
+  - -94.6714
+  Cherokee:
+  - 31.8367
+  - -95.1649
+  Childress:
+  - 34.5291
+  - -100.2076
+  Clay:
+  - 33.7852
+  - -98.2084
+  Cochran:
+  - 33.604
+  - -102.8284
+  Coke:
+  - 31.8885
+  - -100.5299
+  Coleman:
+  - 31.773
+  - -99.4536
+  Collin:
+  - 33.1879
+  - -96.5724
+  Collingsworth:
+  - 34.9648
+  - -100.2701
+  Colorado:
+  - 29.6207
+  - -96.5262
+  Comal:
+  - 29.8082
+  - -98.2782
+  Comanche:
+  - 31.9479
+  - -98.5581
+  Concho:
+  - 31.3264
+  - -99.8639
+  Cooke:
+  - 33.6391
+  - -97.2126
+  Coryell:
+  - 31.3909
+  - -97.7992
+  Cottle:
+  - 34.0775
+  - -100.2788
+  Crane:
+  - 31.4284
+  - -102.5154
+  Crockett:
+  - 30.7228
+  - -101.4117
+  Crosby:
+  - 33.6146
+  - -101.3
+  Culberson:
+  - 31.4463
+  - -104.5178
+  Dallam:
+  - 36.278
+  - -102.6022
+  Dallas:
+  - 32.7665
+  - -96.7778
+  Dawson:
+  - 32.7425
+  - -101.9477
+  Deaf Smith:
+  - 34.9661
+  - -102.6049
+  Delta:
+  - 33.3863
+  - -95.6723
+  Denton:
+  - 33.2055
+  - -97.1168
+  Dewitt:
+  - 29.0821
+  - -97.357
+  Dickens:
+  - 33.6165
+  - -100.7789
+  Dimmit:
+  - 28.4226
+  - -99.7567
+  Donley:
+  - 34.9653
+  - -100.814
+  Duval:
+  - 27.6811
+  - -98.5088
+  Eastland:
+  - 32.3271
+  - -98.8325
+  Ector:
+  - 31.8691
+  - -102.5427
+  Edwards:
+  - 29.9826
+  - -100.305
+  El Paso:
+  - 31.7685
+  - -106.2345
+  Ellis:
+  - 32.3484
+  - -96.7947
+  Erath:
+  - 32.2361
+  - -98.2179
+  Falls:
+  - 31.2532
+  - -96.936
+  Fannin:
+  - 33.5937
+  - -96.107
+  Fayette:
+  - 29.8768
+  - -96.92
+  Fisher:
+  - 32.7428
+  - -100.4022
+  Floyd:
+  - 34.0723
+  - -101.3032
+  Foard:
+  - 33.9746
+  - -99.7778
+  Fort Bend:
+  - 29.5275
+  - -95.7709
+  Franklin:
+  - 33.1754
+  - -95.2184
+  Freestone:
+  - 31.7048
+  - -96.1491
+  Frio:
+  - 28.8678
+  - -99.1083
+  Gaines:
+  - 32.7408
+  - -102.6352
+  Galveston:
+  - 29.3801
+  - -94.8629
+  Garza:
+  - 33.1798
+  - -101.2984
+  Gillespie:
+  - 30.3182
+  - -98.9465
+  Glasscock:
+  - 31.8694
+  - -101.5208
+  Goliad:
+  - 28.6571
+  - -97.4265
+  Gonzales:
+  - 29.4567
+  - -97.4928
+  Gray:
+  - 35.4011
+  - -100.8126
+  Grayson:
+  - 33.6267
+  - -96.6776
+  Gregg:
+  - 32.4805
+  - -94.817
+  Grimes:
+  - 30.5432
+  - -95.9854
+  Guadalupe:
+  - 29.583
+  - -97.9486
+  Hale:
+  - 34.0704
+  - -101.8269
+  Hall:
+  - 34.5307
+  - -100.6811
+  Hamilton:
+  - 31.7047
+  - -98.1109
+  Hansford:
+  - 36.2774
+  - -101.3545
+  Hardeman:
+  - 34.2902
+  - -99.7455
+  Hardin:
+  - 30.3324
+  - -94.3902
+  Harris:
+  - 29.8574
+  - -95.392
+  Harrison:
+  - 32.5482
+  - -94.3714
+  Hartley:
+  - 35.8401
+  - -102.6029
+  Haskell:
+  - 33.1782
+  - -99.7303
+  Hays:
+  - 30.0578
+  - -98.031
+  Hemphill:
+  - 35.8375
+  - -100.2705
+  Henderson:
+  - 32.2121
+  - -95.8535
+  Hidalgo:
+  - 26.3966
+  - -98.181
+  Hill:
+  - 31.9907
+  - -97.1322
+  Hockley:
+  - 33.6076
+  - -102.3432
+  Hood:
+  - 32.4299
+  - -97.8323
+  Hopkins:
+  - 33.1495
+  - -95.564
+  Houston:
+  - 31.3177
+  - -95.4229
+  Howard:
+  - 32.3061
+  - -101.4355
+  Hudspeth:
+  - 31.4555
+  - -105.3857
+  Hunt:
+  - 33.1234
+  - -96.0855
+  Hutchinson:
+  - 35.8399
+  - -101.3547
+  Irion:
+  - 31.3039
+  - -100.9824
+  Jack:
+  - 33.2334
+  - -98.1725
+  Jackson:
+  - 28.9542
+  - -96.5775
+  Jasper:
+  - 30.7434
+  - -94.0249
+  Jeff Davis:
+  - 30.7158
+  - -104.14
+  Jefferson:
+  - 29.8536
+  - -94.1533
+  Jim Hogg:
+  - 27.0433
+  - -98.6973
+  Jim Wells:
+  - 27.731
+  - -98.0901
+  Johnson:
+  - 32.379
+  - -97.3666
+  Jones:
+  - 32.7398
+  - -99.8787
+  Karnes:
+  - 28.9057
+  - -97.8595
+  Kaufman:
+  - 32.5992
+  - -96.2878
+  Kendall:
+  - 29.9447
+  - -98.7116
+  Kenedy:
+  - 26.9279
+  - -97.6364
+  Kent:
+  - 33.1813
+  - -100.7776
+  Kerr:
+  - 30.0616
+  - -99.3499
+  Kimble:
+  - 30.4869
+  - -99.7486
+  King:
+  - 33.6164
+  - -100.2558
+  Kinney:
+  - 29.3502
+  - -100.418
+  Kleberg:
+  - 27.4269
+  - -97.6684
+  Knox:
+  - 33.6061
+  - -99.7414
+  La Salle:
+  - 28.345
+  - -99.0997
+  Lamar:
+  - 33.6672
+  - -95.5711
+  Lamb:
+  - 34.0685
+  - -102.3517
+  Lampasas:
+  - 31.1962
+  - -98.2414
+  Lavaca:
+  - 29.3843
+  - -96.9301
+  Lee:
+  - 30.3106
+  - -96.9656
+  Leon:
+  - 31.2964
+  - -95.9959
+  Liberty:
+  - 30.1515
+  - -94.812
+  Limestone:
+  - 31.5454
+  - -96.5803
+  Lipscomb:
+  - 36.2776
+  - -100.2731
+  Live Oak:
+  - 28.3512
+  - -98.1247
+  Llano:
+  - 30.7057
+  - -98.6841
+  Loving:
+  - 31.8492
+  - -103.5798
+  Lubbock:
+  - 33.6101
+  - -101.8205
+  Lynn:
+  - 33.1768
+  - -101.8161
+  Madison:
+  - 30.9656
+  - -95.9285
+  Marion:
+  - 32.7981
+  - -94.3572
+  Martin:
+  - 32.306
+  - -101.9512
+  Mason:
+  - 30.7177
+  - -99.2261
+  Matagorda:
+  - 28.7856
+  - -96.0043
+  Maverick:
+  - 28.7422
+  - -100.3142
+  Mcculloch:
+  - 31.1988
+  - -99.3475
+  Mclennan:
+  - 31.5524
+  - -97.2019
+  Mcmullen:
+  - 28.3525
+  - -98.5678
+  Medina:
+  - 29.3556
+  - -99.1101
+  Menard:
+  - 30.8898
+  - -99.8206
+  Midland:
+  - 31.8691
+  - -102.0316
+  Milam:
+  - 30.7862
+  - -96.9769
+  Mills:
+  - 31.4952
+  - -98.5954
+  Mitchell:
+  - 32.3061
+  - -100.9212
+  Montague:
+  - 33.6755
+  - -97.7247
+  Montgomery:
+  - 30.3002
+  - -95.5028
+  Moore:
+  - 35.8376
+  - -101.8929
+  Morris:
+  - 33.1133
+  - -94.7326
+  Motley:
+  - 34.074
+  - -100.7798
+  Nacogdoches:
+  - 31.6159
+  - -94.6156
+  Navarro:
+  - 32.047
+  - -96.4726
+  Newton:
+  - 30.7857
+  - -93.745
+  Nolan:
+  - 32.3034
+  - -100.4061
+  Nueces:
+  - 27.7353
+  - -97.5162
+  Ochiltree:
+  - 36.2783
+  - -100.8157
+  Oldham:
+  - 35.4051
+  - -102.6029
+  Orange:
+  - 30.1213
+  - -93.8938
+  Palo Pinto:
+  - 32.7531
+  - -98.3131
+  Panola:
+  - 32.1623
+  - -94.3057
+  Parker:
+  - 32.7776
+  - -97.8051
+  Parmer:
+  - 34.53
+  - -102.7845
+  Pecos:
+  - 30.7811
+  - -102.7234
+  Polk:
+  - 30.7926
+  - -94.83
+  Potter:
+  - 35.4012
+  - -101.894
+  Presidio:
+  - 29.9992
+  - -104.2396
+  Rains:
+  - 32.8703
+  - -95.7933
+  Randall:
+  - 34.9658
+  - -101.8969
+  Reagan:
+  - 31.366
+  - -101.523
+  Real:
+  - 29.8317
+  - -99.8221
+  Red River:
+  - 33.6206
+  - -95.0502
+  Reeves:
+  - 31.3228
+  - -103.6927
+  Refugio:
+  - 28.3216
+  - -97.1597
+  Roberts:
+  - 35.8384
+  - -100.8134
+  Robertson:
+  - 31.0269
+  - -96.513
+  Rockwall:
+  - 32.8978
+  - -96.4079
+  Runnels:
+  - 31.831
+  - -99.9762
+  Rusk:
+  - 32.1075
+  - -94.7618
+  Sabine:
+  - 31.3431
+  - -93.8518
+  San Augustine:
+  - 31.3941
+  - -94.1682
+  San Jacinto:
+  - 30.5794
+  - -95.1668
+  San Patricio:
+  - 28.0089
+  - -97.5182
+  San Saba:
+  - 31.1551
+  - -98.8174
+  Schleicher:
+  - 30.8976
+  - -100.5386
+  Scurry:
+  - 32.7462
+  - -100.9164
+  Shackelford:
+  - 32.7359
+  - -99.3541
+  Shelby:
+  - 31.7924
+  - -94.1449
+  Sherman:
+  - 36.2776
+  - -101.8935
+  Smith:
+  - 32.375
+  - -95.269
+  Somervell:
+  - 32.2222
+  - -97.7746
+  Starr:
+  - 26.5622
+  - -98.7385
+  Stephens:
+  - 32.7358
+  - -98.8362
+  Sterling:
+  - 31.8277
+  - -101.05
+  Stonewall:
+  - 33.1791
+  - -100.2533
+  Sutton:
+  - 30.4984
+  - -100.5382
+  Swisher:
+  - 34.5303
+  - -101.735
+  Tarrant:
+  - 32.7719
+  - -97.2911
+  Taylor:
+  - 32.3014
+  - -99.8901
+  Terrell:
+  - 30.2247
+  - -102.0767
+  Terry:
+  - 33.1737
+  - -102.3352
+  Throckmorton:
+  - 33.1774
+  - -99.2124
+  Titus:
+  - 33.2165
+  - -94.9657
+  Tom Green:
+  - 31.4043
+  - -100.4618
+  Travis:
+  - 30.3344
+  - -97.7818
+  Trinity:
+  - 31.0888
+  - -95.1357
+  Tyler:
+  - 30.7711
+  - -94.3764
+  Upshur:
+  - 32.7362
+  - -94.9415
+  Upton:
+  - 31.3686
+  - -102.043
+  Uvalde:
+  - 29.3573
+  - -99.7622
+  Val Verde:
+  - 29.8928
+  - -101.1511
+  Van Zandt:
+  - 32.5636
+  - -95.8364
+  Victoria:
+  - 28.7963
+  - -96.9715
+  Walker:
+  - 30.739
+  - -95.5723
+  Waller:
+  - 30.0106
+  - -95.9876
+  Ward:
+  - 31.5096
+  - -103.1023
+  Washington:
+  - 30.2146
+  - -96.4035
+  Webb:
+  - 27.7611
+  - -99.3307
+  Wharton:
+  - 29.2778
+  - -96.2222
+  Wheeler:
+  - 35.4012
+  - -100.2696
+  Wichita:
+  - 33.988
+  - -98.7035
+  Wilbarger:
+  - 34.0806
+  - -99.2409
+  Willacy:
+  - 26.4771
+  - -97.5917
+  Williamson:
+  - 30.6476
+  - -97.6002
+  Wilson:
+  - 29.174
+  - -98.0867
+  Winkler:
+  - 31.85
+  - -103.0482
+  Wise:
+  - 33.2158
+  - -97.6545
+  Wood:
+  - 32.7864
+  - -95.382
+  Yoakum:
+  - 33.1729
+  - -102.8278
+  Young:
+  - 33.1766
+  - -98.6878
+  Zapata:
+  - 27.0006
+  - -99.1685
+  Zavala:
+  - 28.8663
+  - -99.7606
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

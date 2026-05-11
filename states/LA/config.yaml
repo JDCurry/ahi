@@ -1,0 +1,312 @@
+state_code: LA
+state_name: Louisiana
+region: southeast_gulf
+default_county: Orleans
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -94.26
+  - -89.02
+  lat:
+  - 29.07
+  - 33.1
+geojson_county_property: NAME
+county_coords:
+  Acadia Parish:
+  - 30.2669
+  - -92.3998
+  Allen Parish:
+  - 30.66
+  - -92.7886
+  Ascension Parish:
+  - 30.1999
+  - -90.8897
+  Assumption Parish:
+  - 29.854
+  - -91.0593
+  Avoyelles Parish:
+  - 31.0904
+  - -91.9734
+  Beauregard Parish:
+  - 30.6407
+  - -93.3265
+  Bienville Parish:
+  - 32.3684
+  - -93.0993
+  Bossier Parish:
+  - 32.6299
+  - -93.6001
+  Caddo Parish:
+  - 32.6073
+  - -93.9006
+  Calcasieu Parish:
+  - 30.2667
+  - -93.3516
+  Caldwell Parish:
+  - 32.1004
+  - -92.09
+  Cameron Parish:
+  - 29.8013
+  - -93.2699
+  Catahoula Parish:
+  - 31.6014
+  - -91.9167
+  Claiborne Parish:
+  - 32.802
+  - -92.9816
+  Concordia Parish:
+  - 31.3683
+  - -91.6766
+  De Soto Parish:
+  - 32.0943
+  - -93.7814
+  East Baton Rouge Parish:
+  - 30.5222
+  - -91.12
+  East Carroll Parish:
+  - 32.7687
+  - -91.2536
+  East Feliciana Parish:
+  - 30.8234
+  - -91.0322
+  Evangeline Parish:
+  - 30.7402
+  - -92.3855
+  Franklin Parish:
+  - 32.1417
+  - -91.7004
+  Grant Parish:
+  - 31.5945
+  - -92.5746
+  Iberia Parish:
+  - 29.7448
+  - -91.9169
+  Iberville Parish:
+  - 30.2602
+  - -91.3172
+  Jackson Parish:
+  - 32.3182
+  - -92.5432
+  Jefferson Davis Parish:
+  - 30.2634
+  - -92.829
+  Jefferson Parish:
+  - 29.6408
+  - -90.083
+  Lafayette Parish:
+  - 30.2129
+  - -92.1079
+  Lafourche Parish:
+  - 29.441
+  - -90.2442
+  Lasalle Parish:
+  - 31.6302
+  - -92.1809
+  Lincoln Parish:
+  - 32.6038
+  - -92.6407
+  Livingston Parish:
+  - 30.4183
+  - -90.7471
+  Madison Parish:
+  - 32.3809
+  - -91.2408
+  Morehouse Parish:
+  - 32.7617
+  - -91.8272
+  Natchitoches Parish:
+  - 31.7536
+  - -93.205
+  Orleans Parish:
+  - 30.0364
+  - -89.9769
+  Ouachita Parish:
+  - 32.4936
+  - -92.1754
+  Plaquemines Parish:
+  - 29.3728
+  - -89.5328
+  Pointe Coupee Parish:
+  - 30.7528
+  - -91.6747
+  Rapides Parish:
+  - 31.1976
+  - -92.5313
+  Red River Parish:
+  - 32.0634
+  - -93.3227
+  Richland Parish:
+  - 32.4117
+  - -91.8044
+  Sabine Parish:
+  - 31.5046
+  - -93.4744
+  St. Bernard Parish:
+  - 29.9182
+  - -89.3848
+  St. Charles Parish:
+  - 29.9329
+  - -90.4026
+  St. Helena Parish:
+  - 30.8233
+  - -90.7063
+  St. James Parish:
+  - 30.0372
+  - -90.8251
+  St. John The Baptist Parish:
+  - 30.1035
+  - -90.5188
+  St. Landry Parish:
+  - 30.574
+  - -91.9844
+  St. Martin Parish:
+  - 30.2704
+  - -91.77
+  St. Mary Parish:
+  - 29.5996
+  - -91.4455
+  St. Tammany Parish:
+  - 30.4232
+  - -89.9639
+  Tangipahoa Parish:
+  - 30.6256
+  - -90.4081
+  Tensas Parish:
+  - 31.9938
+  - -91.3114
+  Terrebonne Parish:
+  - 29.3811
+  - -90.8014
+  Union Parish:
+  - 32.8004
+  - -92.3938
+  Vermilion Parish:
+  - 29.8122
+  - -92.2953
+  Vernon Parish:
+  - 31.1096
+  - -93.1837
+  Washington Parish:
+  - 30.8454
+  - -90.0501
+  Webster Parish:
+  - 32.7133
+  - -93.3159
+  West Baton Rouge Parish:
+  - 30.4914
+  - -91.34
+  West Carroll Parish:
+  - 32.7948
+  - -91.466
+  West Feliciana Parish:
+  - 30.8323
+  - -91.3786
+  Winn Parish:
+  - 31.9267
+  - -92.5989
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

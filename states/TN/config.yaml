@@ -1,0 +1,405 @@
+state_code: TN
+state_name: Tennessee
+region: great_lakes
+default_county: Davidson
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -90.54
+  - -81.21
+  lat:
+  - 34.82
+  - 36.86
+geojson_county_property: NAME
+county_coords:
+  Anderson:
+  - 36.1184
+  - -84.1985
+  Bedford:
+  - 35.5138
+  - -86.4589
+  Benton:
+  - 36.0696
+  - -88.0683
+  Bledsoe:
+  - 35.5963
+  - -85.2053
+  Blount:
+  - 35.6872
+  - -83.9255
+  Bradley:
+  - 35.154
+  - -84.8596
+  Campbell:
+  - 36.4034
+  - -84.1495
+  Cannon:
+  - 35.8086
+  - -86.0618
+  Carroll:
+  - 35.9732
+  - -88.4503
+  Carter:
+  - 36.2927
+  - -82.1275
+  Cheatham:
+  - 36.261
+  - -87.0868
+  Chester:
+  - 35.4218
+  - -88.6136
+  Claiborne:
+  - 36.4859
+  - -83.6604
+  Clay:
+  - 36.5512
+  - -85.5439
+  Cocke:
+  - 35.9254
+  - -83.1212
+  Coffee:
+  - 35.4906
+  - -86.0747
+  Crockett:
+  - 35.8135
+  - -89.1394
+  Cumberland:
+  - 35.9503
+  - -84.9984
+  Davidson:
+  - 36.1695
+  - -86.7848
+  Decatur:
+  - 35.6028
+  - -88.1088
+  Dekalb:
+  - 35.9798
+  - -85.8327
+  Dickson:
+  - 36.149
+  - -87.3567
+  Dyer:
+  - 36.0592
+  - -89.4137
+  Fayette:
+  - 35.1969
+  - -89.4142
+  Fentress:
+  - 36.3804
+  - -84.9326
+  Franklin:
+  - 35.1549
+  - -86.0922
+  Gibson:
+  - 35.9965
+  - -88.9325
+  Giles:
+  - 35.202
+  - -87.0347
+  Grainger:
+  - 36.2763
+  - -83.5098
+  Greene:
+  - 36.1753
+  - -82.8459
+  Grundy:
+  - 35.3883
+  - -85.7226
+  Hamblen:
+  - 36.2172
+  - -83.2667
+  Hamilton:
+  - 35.1807
+  - -85.1649
+  Hancock:
+  - 36.5237
+  - -83.2219
+  Hardeman:
+  - 35.2067
+  - -88.9931
+  Hardin:
+  - 35.1986
+  - -88.1845
+  Hawkins:
+  - 36.4412
+  - -82.9449
+  Haywood:
+  - 35.5831
+  - -89.2838
+  Henderson:
+  - 35.6542
+  - -88.3879
+  Henry:
+  - 36.3318
+  - -88.3013
+  Hickman:
+  - 35.8032
+  - -87.4734
+  Houston:
+  - 36.286
+  - -87.717
+  Humphreys:
+  - 36.0407
+  - -87.7757
+  Jackson:
+  - 36.3592
+  - -85.6731
+  Jefferson:
+  - 36.051
+  - -83.4463
+  Johnson:
+  - 36.4549
+  - -81.8519
+  Knox:
+  - 35.9932
+  - -83.9372
+  Lake:
+  - 36.3353
+  - -89.4936
+  Lauderdale:
+  - 35.7605
+  - -89.6307
+  Lawrence:
+  - 35.2171
+  - -87.3956
+  Lewis:
+  - 35.5273
+  - -87.4931
+  Lincoln:
+  - 35.1405
+  - -86.5889
+  Loudon:
+  - 35.7348
+  - -84.3119
+  Macon:
+  - 36.532
+  - -86.0072
+  Madison:
+  - 35.6081
+  - -88.8386
+  Marion:
+  - 35.1293
+  - -85.622
+  Marshall:
+  - 35.4687
+  - -86.7651
+  Maury:
+  - 35.6169
+  - -87.077
+  Mcminn:
+  - 35.4247
+  - -84.6175
+  Mcnairy:
+  - 35.1754
+  - -88.5637
+  Meigs:
+  - 35.5128
+  - -84.8136
+  Monroe:
+  - 35.4426
+  - -84.2527
+  Montgomery:
+  - 36.4968
+  - -87.3829
+  Moore:
+  - 35.2846
+  - -86.3588
+  Morgan:
+  - 36.135
+  - -84.6491
+  Obion:
+  - 36.3582
+  - -89.1489
+  Overton:
+  - 36.3449
+  - -85.288
+  Perry:
+  - 35.6425
+  - -87.859
+  Pickett:
+  - 36.5585
+  - -85.075
+  Polk:
+  - 35.1199
+  - -84.5233
+  Putnam:
+  - 36.1409
+  - -85.4951
+  Rhea:
+  - 35.6086
+  - -84.9246
+  Roane:
+  - 35.8478
+  - -84.5234
+  Robertson:
+  - 36.5255
+  - -86.8706
+  Rutherford:
+  - 35.8426
+  - -86.4167
+  Scott:
+  - 36.4284
+  - -84.5035
+  Sequatchie:
+  - 35.3711
+  - -85.4105
+  Sevier:
+  - 35.7846
+  - -83.5241
+  Shelby:
+  - 35.1842
+  - -89.8941
+  Smith:
+  - 36.2505
+  - -85.9567
+  Stewart:
+  - 36.5011
+  - -87.8384
+  Sullivan:
+  - 36.513
+  - -82.3042
+  Sumner:
+  - 36.4693
+  - -86.4605
+  Tipton:
+  - 35.4974
+  - -89.7567
+  Trousdale:
+  - 36.392
+  - -86.1568
+  Unicoi:
+  - 36.1107
+  - -82.4325
+  Union:
+  - 36.2878
+  - -83.8375
+  Van Buren:
+  - 35.696
+  - -85.4527
+  Warren:
+  - 35.6786
+  - -85.7785
+  Washington:
+  - 36.2932
+  - -82.4975
+  Wayne:
+  - 35.2398
+  - -87.788
+  Weakley:
+  - 36.2982
+  - -88.7178
+  White:
+  - 35.9263
+  - -85.4551
+  Williamson:
+  - 35.8939
+  - -86.8986
+  Wilson:
+  - 36.1548
+  - -86.2977
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

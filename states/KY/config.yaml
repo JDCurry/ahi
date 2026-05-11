@@ -1,0 +1,480 @@
+state_code: KY
+state_name: Kentucky
+region: great_lakes
+default_county: Jefferson
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -89.73
+  - -81.85
+  lat:
+  - 36.25
+  - 39.27
+geojson_county_property: NAME
+county_coords:
+  Adair:
+  - 37.1041
+  - -85.2808
+  Allen:
+  - 36.7513
+  - -86.1904
+  Anderson:
+  - 38.0039
+  - -84.9911
+  Ballard:
+  - 37.0584
+  - -88.9995
+  Barren:
+  - 36.9655
+  - -85.9337
+  Bath:
+  - 38.145
+  - -83.7426
+  Bell:
+  - 36.7306
+  - -83.6742
+  Boone:
+  - 38.9698
+  - -84.7278
+  Bourbon:
+  - 38.2067
+  - -84.2171
+  Boyd:
+  - 38.3595
+  - -82.6877
+  Boyle:
+  - 37.6244
+  - -84.8669
+  Bracken:
+  - 38.6888
+  - -84.0902
+  Breathitt:
+  - 37.5216
+  - -83.3241
+  Breckinridge:
+  - 37.7732
+  - -86.4293
+  Bullitt:
+  - 37.9701
+  - -85.6959
+  Butler:
+  - 37.2072
+  - -86.6819
+  Caldwell:
+  - 37.1453
+  - -87.8678
+  Calloway:
+  - 36.6211
+  - -88.2722
+  Campbell:
+  - 38.9464
+  - -84.3796
+  Carlisle:
+  - 36.8532
+  - -88.9711
+  Carroll:
+  - 38.6678
+  - -85.1236
+  Carter:
+  - 38.3182
+  - -83.0495
+  Casey:
+  - 37.3222
+  - -84.9283
+  Christian:
+  - 36.894
+  - -87.4904
+  Clark:
+  - 37.9708
+  - -84.1474
+  Clay:
+  - 37.1596
+  - -83.7146
+  Clinton:
+  - 36.7274
+  - -85.136
+  Crittenden:
+  - 37.3527
+  - -88.0973
+  Cumberland:
+  - 36.7865
+  - -85.3884
+  Daviess:
+  - 37.7318
+  - -87.0873
+  Edmonson:
+  - 37.2088
+  - -86.2386
+  Elliott:
+  - 38.1179
+  - -83.0976
+  Estill:
+  - 37.6925
+  - -83.9643
+  Fayette:
+  - 38.0423
+  - -84.4587
+  Fleming:
+  - 38.3701
+  - -83.6966
+  Floyd:
+  - 37.557
+  - -82.7456
+  Franklin:
+  - 38.2391
+  - -84.8771
+  Fulton:
+  - 36.5542
+  - -89.1876
+  Gallatin:
+  - 38.7569
+  - -84.8593
+  Garrard:
+  - 37.6395
+  - -84.5375
+  Grant:
+  - 38.6488
+  - -84.6246
+  Graves:
+  - 36.723
+  - -88.6512
+  Grayson:
+  - 37.4609
+  - -86.3438
+  Green:
+  - 37.264
+  - -85.5531
+  Greenup:
+  - 38.5456
+  - -82.9222
+  Hancock:
+  - 37.8415
+  - -86.7778
+  Hardin:
+  - 37.6978
+  - -85.9635
+  Harlan:
+  - 36.857
+  - -83.2182
+  Harrison:
+  - 38.4418
+  - -84.3314
+  Hart:
+  - 37.2999
+  - -85.8847
+  Henderson:
+  - 37.7958
+  - -87.573
+  Henry:
+  - 38.4485
+  - -85.1189
+  Hickman:
+  - 36.6782
+  - -88.9762
+  Hopkins:
+  - 37.3087
+  - -87.5409
+  Jackson:
+  - 37.4197
+  - -84.0057
+  Jefferson:
+  - 38.1872
+  - -85.6592
+  Jessamine:
+  - 37.872
+  - -84.5809
+  Johnson:
+  - 37.8466
+  - -82.8315
+  Kenton:
+  - 38.9334
+  - -84.5333
+  Knott:
+  - 37.354
+  - -82.9541
+  Knox:
+  - 36.8906
+  - -83.8541
+  Larue:
+  - 37.5458
+  - -85.6979
+  Laurel:
+  - 37.1106
+  - -84.1178
+  Lawrence:
+  - 38.0678
+  - -82.7347
+  Lee:
+  - 37.5948
+  - -83.7163
+  Leslie:
+  - 37.094
+  - -83.3811
+  Letcher:
+  - 37.1212
+  - -82.8554
+  Lewis:
+  - 38.5315
+  - -83.3781
+  Lincoln:
+  - 37.4553
+  - -84.6608
+  Livingston:
+  - 37.2095
+  - -88.3537
+  Logan:
+  - 36.8596
+  - -86.879
+  Lyon:
+  - 37.0191
+  - -88.0833
+  Madison:
+  - 37.7201
+  - -84.278
+  Magoffin:
+  - 37.7064
+  - -83.0648
+  Marion:
+  - 37.5526
+  - -85.2696
+  Marshall:
+  - 36.8834
+  - -88.3293
+  Martin:
+  - 37.8015
+  - -82.5132
+  Mason:
+  - 38.5951
+  - -83.8242
+  Mccracken:
+  - 37.054
+  - -88.7127
+  Mccreary:
+  - 36.7371
+  - -84.4842
+  Mclean:
+  - 37.5292
+  - -87.2635
+  Meade:
+  - 37.9698
+  - -86.2169
+  Menifee:
+  - 37.9414
+  - -83.5989
+  Mercer:
+  - 37.811
+  - -84.8744
+  Metcalfe:
+  - 36.9905
+  - -85.6292
+  Monroe:
+  - 36.7122
+  - -85.7165
+  Montgomery:
+  - 38.0335
+  - -83.913
+  Morgan:
+  - 37.9223
+  - -83.2589
+  Muhlenberg:
+  - 37.2157
+  - -87.142
+  Nelson:
+  - 37.8051
+  - -85.4662
+  Nicholas:
+  - 38.3356
+  - -84.0153
+  Ohio:
+  - 37.4781
+  - -86.849
+  Oldham:
+  - 38.3994
+  - -85.4484
+  Owen:
+  - 38.5196
+  - -84.828
+  Owsley:
+  - 37.4192
+  - -83.6831
+  Pendleton:
+  - 38.6956
+  - -84.3603
+  Perry:
+  - 37.2442
+  - -83.2213
+  Pike:
+  - 37.4689
+  - -82.396
+  Powell:
+  - 37.8312
+  - -83.8237
+  Pulaski:
+  - 37.1039
+  - -84.5772
+  Robertson:
+  - 38.5188
+  - -84.052
+  Rockcastle:
+  - 37.3651
+  - -84.3159
+  Rowan:
+  - 38.1962
+  - -83.4211
+  Russell:
+  - 36.991
+  - -85.0588
+  Scott:
+  - 38.2915
+  - -84.5839
+  Shelby:
+  - 38.2154
+  - -85.1948
+  Simpson:
+  - 36.7419
+  - -86.5823
+  Spencer:
+  - 38.0325
+  - -85.3278
+  Taylor:
+  - 37.3665
+  - -85.3278
+  Todd:
+  - 36.8354
+  - -87.1792
+  Trigg:
+  - 36.8063
+  - -87.8734
+  Trimble:
+  - 38.613
+  - -85.3374
+  Union:
+  - 37.6583
+  - -87.9454
+  Warren:
+  - 36.9935
+  - -86.4238
+  Washington:
+  - 37.7534
+  - -85.1748
+  Wayne:
+  - 36.8012
+  - -84.8287
+  Webster:
+  - 37.5184
+  - -87.6833
+  Whitley:
+  - 36.758
+  - -84.1451
+  Wolfe:
+  - 37.7393
+  - -83.4932
+  Woodford:
+  - 38.0423
+  - -84.7436
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

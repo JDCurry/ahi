@@ -1,0 +1,465 @@
+state_code: MO
+state_name: Missouri
+region: northern_plains
+default_county: St. Louis
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -95.9
+  - -88.84
+  lat:
+  - 35.87
+  - 40.82
+geojson_county_property: NAME
+county_coords:
+  Adair:
+  - 40.1923
+  - -92.6009
+  Andrew:
+  - 39.9742
+  - -94.8026
+  Atchison:
+  - 40.4234
+  - -95.418
+  Audrain:
+  - 39.1967
+  - -91.7608
+  Barry:
+  - 36.7126
+  - -93.8231
+  Barton:
+  - 37.5016
+  - -94.3471
+  Bates:
+  - 38.2506
+  - -94.3433
+  Benton:
+  - 38.3014
+  - -93.2975
+  Bollinger:
+  - 37.3196
+  - -90.0045
+  Boone:
+  - 38.9472
+  - -92.3455
+  Buchanan:
+  - 39.6763
+  - -94.793
+  Butler:
+  - 36.7092
+  - -90.3871
+  Caldwell:
+  - 39.6563
+  - -93.9823
+  Callaway:
+  - 38.8097
+  - -91.8911
+  Camden:
+  - 38.0357
+  - -92.791
+  Cape Girardeau:
+  - 37.3609
+  - -89.6468
+  Carroll:
+  - 39.4109
+  - -93.4788
+  Carter:
+  - 36.9564
+  - -90.9583
+  Cass:
+  - 38.6458
+  - -94.3639
+  Cedar:
+  - 37.7369
+  - -93.8396
+  Chariton:
+  - 39.4642
+  - -92.9626
+  Christian:
+  - 36.9509
+  - -93.1221
+  Clark:
+  - 40.4319
+  - -91.7341
+  Clay:
+  - 39.2818
+  - -94.4063
+  Clinton:
+  - 39.601
+  - -94.4042
+  Cole:
+  - 38.5281
+  - -92.242
+  Cooper:
+  - 38.8712
+  - -92.7909
+  Crawford:
+  - 37.9563
+  - -91.3107
+  Dade:
+  - 37.432
+  - -93.8501
+  Dallas:
+  - 37.656
+  - -93.0122
+  Daviess:
+  - 39.9602
+  - -93.9832
+  Dekalb:
+  - 39.8929
+  - -94.4047
+  Dent:
+  - 37.6042
+  - -91.4819
+  Douglas:
+  - 36.936
+  - -92.4988
+  Dunklin:
+  - 36.305
+  - -90.0143
+  Franklin:
+  - 38.445
+  - -91.0523
+  Gasconade:
+  - 38.4314
+  - -91.5057
+  Gentry:
+  - 40.2128
+  - -94.4099
+  Greene:
+  - 37.257
+  - -93.3337
+  Grundy:
+  - 40.1122
+  - -93.5655
+  Harrison:
+  - 40.3562
+  - -93.989
+  Henry:
+  - 38.3844
+  - -93.7916
+  Hickory:
+  - 37.9368
+  - -93.291
+  Holt:
+  - 40.0629
+  - -95.2309
+  Howard:
+  - 39.1548
+  - -92.6941
+  Howell:
+  - 36.7744
+  - -91.8938
+  Iron:
+  - 37.5027
+  - -90.6589
+  Jackson:
+  - 39.0371
+  - -94.3584
+  Jasper:
+  - 37.2063
+  - -94.3364
+  Jefferson:
+  - 38.2562
+  - -90.5679
+  Johnson:
+  - 38.7488
+  - -93.813
+  Knox:
+  - 40.1276
+  - -92.1479
+  Laclede:
+  - 37.6837
+  - -92.5823
+  Lafayette:
+  - 39.1035
+  - -93.797
+  Lawrence:
+  - 37.1065
+  - -93.8331
+  Lewis:
+  - 40.0996
+  - -91.7255
+  Lincoln:
+  - 39.0516
+  - -90.9846
+  Linn:
+  - 39.8705
+  - -93.1085
+  Livingston:
+  - 39.7897
+  - -93.5615
+  Macon:
+  - 39.8274
+  - -92.573
+  Madison:
+  - 37.4835
+  - -90.3455
+  Maries:
+  - 38.1515
+  - -91.906
+  Marion:
+  - 39.8007
+  - -91.6034
+  Mcdonald:
+  - 36.6295
+  - -94.345
+  Mercer:
+  - 40.4221
+  - -93.5657
+  Miller:
+  - 38.2235
+  - -92.4463
+  Mississippi:
+  - 36.8225
+  - -89.3314
+  Moniteau:
+  - 38.6782
+  - -92.628
+  Monroe:
+  - 39.5038
+  - -92.0089
+  Montgomery:
+  - 38.9106
+  - -91.4523
+  Morgan:
+  - 38.4349
+  - -92.8495
+  New Madrid:
+  - 36.6106
+  - -89.6715
+  Newton:
+  - 36.9032
+  - -94.341
+  Nodaway:
+  - 40.3524
+  - -94.889
+  Oregon:
+  - 36.691
+  - -91.3993
+  Osage:
+  - 38.4958
+  - -91.8261
+  Ozark:
+  - 36.6465
+  - -92.4425
+  Pemiscot:
+  - 36.2117
+  - -89.81
+  Perry:
+  - 37.742
+  - -89.8215
+  Pettis:
+  - 38.7226
+  - -93.2811
+  Phelps:
+  - 37.8775
+  - -91.775
+  Pike:
+  - 39.365
+  - -91.1556
+  Platte:
+  - 39.3439
+  - -94.7556
+  Polk:
+  - 37.6236
+  - -93.3954
+  Pulaski:
+  - 37.8088
+  - -92.2175
+  Putnam:
+  - 40.4722
+  - -93.0371
+  Ralls:
+  - 39.5059
+  - -91.544
+  Randolph:
+  - 39.4299
+  - -92.5052
+  Ray:
+  - 39.331
+  - -93.9855
+  Reynolds:
+  - 37.3317
+  - -90.9635
+  Ripley:
+  - 36.6539
+  - -90.8574
+  Saline:
+  - 39.172
+  - -93.1944
+  Schuyler:
+  - 40.4705
+  - -92.5278
+  Scotland:
+  - 40.4541
+  - -92.1481
+  Scott:
+  - 37.0564
+  - -89.5792
+  Shannon:
+  - 37.1497
+  - -91.3354
+  Shelby:
+  - 39.7771
+  - -92.0689
+  St. Charles:
+  - 38.7532
+  - -90.7347
+  St. Clair:
+  - 38.0296
+  - -93.7824
+  St. Francois:
+  - 37.855
+  - -90.532
+  St. Louis:
+  - 38.6475
+  - -90.5046
+  St. Louis City:
+  - 38.6539
+  - -90.2401
+  Ste. Genevieve:
+  - 37.8967
+  - -90.1875
+  Stoddard:
+  - 36.8792
+  - -89.9702
+  Stone:
+  - 36.7447
+  - -93.4416
+  Sullivan:
+  - 40.2095
+  - -93.1111
+  Taney:
+  - 36.654
+  - -93.0399
+  Texas:
+  - 37.3273
+  - -91.9496
+  Vernon:
+  - 37.8525
+  - -94.3425
+  Warren:
+  - 38.7745
+  - -91.1896
+  Washington:
+  - 37.9688
+  - -90.8679
+  Wayne:
+  - 37.1235
+  - -90.5008
+  Webster:
+  - 37.2781
+  - -92.8843
+  Worth:
+  - 40.4794
+  - -94.4318
+  Wright:
+  - 37.2704
+  - -92.4724
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

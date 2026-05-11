@@ -1,0 +1,294 @@
+state_code: CA
+state_name: California
+region: pacific
+default_county: Los Angeles
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -124.68
+  - -114.7
+  lat:
+  - 32.38
+  - 42.39
+geojson_county_property: NAME
+county_coords:
+  Alameda:
+  - 37.6924
+  - -121.8836
+  Alpine:
+  - 38.6157
+  - -119.843
+  Amador:
+  - 38.4538
+  - -120.5505
+  Butte:
+  - 39.6979
+  - -121.6369
+  Calaveras:
+  - 38.1347
+  - -120.6264
+  Colusa:
+  - 39.1743
+  - -122.2191
+  Contra Costa:
+  - 37.9524
+  - -121.8952
+  Del Norte:
+  - 41.7008
+  - -123.9472
+  El Dorado:
+  - 38.7877
+  - -120.4895
+  Fresno:
+  - 36.7737
+  - -119.5494
+  Glenn:
+  - 39.6076
+  - -122.3405
+  Humboldt:
+  - 40.6991
+  - -123.9878
+  Imperial:
+  - 33.0725
+  - -115.3909
+  Inyo:
+  - 36.587
+  - -117.5206
+  Kern:
+  - 35.3727
+  - -118.5991
+  Kings:
+  - 36.0786
+  - -119.8553
+  Lake:
+  - 39.1197
+  - -122.7797
+  Lassen:
+  - 40.4746
+  - -120.5294
+  Los Angeles:
+  - 34.3237
+  - -118.1631
+  Madera:
+  - 37.2968
+  - -119.6483
+  Marin:
+  - 38.0624
+  - -122.7987
+  Mariposa:
+  - 37.5397
+  - -119.8986
+  Mendocino:
+  - 39.4493
+  - -123.3897
+  Merced:
+  - 37.1774
+  - -120.7011
+  Modoc:
+  - 41.5897
+  - -120.7251
+  Mono:
+  - 38.0346
+  - -119.0112
+  Monterey:
+  - 36.2539
+  - -121.4246
+  Napa:
+  - 38.5056
+  - -122.3137
+  Nevada:
+  - 39.3771
+  - -120.3119
+  Orange:
+  - 33.65
+  - -117.742
+  Placer:
+  - 39.0467
+  - -120.7386
+  Plumas:
+  - 40.0572
+  - -120.9145
+  Riverside:
+  - 33.7724
+  - -115.9171
+  Sacramento:
+  - 38.465
+  - -121.276
+  San Benito:
+  - 36.5996
+  - -121.0599
+  San Bernardino:
+  - 34.9096
+  - -116.2466
+  San Diego:
+  - 33.0807
+  - -116.7123
+  San Francisco:
+  - 37.7942
+  - -122.4665
+  San Joaquin:
+  - 37.9213
+  - -121.2339
+  San Luis Obispo:
+  - 35.3477
+  - -120.4774
+  San Mateo:
+  - 37.406
+  - -122.331
+  Santa Barbara:
+  - 34.6711
+  - -120.0698
+  Santa Clara:
+  - 37.2034
+  - -121.7245
+  Santa Cruz:
+  - 37.0508
+  - -122.0574
+  Shasta:
+  - 40.7895
+  - -122.0345
+  Sierra:
+  - 39.596
+  - -120.5171
+  Siskiyou:
+  - 41.5963
+  - -122.476
+  Solano:
+  - 38.2879
+  - -121.9461
+  Sonoma:
+  - 38.4474
+  - -122.8531
+  Stanislaus:
+  - 37.6321
+  - -120.9558
+  Sutter:
+  - 39.018
+  - -121.7023
+  Tehama:
+  - 40.143
+  - -122.1369
+  Trinity:
+  - 40.5884
+  - -123.1439
+  Tulare:
+  - 36.2026
+  - -118.8202
+  Tuolumne:
+  - 38.0118
+  - -120.0201
+  Ventura:
+  - 34.4654
+  - -119.1073
+  Yolo:
+  - 38.6451
+  - -121.8794
+  Yuba:
+  - 39.254
+  - -121.4146
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

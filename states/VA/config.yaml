@@ -1,0 +1,519 @@
+state_code: VA
+state_name: Virginia
+region: northeast
+default_county: Fairfax
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -83.62
+  - -75.28
+  lat:
+  - 36.29
+  - 39.52
+geojson_county_property: NAME
+county_coords:
+  Accomack:
+  - 37.8056
+  - -75.8522
+  Albemarle:
+  - 37.9895
+  - -78.5882
+  Alexandria City:
+  - 38.8198
+  - -77.0885
+  Alleghany:
+  - 37.7851
+  - -80.1132
+  Amelia:
+  - 37.3618
+  - -78.0075
+  Amherst:
+  - 37.6064
+  - -79.1492
+  Appomattox:
+  - 37.3749
+  - -78.8003
+  Arlington:
+  - 38.8819
+  - -77.1102
+  Augusta:
+  - 38.1951
+  - -79.271
+  Bath:
+  - 38.0541
+  - -79.7358
+  Bedford:
+  - 37.323
+  - -79.5427
+  Bland:
+  - 37.1215
+  - -81.127
+  Botetourt:
+  - 37.5446
+  - -79.7545
+  Bristol City:
+  - 36.63
+  - -82.1321
+  Brunswick:
+  - 36.7563
+  - -77.8413
+  Buchanan:
+  - 37.2842
+  - -82.0139
+  Buckingham:
+  - 37.5726
+  - -78.5661
+  Buena Vista City:
+  - 37.7292
+  - -79.3604
+  Campbell:
+  - 37.2212
+  - -79.0761
+  Caroline:
+  - 38.0138
+  - -77.3217
+  Carroll:
+  - 36.7463
+  - -80.7438
+  Charles City:
+  - 37.3575
+  - -77.0466
+  Charlotte:
+  - 36.9651
+  - -78.6085
+  Charlottesville City:
+  - 38.0382
+  - -78.48
+  Chesapeake City:
+  - 36.6873
+  - -76.2963
+  Chesterfield:
+  - 37.3835
+  - -77.5401
+  Clarke:
+  - 39.1156
+  - -77.9743
+  Colonial Heights City:
+  - 37.2677
+  - -77.4042
+  Covington City:
+  - 37.7804
+  - -79.9871
+  Craig:
+  - 37.481
+  - -80.1772
+  Culpeper:
+  - 38.4992
+  - -77.9709
+  Cumberland:
+  - 37.5188
+  - -78.2219
+  Danville City:
+  - 36.5892
+  - -79.4104
+  Dickenson:
+  - 37.1341
+  - -82.3544
+  Dinwiddie:
+  - 37.0769
+  - -77.6467
+  Emporia City:
+  - 36.6969
+  - -77.5359
+  Essex:
+  - 37.9539
+  - -76.9598
+  Fairfax:
+  - 38.8525
+  - -77.4175
+  Fairfax City:
+  - 38.8527
+  - -77.3022
+  Falls Church City:
+  - 38.8867
+  - -77.1767
+  Fauquier:
+  - 38.708
+  - -77.8124
+  Floyd:
+  - 36.9288
+  - -80.3916
+  Fluvanna:
+  - 37.8463
+  - -78.2712
+  Franklin:
+  - 37.0013
+  - -79.8627
+  Franklin City:
+  - 36.682
+  - -76.9421
+  Frederick:
+  - 39.2233
+  - -78.2367
+  Fredericksburg City:
+  - 38.2977
+  - -77.4834
+  Galax City:
+  - 36.6628
+  - -80.9266
+  Giles:
+  - 37.3133
+  - -80.6722
+  Gloucester:
+  - 37.4179
+  - -76.5533
+  Goochland:
+  - 37.7511
+  - -77.9667
+  Grayson:
+  - 36.6793
+  - -81.2116
+  Greene:
+  - 38.3385
+  - -78.4713
+  Greensville:
+  - 36.7065
+  - -77.608
+  Halifax:
+  - 36.7708
+  - -78.9222
+  Hampton City:
+  - 37.036
+  - -76.3272
+  Hanover:
+  - 37.7862
+  - -77.5457
+  Harrisonburg City:
+  - 38.4368
+  - -78.869
+  Henrico:
+  - 37.5109
+  - -77.288
+  Henry:
+  - 36.7184
+  - -79.9881
+  Highland:
+  - 38.3793
+  - -79.5329
+  Hopewell City:
+  - 37.2869
+  - -77.2994
+  Isle Of Wight:
+  - 36.8892
+  - -76.7061
+  James City:
+  - 37.3284
+  - -76.8032
+  King And Queen:
+  - 37.6958
+  - -76.8657
+  King George:
+  - 38.2901
+  - -77.1813
+  King William:
+  - 37.7346
+  - -77.1684
+  Lancaster:
+  - 37.7244
+  - -76.475
+  Lee:
+  - 36.7223
+  - -83.0426
+  Lexington City:
+  - 37.78
+  - -79.4465
+  Loudoun:
+  - 39.0826
+  - -77.5921
+  Louisa:
+  - 37.9491
+  - -77.9981
+  Lunenburg:
+  - 36.9627
+  - -78.2395
+  Lynchburg City:
+  - 37.3965
+  - -79.1728
+  Madison:
+  - 38.4261
+  - -78.2653
+  Manassas City:
+  - 38.7425
+  - -77.4832
+  Manassas Park City:
+  - 38.7673
+  - -77.4383
+  Martinsville City:
+  - 36.681
+  - -79.8731
+  Mathews:
+  - 37.4218
+  - -76.2925
+  Mecklenburg:
+  - 36.6755
+  - -78.335
+  Middlesex:
+  - 37.6581
+  - -76.6309
+  Montgomery:
+  - 37.1677
+  - -80.365
+  Nelson:
+  - 37.8024
+  - -78.918
+  New Kent:
+  - 37.4988
+  - -76.9926
+  Newport News City:
+  - 37.0846
+  - -76.5393
+  Norfolk City:
+  - 36.9391
+  - -76.2555
+  Northampton:
+  - 37.2822
+  - -75.9332
+  Northumberland:
+  - 37.8474
+  - -76.382
+  Norton City:
+  - 36.9311
+  - -82.6342
+  Nottoway:
+  - 37.1372
+  - -78.0685
+  Orange:
+  - 38.2597
+  - -77.9726
+  Page:
+  - 38.627
+  - -78.4881
+  Patrick:
+  - 36.6942
+  - -80.264
+  Petersburg City:
+  - 37.2033
+  - -77.3876
+  Pittsylvania:
+  - 36.8253
+  - -79.3989
+  Poquoson City:
+  - 37.1475
+  - -76.2627
+  Portsmouth City:
+  - 36.8644
+  - -76.3618
+  Powhatan:
+  - 37.5512
+  - -77.9051
+  Prince Edward:
+  - 37.2397
+  - -78.4536
+  Prince George:
+  - 37.1547
+  - -77.2386
+  Prince William:
+  - 38.709
+  - -77.3906
+  Pulaski:
+  - 37.0708
+  - -80.7433
+  Radford City:
+  - 37.1222
+  - -80.5636
+  Rappahannock:
+  - 38.6937
+  - -78.152
+  Richmond:
+  - 37.941
+  - -76.7075
+  Richmond City:
+  - 37.5295
+  - -77.4706
+  Roanoke:
+  - 37.2699
+  - -80.1551
+  Roanoke City:
+  - 37.275
+  - -79.963
+  Rockbridge:
+  - 37.804
+  - -79.4509
+  Rockingham:
+  - 38.5353
+  - -78.919
+  Russell:
+  - 36.9233
+  - -82.096
+  Salem City:
+  - 37.2903
+  - -80.0576
+  Scott:
+  - 36.7254
+  - -82.5765
+  Shenandoah:
+  - 38.866
+  - -78.5761
+  Smyth:
+  - 36.8223
+  - -81.5166
+  Southampton:
+  - 36.7695
+  - -77.0746
+  Spotsylvania:
+  - 38.1861
+  - -77.6566
+  Stafford:
+  - 38.4244
+  - -77.4703
+  Staunton City:
+  - 38.1629
+  - -79.0616
+  Suffolk City:
+  - 36.7342
+  - -76.607
+  Surry:
+  - 37.094
+  - -76.9174
+  Sussex:
+  - 36.909
+  - -77.2911
+  Tazewell:
+  - 37.1393
+  - -81.5543
+  Virginia Beach City:
+  - 36.7826
+  - -76.0483
+  Warren:
+  - 38.8967
+  - -78.2093
+  Washington:
+  - 36.7456
+  - -81.9214
+  Waynesboro City:
+  - 38.0657
+  - -78.9069
+  Westmoreland:
+  - 38.1194
+  - -76.8017
+  Williamsburg City:
+  - 37.2765
+  - -76.7069
+  Winchester City:
+  - 39.1673
+  - -78.1739
+  Wise:
+  - 36.991
+  - -82.5719
+  Wythe:
+  - 36.9153
+  - -81.0645
+  York:
+  - 37.2234
+  - -76.4665
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

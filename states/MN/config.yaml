@@ -1,0 +1,381 @@
+state_code: MN
+state_name: Minnesota
+region: northern_plains
+default_county: Hennepin
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -97.29
+  - -89.87
+  lat:
+  - 43.26
+  - 49.18
+geojson_county_property: NAME
+county_coords:
+  Aitkin:
+  - 46.6072
+  - -93.4154
+  Anoka:
+  - 45.2732
+  - -93.2464
+  Becker:
+  - 46.9347
+  - -95.6739
+  Beltrami:
+  - 47.9723
+  - -94.9362
+  Benton:
+  - 45.6991
+  - -93.9988
+  Big Stone:
+  - 45.426
+  - -96.4106
+  Blue Earth:
+  - 44.0345
+  - -94.067
+  Brown:
+  - 44.2421
+  - -94.7276
+  Carlton:
+  - 46.5924
+  - -92.677
+  Carver:
+  - 44.8206
+  - -93.8025
+  Cass:
+  - 46.9481
+  - -94.3264
+  Chippewa:
+  - 45.0224
+  - -95.5666
+  Chisago:
+  - 45.5022
+  - -92.9081
+  Clay:
+  - 46.892
+  - -96.4906
+  Clearwater:
+  - 47.5765
+  - -95.3788
+  Cook:
+  - 47.7261
+  - -90.3859
+  Cottonwood:
+  - 44.0071
+  - -95.1811
+  Crow Wing:
+  - 46.4818
+  - -94.0709
+  Dakota:
+  - 44.6718
+  - -93.0654
+  Dodge:
+  - 44.0225
+  - -92.8621
+  Douglas:
+  - 45.9337
+  - -95.4535
+  Faribault:
+  - 43.6739
+  - -93.948
+  Fillmore:
+  - 43.674
+  - -92.0902
+  Freeborn:
+  - 43.6738
+  - -93.3488
+  Goodhue:
+  - 44.4096
+  - -92.7231
+  Grant:
+  - 45.9339
+  - -96.0122
+  Hennepin:
+  - 45.0044
+  - -93.4768
+  Houston:
+  - 43.6713
+  - -91.4928
+  Hubbard:
+  - 47.1081
+  - -94.9166
+  Isanti:
+  - 45.5614
+  - -93.2951
+  Itasca:
+  - 47.5089
+  - -93.6311
+  Jackson:
+  - 43.6741
+  - -95.1541
+  Kanabec:
+  - 45.945
+  - -93.2936
+  Kandiyohi:
+  - 45.1521
+  - -95.0047
+  Kittson:
+  - 48.7765
+  - -96.7827
+  Koochiching:
+  - 48.245
+  - -93.7833
+  Lac Qui Parle:
+  - 44.9954
+  - -96.1733
+  Lake:
+  - 47.5211
+  - -91.409
+  Lake Of The Woods:
+  - 48.7698
+  - -94.904
+  Le Sueur:
+  - 44.3714
+  - -93.7302
+  Lincoln:
+  - 44.4124
+  - -96.2671
+  Lyon:
+  - 44.4133
+  - -95.839
+  Mahnomen:
+  - 47.3251
+  - -95.809
+  Marshall:
+  - 48.3586
+  - -96.3685
+  Martin:
+  - 43.6743
+  - -94.5511
+  Mcleod:
+  - 44.8235
+  - -94.2725
+  Meeker:
+  - 45.1229
+  - -94.5274
+  Mille Lacs:
+  - 45.9373
+  - -93.6301
+  Morrison:
+  - 46.0125
+  - -94.2682
+  Mower:
+  - 43.6714
+  - -92.7525
+  Murray:
+  - 44.0221
+  - -95.7633
+  Nicollet:
+  - 44.3499
+  - -94.2473
+  Nobles:
+  - 43.6742
+  - -95.7534
+  Norman:
+  - 47.3265
+  - -96.4553
+  Olmsted:
+  - 44.0037
+  - -92.4017
+  Otter Tail:
+  - 46.4086
+  - -95.7081
+  Pennington:
+  - 48.0664
+  - -96.0367
+  Pine:
+  - 46.1203
+  - -92.7418
+  Pipestone:
+  - 44.0229
+  - -96.2586
+  Polk:
+  - 47.7738
+  - -96.4004
+  Pope:
+  - 45.586
+  - -95.4445
+  Ramsey:
+  - 45.0171
+  - -93.0996
+  Red Lake:
+  - 47.8718
+  - -96.0953
+  Redwood:
+  - 44.4036
+  - -95.2539
+  Renville:
+  - 44.7268
+  - -94.9469
+  Rice:
+  - 44.3542
+  - -93.2966
+  Rock:
+  - 43.6745
+  - -96.2532
+  Roseau:
+  - 48.7752
+  - -95.8109
+  Scott:
+  - 44.6485
+  - -93.5359
+  Sherburne:
+  - 45.444
+  - -93.7746
+  Sibley:
+  - 44.5796
+  - -94.2322
+  St. Louis:
+  - 47.5854
+  - -92.4604
+  Stearns:
+  - 45.5521
+  - -94.6128
+  Steele:
+  - 44.0222
+  - -93.2261
+  Stevens:
+  - 45.586
+  - -96.0002
+  Swift:
+  - 45.2829
+  - -95.6815
+  Todd:
+  - 46.0701
+  - -94.8976
+  Traverse:
+  - 45.7719
+  - -96.4719
+  Wabasha:
+  - 44.2843
+  - -92.2302
+  Wadena:
+  - 46.5855
+  - -94.9694
+  Waseca:
+  - 44.022
+  - -93.5873
+  Washington:
+  - 45.0385
+  - -92.8838
+  Watonwan:
+  - 43.9784
+  - -94.6141
+  Wilkin:
+  - 46.3565
+  - -96.4681
+  Winona:
+  - 43.9868
+  - -91.7789
+  Wright:
+  - 45.1738
+  - -93.9631
+  Yellow Medicine:
+  - 44.7165
+  - -95.8682
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

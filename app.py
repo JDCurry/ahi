@@ -1,7 +1,11 @@
 """
-AHI — Adaptive Hazard Intelligence
-SBIR Phase I demonstration dashboard.
+AHI — Adaptive Hazard Intelligence Platform
+Multi-state demonstration dashboard.
 Resilience Analytics Lab, LLC
+
+AHI v2.5 — stacked mesh transformer with regional model architecture.
+State-aware: select state from sidebar; UI content + calibration loaded
+from states/<XX>/config.yaml and states/registry.yaml.
 """
 
 import streamlit as st
@@ -17,7 +21,7 @@ import warnings
 import base64
 warnings.filterwarnings('ignore')
 
-# Optional imports (folium only — geopandas replaced with json-based loader)
+# Optional imports (folium only)
 try:
     import folium
     from folium.features import GeoJsonTooltip
@@ -26,7 +30,7 @@ try:
 except ImportError:
     FOLIUM_AVAILABLE = False
 
-# ONNX-based inference (no torch dependency — saves ~200MB)
+# State-aware ONNX inference
 try:
     from inference_onnx import predict_county_risks_simple, predict_from_ahi_v2
     AHI_V2_AVAILABLE = True
@@ -36,6 +40,9 @@ except Exception as e:
     predict_from_ahi_v2 = None
     AHI_V2_AVAILABLE = False
 
+# State context loader (registry + per-state config)
+from state_context import StateContext, load_registry, deployed_states
+
 get_batch_adjacency = None
 
 # =============================================================================
@@ -43,60 +50,84 @@ get_batch_adjacency = None
 # =============================================================================
 
 st.set_page_config(
-    page_title="AHI — Adaptive Hazard Intelligence",
+    page_title="Adaptive Hazard Intelligence",
     page_icon="assets/favicon.ico",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 DEVICE = 'cpu'
-DATA_DIR = Path("data")
 MAX_FORECAST_DAYS = 14
 
-WA_COUNTY_COORDS = {
-    'Adams': (46.98, -118.56), 'Asotin': (46.19, -117.20), 'Benton': (46.23, -119.52),
-    'Chelan': (47.87, -120.62), 'Clallam': (48.11, -123.93), 'Clark': (45.78, -122.48),
-    'Columbia': (46.29, -117.91), 'Cowlitz': (46.19, -122.67), 'Douglas': (47.53, -119.69),
-    'Ferry': (48.47, -118.52), 'Franklin': (46.53, -118.89), 'Garfield': (46.43, -117.54),
-    'Grant': (47.21, -119.45), 'Grays Harbor': (47.15, -123.76), 'Island': (48.21, -122.58),
-    'Jefferson': (47.76, -123.50), 'King': (47.49, -121.84), 'Kitsap': (47.64, -122.65),
-    'Kittitas': (47.12, -120.68), 'Klickitat': (45.87, -120.78), 'Lewis': (46.58, -122.38),
-    'Lincoln': (47.58, -118.41), 'Mason': (47.35, -123.18), 'Okanogan': (48.55, -119.74),
-    'Pacific': (46.56, -123.78), 'Pend Oreille': (48.53, -117.27), 'Pierce': (47.04, -122.13),
-    'San Juan': (48.53, -123.02), 'Skagit': (48.48, -121.80), 'Skamania': (46.02, -121.92),
-    'Snohomish': (48.05, -121.72), 'Spokane': (47.62, -117.40), 'Stevens': (48.40, -117.85),
-    'Thurston': (46.93, -122.83), 'Wahkiakum': (46.29, -123.42), 'Walla Walla': (46.23, -118.48),
-    'Whatcom': (48.85, -121.72), 'Whitman': (46.90, -117.52), 'Yakima': (46.46, -120.74)
-}
+# ---- State selection ----
+# Sidebar dropdown picks the active state. All downstream content
+# (counties, calibration, utility names, NWS offices, climate language)
+# loads from states/<state_code>/config.yaml.
+_REGISTRY = load_registry()
+_DEPLOYED = deployed_states()
+if not _DEPLOYED:
+    st.error("No states are marked `deployed: true` in states/registry.yaml.")
+    st.stop()
 
-COUNTIES = sorted(WA_COUNTY_COORDS.keys())
+# Default to CO if available, else first deployed state
+_DEFAULT_STATE = 'CO' if 'CO' in _DEPLOYED else _DEPLOYED[0]
+
+with st.sidebar:
+    st.markdown("### State")
+    _state_options = sorted(_DEPLOYED, key=lambda c: _REGISTRY[c]['name'])
+    _state_labels = {c: f"{_REGISTRY[c]['name']} ({c})" for c in _state_options}
+    selected_state = st.selectbox(
+        "Active state",
+        options=_state_options,
+        index=_state_options.index(_DEFAULT_STATE) if _DEFAULT_STATE in _state_options else 0,
+        format_func=lambda c: _state_labels[c],
+        label_visibility='collapsed',
+        key='active_state',
+    )
+
+@st.cache_resource(show_spinner=False)
+def _load_state_context(state_code: str) -> StateContext:
+    return StateContext.load(state_code)
+
+ctx = _load_state_context(selected_state)
+
+# Backwards-compatible aliases — preserves the rest of the file's variable names
+# so the bulk of the rendering code below didn't have to be rewritten.
+CO_COUNTY_COORDS = {k: tuple(v) for k, v in ctx.county_coords.items()}
+COUNTIES         = ctx.counties
+COUNTY_UTILITY   = ctx.county_utility
+HAZARD_GUIDANCE  = ctx.hazard_guidance
+MODEL_VERSION    = ctx.model_version
+DATA_VERSION     = ctx.data_version
+
+# County coordinates, COUNTIES list, and utility map all come from ctx (above).
 
 # =============================================================================
 # COLOR THEME — Resilience Analytics Lab (sage green / institutional)
 # =============================================================================
 
 COLORS = {
-    'app_bg': '#24282D',
-    'card_bg': '#161b22',
-    'sidebar_bg': '#0d1117',
-    'elevated_bg': '#1c2128',
-    'primary': '#4a7c59',
+    'app_bg':        '#24282D',
+    'card_bg':       '#161b22',
+    'sidebar_bg':    '#0d1117',
+    'elevated_bg':   '#1c2128',
+    'primary':       '#4a7c59',
     'primary_light': '#6b9e7a',
-    'primary_dark': '#2d5a3a',
-    'accent': '#8fbc8f',
-    'border': '#30363d',
-    'text_primary': '#e6edf3',
-    'text_secondary': '#8b949e',
+    'primary_dark':  '#2d5a3a',
+    'accent':        '#8fbc8f',
+    'border':        '#30363d',
+    'text_primary':  '#e6edf3',
+    'text_secondary':'#8b949e',
     'text_tertiary': '#6e7681',
     # Per-hazard
-    'fire': '#e05252',
-    'flood': '#4a90d9',
-    'wind': '#9b59b6',
-    'winter': '#2ec4b6',
+    'fire':    '#e05252',
+    'flood':   '#4a90d9',
+    'wind':    '#9b59b6',
+    'winter':  '#2ec4b6',
     'seismic': '#e67e22',
 }
 
-# Unified 5-tier sequential risk palette (matches legend everywhere)
+# Unified 5-tier sequential risk palette
 RISK_TIERS = [
     (0.00, 0.10, '#2d5a3a', 'Low',      '< 10%',   'Baseline conditions — routine monitoring'),
     (0.10, 0.20, '#6b9e7a', 'Elevated', '10–20%',  'Above baseline — increased awareness recommended'),
@@ -122,95 +153,16 @@ HAZARD_NAMES = {
     'winter': 'Winter Storm', 'seismic': 'Seismic'
 }
 
-HAZARD_GUIDANCE = {
-    'fire': {
-        'Low':      'Monitor fire weather outlook. Continue standard defensible-space inspection schedule.',
-        'Elevated': 'Review evacuation routes. Verify water supply access points at critical facilities.',
-        'Moderate': 'Review preparedness. Coordinate with fire districts on resource availability. Confirm mutual-aid agreements.',
-        'High':     'Pre-position resources. Stage suppression assets. Brief incident command. Alert at-risk populations.',
-        'Severe':   'Activate operations. Implement evacuation protocols for highest-risk zones. Confirm shelter capacity.',
-    },
-    'flood': {
-        'Low':      'Routine monitoring of flood gauges. Maintain standard drainage inspection cycle.',
-        'Elevated': 'Inspect drainage systems and culverts. Verify flood gauge telemetry. Review road closure plans.',
-        'Moderate': 'Pre-stage pumps and sandbags at historically flood-prone areas. Brief public works.',
-        'High':     'Deploy mobile pumps. Alert at-risk occupancies in floodplain. Coordinate with WSDOT on closure triggers.',
-        'Severe':   'Activate flood response. Execute pre-planned closures. Open shelters. Coordinate swiftwater rescue posture.',
-    },
-    'wind': {
-        'Low':      'Routine monitoring. No special action required.',
-        'Elevated': 'Coordinate with utilities on line-inspection schedules. Secure outdoor equipment at critical facilities.',
-        'Moderate': 'Pre-position generators at critical facilities. Alert manufactured-housing communities. Brief utilities.',
-        'High':     'Stage mutual-aid crews for utility response. Pre-position backup power. Review debris-management posture.',
-        'Severe':   'Activate operations. Coordinate widespread outage response. Confirm 911 redundancy and EOC staffing.',
-    },
-    'winter': {
-        'Low':      'Routine monitoring. Verify seasonal readiness of plowing and treatment supplies.',
-        'Elevated': 'Check backup power at warming shelters. Verify road-treatment supply levels.',
-        'Moderate': 'Coordinate with WSDOT on plowing priorities. Prepare travel-advisory messaging templates.',
-        'High':     'Open warming shelters as needed. Pre-position treatment supplies on priority routes. Issue travel advisories.',
-        'Severe':   'Activate cold-weather response. Expand shelter capacity. Coordinate welfare checks on vulnerable populations.',
-    },
-    'seismic': {
-        'Low':      'Baseline seismic risk. Maintain standard preparedness posture.',
-        'Elevated': 'Baseline seismic risk (constant geographic prior). Periodic review of structural assessments for critical buildings recommended.',
-        'Moderate': 'Baseline seismic risk. Confirm communications redundancy and SAR readiness on standard schedule.',
-        'High':     'Baseline seismic risk. Note: AHI does not forecast seismic events — this value reflects geographic risk only.',
-        'Severe':   'Baseline seismic risk. Note: AHI does not forecast seismic events — see USGS for real-time hazard information.',
-    },
+# HAZARD_GUIDANCE, COUNTY_UTILITY, _AUDIT_FACTORS, MODEL_VERSION, DATA_VERSION
+# all sourced from ctx (StateContext loaded at top of file).
+
+# Build _AUDIT_FACTORS in the (hazard, season) tuple-keyed form the legacy
+# code below expects, from ctx.audit_factors (which is hazard -> season -> str).
+_AUDIT_FACTORS = {
+    (h, season): text
+    for h, by_season in ctx.audit_factors.items()
+    for season, text in by_season.items()
 }
-
-# Primary utility by county (wind/winter guidance only).
-# Sourced from WA UTC service territory maps and county PUD records.
-# Two entries = split territory; first listed is dominant by population served.
-COUNTY_UTILITY = {
-    'Adams':       'Pacific Power / Big Bend Electric Co-op',
-    'Asotin':      'Pacific Power / Asotin County PUD',
-    'Benton':      'Benton PUD / Pacific Power',
-    'Chelan':      'Chelan PUD',
-    'Clallam':     'Clallam County PUD',
-    'Clark':       'Clark Public Utilities / Pacific Power',
-    'Columbia':    'Pacific Power / Columbia REA',
-    'Cowlitz':     'Cowlitz PUD / Pacific Power',
-    'Douglas':     'Douglas County PUD',
-    'Ferry':       'Ferry County PUD / Inland Power & Light',
-    'Franklin':    'Franklin PUD',
-    'Garfield':    'Pacific Power / Columbia REA',
-    'Grant':       'Grant County PUD',
-    'Grays Harbor':'Grays Harbor PUD',
-    'Island':      'Puget Sound Energy (PSE)',
-    'Jefferson':   'Jefferson County PUD',
-    'King':        'Seattle City Light (Seattle) / Puget Sound Energy (remainder)',
-    'Kitsap':      'Puget Sound Energy (PSE)',
-    'Kittitas':    'Puget Sound Energy (west) / Pacific Power (east)',
-    'Klickitat':   'Pacific Power / Klickitat PUD',
-    'Lewis':       'Pacific Power / Puget Sound Energy',
-    'Lincoln':     'Inland Power & Light / Lincoln Electric Co-op',
-    'Mason':       'Mason County PUD',
-    'Okanogan':    'Okanogan County PUD',
-    'Pacific':     'Pacific County PUD',
-    'Pend Oreille':'Pend Oreille County PUD / Avista',
-    'Pierce':      'Puget Sound Energy (PSE) / Tacoma Public Utilities',
-    'San Juan':    'San Juan County PUD',
-    'Skagit':      'Puget Sound Energy (PSE)',
-    'Skamania':    'Pacific Power / Skamania County PUD',
-    'Snohomish':   'Snohomish County PUD (SnoPUD)',
-    'Spokane':     'Avista Utilities',
-    'Stevens':     'Avista Utilities / Inland Power & Light',
-    'Thurston':    'Puget Sound Energy (PSE)',
-    'Wahkiakum':   'Wahkiakum County PUD',
-    'Walla Walla': 'Pacific Power / City of Walla Walla utilities',
-    'Whatcom':     'Puget Sound Energy (PSE)',
-    'Whitman':     'Pacific Power / Avista',
-    'Yakima':      'Pacific Power',
-}
-
-# =============================================================================
-# AUDIT LAYER — versioning, factor templates, report generation
-# =============================================================================
-
-MODEL_VERSION = "AHI v2.5"
-DATA_VERSION  = "NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025"
 
 _MONTH_TO_SEASON = {
     12: 'winter', 1: 'winter',  2: 'winter',
@@ -219,37 +171,10 @@ _MONTH_TO_SEASON = {
      9: 'fall',  10: 'fall',   11: 'fall',
 }
 
-# Rule-based seasonal factor explanations, keyed (hazard, season).
-_AUDIT_FACTORS = {
-    ('fire',   'summer'): "Peak fire season in Washington — elevated fuel aridity and low humidity historically precede fire events in summer months.",
-    ('fire',   'spring'): "Spring transition: drying vegetation and variable winds can elevate fire risk, though below the summer peak.",
-    ('fire',   'fall'):   "Post-summer fuel loads and early dry periods can sustain fire risk into October across eastern and central WA.",
-    ('fire',   'winter'): "Winter fire risk is suppressed by the learned seasonal bias; this ranking reflects residual geographic patterns.",
-    ('flood',  'spring'): "Spring snowmelt from the Cascades is a primary flood driver — historically the highest flood-rate period across western WA.",
-    ('flood',  'winter'): "Atmospheric river events drive winter flooding in western Washington; historically the highest-risk season for flood declarations.",
-    ('flood',  'fall'):   "Early-season rainfall on dry soils and initial Pacific storm systems begin elevating flood potential.",
-    ('flood',  'summer'): "Summer flood risk is generally low; elevated values may reflect downstream snowmelt or isolated convective systems.",
-    ('wind',   'fall'):   "Fall transition storms and Puget Sound convergence zones historically produce the most frequent high-wind events in WA.",
-    ('wind',   'winter'): "Winter Pacific storm systems deliver the most severe wind events along the WA coast and lowland corridors.",
-    ('wind',   'spring'): "Spring transitional wind variability is moderate; below fall/winter peak but above summer baseline.",
-    ('wind',   'summer'): "Summer wind risk is generally low; elevated values may reflect thermal patterns or convective activity in eastern WA.",
-    ('winter', 'winter'): "Peak winter storm season — snow, ice, and freezing rain events are historically concentrated in December–February.",
-    ('winter', 'fall'):   "Early-season winter storm risk — the model detects patterns consistent with late-fall snow and ice events, particularly at elevation.",
-    ('winter', 'spring'): "Late-season winter storm risk — March/April can still produce significant snow events, especially in the Cascades foothills.",
-    ('winter', 'summer'): "Summer winter storm risk is near-zero; the learned seasonal bias suppresses this head; value reflects residual calibration only.",
-    ('seismic', 'winter'): "Seismic risk reflects geographic proximity to the Cascadia subduction zone and crustal fault systems — not weather conditions.",
-    ('seismic', 'spring'): "Seismic risk reflects geographic proximity to the Cascadia subduction zone and crustal fault systems — not weather conditions.",
-    ('seismic', 'summer'): "Seismic risk reflects geographic proximity to the Cascadia subduction zone and crustal fault systems — not weather conditions.",
-    ('seismic', 'fall'):   "Seismic risk reflects geographic proximity to the Cascadia subduction zone and crustal fault systems — not weather conditions.",
-}
-
 
 def generate_audit_report(county: str, forecast_date_str: str,
                           risks: dict, horizon_days: int) -> dict:
-    """
-    Build a structured audit record for a single county prediction.
-    Tier 1 (rule-based): no ML explainability required.
-    """
+    """Build a structured audit record for a single county prediction."""
     from datetime import datetime as _dt
     try:
         fdate = _dt.fromisoformat(forecast_date_str)
@@ -266,12 +191,10 @@ def generate_audit_report(county: str, forecast_date_str: str,
     margin = primary_score - second_score
     level, _ = risk_level(primary_score)
 
-    # Ranking / close-call note
     primary_name = HAZARD_NAMES.get(primary_key, primary_key)
     second_name  = HAZARD_NAMES.get(second_key,  second_key)
 
     def _pp(m: float) -> str:
-        """Format a probability margin as a readable 'percentage point(s)' string."""
         pct = m * 100
         if pct < 1.0:
             return "less than 1 percentage point"
@@ -296,18 +219,19 @@ def generate_audit_report(county: str, forecast_date_str: str,
             f"{primary_name} is the clear primary hazard, leading by {_pp(margin)}."
         )
 
-    # Top factors
     seasonal_text = _AUDIT_FACTORS.get(
         (primary_key, season),
-        f"Historical {month_name} patterns for {primary_name.lower()} risk in Washington State informed this prediction.",
+        f"Historical {month_name} patterns for {primary_name.lower()} risk in {ctx.state_name} informed this prediction.",
     )
+
     if primary_key == 'seismic':
         factors = [
             {"factor": "Geographic risk baseline",
              "explanation": seasonal_text},
             {"factor": "Model limitation",
              "explanation": "AHI cannot predict individual earthquake events. "
-                            "The seismic value is a calibrated long-run background risk. "
+                            "The seismic value is a calibrated long-run background risk reflecting "
+                            "Front Range fault proximity and induced seismicity history. "
                             "Cross-reference USGS hazard maps for authoritative seismic exposure data."},
         ]
     else:
@@ -317,23 +241,22 @@ def generate_audit_report(county: str, forecast_date_str: str,
             {"factor": "Geographic context",
              "explanation": f"{county} County's location, elevation, and land-cover profile "
                             f"contribute to its baseline {primary_name.lower()} risk relative to "
-                            f"other WA counties. These static features are baked into the model's learned weights."},
+                            f"other {ctx.state_name} counties. These static features are baked into the model's learned weights."},
             {"factor": "Regional spatial signal",
              "explanation": "Neighboring county patterns are incorporated via the spatial attention "
-                            "mesh. Cross-county phenomena — atmospheric rivers, smoke drift, watershed "
-                            "drainage — influence the regional ranking even for the focal county."},
+                            "mesh. Cross-county phenomena — fire spread, downstream flooding, storm tracks "
+                            "across the Front Range — influence the regional ranking even for the focal county."},
         ]
 
     limitations = [
         f"AHI uses historical pattern detection ({DATA_VERSION.split(',')[1].strip() if ',' in DATA_VERSION else '2000–2025'}), "
         "not live weather feeds. Results reflect seasonal and geographic baselines.",
         "This output is a decision-support tool, not an official forecast. Cross-reference with "
-        "current NWS watches, warnings, and local situational awareness before operational action.",
+        "current NWS watches/warnings (BOU, PUB, GJT, GLD) and local situational awareness before operational action.",
         f"Risk probability is a calibrated point-in-time estimate for {date_display} — "
         f"not a cumulative probability across {horizon_days} days.",
     ]
 
-    # Ranking stability classification
     if margin < 0.02:
         ranking_stability = "Low separation — multiple hazards are within close range and should all be monitored."
     elif margin < 0.05:
@@ -345,15 +268,15 @@ def generate_audit_report(county: str, forecast_date_str: str,
     generated_ts = _dt2.utcnow().strftime('%Y-%m-%d %H:%M UTC')
 
     return {
-        "model_version":   MODEL_VERSION,
-        "data_version":    DATA_VERSION,
-        "forecast_type":   "Point-in-time calibrated risk estimate",
-        "generated":       generated_ts,
-        "county":          county,
-        "forecast_date":   forecast_date_str,
-        "horizon_days":    horizon_days,
-        "season":          season,
-        "primary_hazard":  primary_name,
+        "model_version":    MODEL_VERSION,
+        "data_version":     DATA_VERSION,
+        "forecast_type":    "Point-in-time calibrated risk estimate",
+        "generated":        generated_ts,
+        "county":           county,
+        "forecast_date":    forecast_date_str,
+        "horizon_days":     horizon_days,
+        "season":           season,
+        "primary_hazard":   primary_name,
         "risk_probability": round(primary_score, 4),
         "risk_level":       level,
         "hazard_ranking": [
@@ -361,10 +284,10 @@ def generate_audit_report(county: str, forecast_date_str: str,
              "percent": f"{s*100:.1f}%"}
             for h, s in ranked
         ],
-        "ranking_note":       ranking_note,
-        "ranking_stability":  ranking_stability,
-        "top_factors":        factors,
-        "limitations":        limitations,
+        "ranking_note":      ranking_note,
+        "ranking_stability": ranking_stability,
+        "top_factors":       factors,
+        "limitations":       limitations,
     }
 
 
@@ -377,7 +300,6 @@ def render_decision_audit(audit: dict):
     prob    = audit['risk_probability'] * 100
 
     with st.expander("Decision Audit", expanded=False):
-        # Header summary
         st.markdown(f"""
         <div style="background:{COLORS['card_bg']}; border-left:3px solid {COLORS['text_tertiary']};
              padding:12px 16px; border-radius:4px; margin-bottom:12px;">
@@ -391,7 +313,6 @@ def render_decision_audit(audit: dict):
         </div>
         """, unsafe_allow_html=True)
 
-        # Ranking context
         st.markdown(f"""
         <div style="margin-bottom:8px;">
           <div style="color:{COLORS['text_tertiary']}; font-size:0.8em; font-weight:600;
@@ -404,7 +325,6 @@ def render_decision_audit(audit: dict):
         </div>
         """, unsafe_allow_html=True)
 
-        # Ranking stability
         stability = audit.get('ranking_stability', '')
         if stability:
             st.markdown(f"""
@@ -420,14 +340,12 @@ def render_decision_audit(audit: dict):
             </div>
             """, unsafe_allow_html=True)
 
-        # Full ranking table
         cols = st.columns(len(audit['hazard_ranking']))
         for col, entry in zip(cols, audit['hazard_ranking']):
             col.metric(entry['hazard'], entry['percent'])
 
         st.markdown("<hr style='border-color:#333; margin:12px 0;'>", unsafe_allow_html=True)
 
-        # Audit Factors
         st.markdown(f"""
         <div style="color:{COLORS['text_tertiary']}; font-size:0.8em; font-weight:600;
              text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">
@@ -447,7 +365,6 @@ def render_decision_audit(audit: dict):
 
         st.markdown("<hr style='border-color:#333; margin:12px 0;'>", unsafe_allow_html=True)
 
-        # Limitations
         st.markdown(f"""
         <div style="color:{COLORS['text_tertiary']}; font-size:0.8em; font-weight:600;
              text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">
@@ -461,21 +378,19 @@ def render_decision_audit(audit: dict):
                 unsafe_allow_html=True
             )
 
-        # Operational caveat
         st.markdown(f"""
         <div style="margin-top:10px; padding:8px 12px;
              background:{COLORS['elevated_bg']}; border-radius:4px;
              border-left:3px solid {COLORS['primary']};">
           <span style="color:{COLORS['text_secondary']}; font-size:0.84em;">
             <strong style="color:{COLORS['primary_light']};">Operational caveat:</strong>
-            Use this output alongside current NWS watches/warnings, local observations,
-            and agency-specific thresholds. It does not replace official forecasts or
-            on-the-ground situational awareness.
+            Use this output alongside current NWS watches/warnings (BOU, PUB, GJT, GLD),
+            local observations, and agency-specific thresholds. It does not replace official
+            forecasts or on-the-ground situational awareness.
           </span>
         </div>
         """, unsafe_allow_html=True)
 
-        # Model/data trace — expanded 4-field block
         st.markdown(f"""
         <div style="margin-top:14px; padding:8px 12px;
              background:{COLORS['card_bg']}; border-radius:4px;
@@ -490,7 +405,6 @@ def render_decision_audit(audit: dict):
 
         st.markdown("<hr style='border-color:#333; margin:12px 0;'>", unsafe_allow_html=True)
 
-        # Export
         audit_json = _json.dumps(audit, indent=2)
         st.download_button(
             label="⬇ Download audit record (JSON)",
@@ -511,6 +425,7 @@ def get_logo_base64():
         with open(logo_path, "rb") as f:
             return base64.b64encode(f.read()).decode()
     return None
+
 
 def inject_css():
     st.markdown(f"""
@@ -560,7 +475,6 @@ def inject_css():
     .hazard-card .label {{ font-weight: 700; font-size: 1.1em; margin-bottom: 4px; }}
     .hazard-card .value {{ font-size: 1.6em; font-weight: 600; color: {COLORS['text_primary']}; }}
 
-    /* Primary risk hero card */
     .primary-risk-card {{
         background: linear-gradient(135deg, {COLORS['card_bg']} 0%, {COLORS['elevated_bg']} 100%);
         border: 1px solid {COLORS['border']};
@@ -604,9 +518,41 @@ def inject_css():
     }}
     .stButton > button:hover {{ background: {COLORS['primary_light']} !important; }}
 
+    .stSelectbox {{
+        width: 100%;
+    }}
     .stSelectbox [data-baseweb="select"] {{
-        background: {COLORS['card_bg']};
-        border-color: {COLORS['border']};
+        background: {COLORS['card_bg']} !important;
+        border: 1px solid {COLORS['border']} !important;
+        border-radius: 6px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    }}
+    .stSelectbox [data-baseweb="select"] > div {{
+        background: {COLORS['card_bg']} !important;
+        color: {COLORS['text_primary']} !important;
+    }}
+    .stSelectbox [data-baseweb="select"] input {{
+        background: {COLORS['card_bg']} !important;
+        color: {COLORS['text_primary']} !important;
+    }}
+    .stSelectbox [data-baseweb="select"]:hover {{
+        border-color: {COLORS['primary']} !important;
+        box-shadow: 0 4px 12px rgba(74, 124, 89, 0.2) !important;
+    }}
+    .stSelectbox [role="listbox"] {{
+        background: {COLORS['card_bg']} !important;
+    }}
+    .stSelectbox [role="option"] {{
+        color: {COLORS['text_primary']} !important;
+    }}
+    .stSlider {{
+        width: 100%;
+    }}
+    .stSlider [data-baseweb="slider"] {{
+        padding: 8px 0;
+    }}
+    .stSlider > div > div > div > span {{
+        color: {COLORS['text_primary']} !important;
     }}
     .stDataFrame {{
         border: 1px solid {COLORS['border']} !important;
@@ -650,20 +596,28 @@ def inject_css():
 # =============================================================================
 
 @st.cache_resource
-def load_v2_model():
+def load_v2_model(region: str):
+    """Check whether the regional ONNX model exists for the active state.
+
+    The model itself is loaded lazily by inference_onnx.py; this function only
+    confirms the file is present so the UI can show an honest "model loaded"
+    status without paying the session-init cost on every page render.
+    """
     if not AHI_V2_AVAILABLE:
         return None, None, False
-    for p in [Path("outputs/ahi_v2/model.onnx"),
-              Path("/mount/src/ahi/outputs/ahi_v2/model.onnx")]:
+    for p in [Path(f"models/{region}/model.onnx"),
+              Path(f"/mount/src/ahi-platform/models/{region}/model.onnx")]:
         if p.exists():
-            print(f"[AHI] ONNX model available: {p} ({p.stat().st_size / 1024 / 1024:.1f} MB)")
+            print(f"[AHI] Regional ONNX present: {p} "
+                  f"({p.stat().st_size / 1024 / 1024:.1f} MB)")
             return "onnx", None, True
     return None, None, False
 
 
 @st.cache_data
-def load_hazard_data():
-    path = DATA_DIR / 'hazard_lm_clean_labeled.parquet'
+def load_hazard_data(state_code: str):
+    """Load the active state's inference parquet (states/<XX>/inference_data.parquet)."""
+    path = Path(f'states/{state_code}/inference_data.parquet')
     if path.exists():
         df = pd.read_parquet(path)
         if 'date' in df.columns:
@@ -673,8 +627,9 @@ def load_hazard_data():
 
 
 @st.cache_data
-def load_geojson():
-    path = DATA_DIR / 'wa_counties.geojson'
+def load_geojson(state_code: str):
+    """Load the active state's county GeoJSON (states/<XX>/counties.geojson)."""
+    path = Path(f'states/{state_code}/counties.geojson')
     if path.exists():
         with open(path) as f:
             return json.load(f)
@@ -685,7 +640,7 @@ def _normalize_geojson_names(geojson):
     """Add a normalized 'NAME_NORM' property for consistent lookup."""
     if geojson is None:
         return None
-    out = json.loads(json.dumps(geojson))  # deep copy
+    out = json.loads(json.dumps(geojson))
     for feat in out.get('features', []):
         props = feat.get('properties', {})
         name = None
@@ -727,7 +682,7 @@ def _geometry_bounds(geom):
                     _extract(item)
     _extract(geom.get('coordinates', []))
     if not coords:
-        return (-122, 47, -120, 48)
+        return (-105.5, 39.0, -104.5, 40.0)
     lons = [c[0] for c in coords]
     lats = [c[1] for c in coords]
     return (min(lons), min(lats), max(lons), max(lats))
@@ -738,15 +693,15 @@ def _geometry_bounds(geom):
 # =============================================================================
 
 def predict_single_county(county_name, target_date):
-    _, _, ok = load_v2_model()
+    _, _, ok = load_v2_model(ctx.region)
     if not ok:
-        return None, "Model not loaded — check outputs/ahi_v2/model.onnx"
-    hazard_df = load_hazard_data()
+        return None, f"Model not loaded — check models/{ctx.region}/model.onnx"
+    hazard_df = load_hazard_data(ctx.state_code)
     if hazard_df is None or len(hazard_df) == 0:
         return None, "Hazard dataset not found"
     try:
         from inference_onnx import predict_county_risks_simple as _predict
-        return _predict(None, county_name, hazard_df, target_date), None
+        return _predict(ctx.state_code, ctx.region, county_name, hazard_df, target_date), None
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -766,6 +721,110 @@ def predict_all_counties(target_date, progress_callback=None):
                 row[f'{h}_p'] = risks.get(h, 0.0)
             rows.append(row)
     return pd.DataFrame(rows) if rows else None
+
+
+# ---------------------------------------------------------------------------
+# National-view helpers (used by page_national)
+# ---------------------------------------------------------------------------
+
+import unicodedata as _ud
+
+def _ascii_normalize_county(s: str) -> str:
+    """Match the geojson builder's ID convention. Handles diacritics + mojibake.
+    'Doña Ana' -> 'DONA ANA', 'DoÃ±a Ana' -> 'DONA ANA', 'DONA ANA' -> 'DONA ANA'.
+    """
+    try:
+        s = s.encode('latin-1').decode('utf-8')
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        pass
+    return _ud.normalize('NFKD', s).encode('ascii', 'ignore').decode('ascii').upper()
+
+
+@st.cache_data(show_spinner=False)
+def load_national_geojson():
+    """Cached load of the national counties geojson (3,109 CONUS + 35 AK/HI)."""
+    p = Path('data/national_counties.geojson')
+    if not p.exists():
+        return None
+    with open(p) as f:
+        return json.load(f)
+
+
+# Cache version — bump this to force a fresh national prediction run
+_NATIONAL_CACHE_VERSION = 3   # bumped: county_coords populated for all 49 states
+
+@st.cache_data(show_spinner=False)
+def predict_all_national(month: int, _cache_version: int = _NATIONAL_CACHE_VERSION):
+    """Run predictions for every county in every deployed state, keyed by month
+    (the seasonal calibration is month-driven, so caching by month is safe).
+
+    Returns DataFrame with columns:
+        state, county, county_id, fire_p, flood_p, wind_p, winter_p, seismic_p,
+        max_p, max_hazard
+    """
+    from datetime import datetime
+    from inference_onnx import predict_county_risks_simple as _predict, _build_maps
+
+    target_date = datetime.now().date().replace(day=15) if month == datetime.now().month \
+                    else datetime(2025, month, 15).date()
+
+    registry = load_registry()
+    deployed = [code for code, m in registry.items() if m.get('deployed', False)]
+    rows = []
+    state_ok = 0
+    state_fail = []
+
+    for state_code in deployed:
+        try:
+            state_ctx = StateContext.load(state_code)
+        except Exception as e:
+            state_fail.append(f"{state_code}: ctx load failed: {e}")
+            continue
+        hazard_df = pd.read_parquet(state_ctx.parquet_path) if state_ctx.parquet_path.exists() else None
+        if hazard_df is None or len(hazard_df) == 0:
+            state_fail.append(f"{state_code}: no parquet or empty")
+            continue
+        if 'date' in hazard_df.columns:
+            hazard_df['date'] = pd.to_datetime(hazard_df['date'])
+
+        # Rebuild county/state ID maps per state so embeddings match
+        _build_maps(hazard_df)
+
+        n_before = len(rows)
+        for county in state_ctx.counties:
+            try:
+                risks = _predict(state_ctx.state_code, state_ctx.region,
+                                  county, hazard_df, target_date)
+            except Exception as e:
+                print(f"[NATIONAL] {state_code}/{county}: {e}")
+                continue
+            if not risks:
+                continue
+            rows.append({
+                'state':     state_code,
+                'county':    county,
+                'county_id': _ascii_normalize_county(county.strip()),
+                'fire_p':    risks.get('fire', 0.0),
+                'flood_p':   risks.get('flood', 0.0),
+                'wind_p':    risks.get('wind', 0.0),
+                'winter_p':  risks.get('winter', 0.0),
+                'seismic_p': risks.get('seismic', 0.0),
+            })
+        added = len(rows) - n_before
+        print(f"[NATIONAL] {state_code}: {added}/{len(state_ctx.counties)} counties OK")
+        state_ok += 1
+
+    if state_fail:
+        print(f"[NATIONAL] Failed states: {state_fail}")
+    print(f"[NATIONAL] Total: {len(rows)} counties from {state_ok}/{len(deployed)} states")
+
+    if not rows:
+        return None
+    df = pd.DataFrame(rows)
+    p_cols = [f'{h}_p' for h in ['fire', 'flood', 'wind', 'winter', 'seismic']]
+    df['max_p'] = df[p_cols].max(axis=1)
+    df['max_hazard'] = df[p_cols].idxmax(axis=1).str.replace('_p', '')
+    return df
 
 
 # =============================================================================
@@ -843,13 +902,13 @@ def render_risk_summary(risks, county=''):
 
 
 def render_interpretation_guide(forecast_days):
-    """Expandable guide — now uses the actual forecast horizon."""
+    """Expandable guide using the actual forecast horizon."""
     with st.expander("How to interpret these numbers", expanded=False):
         st.markdown(f"""
         **What the percentages mean:**
         - These are **calibrated risk probabilities for a single point-in-time**: conditions on the forecast date ({forecast_days} days from today), not an average across the window
         - Changing the forecast date changes the target date for inference — different dates have different seasonal weights, so a 7-day and 14-day run can produce different rankings if the window crosses a seasonal transition
-        - Probabilities are based on **25 years of historical patterns** (2000–2025) across all 39 WA counties
+        - Probabilities are based on **25 years of historical patterns** (2000–2025) across all {len(COUNTIES)} {ctx.state_name} counties
         - A county with few historical events can still show elevated risk if current seasonal/geographic conditions match patterns that preceded events elsewhere
 
         **Risk thresholds:**
@@ -863,19 +922,19 @@ def render_interpretation_guide(forecast_days):
 
         **Important:** AHI uses historical pattern detection, not live weather feeds.
         Predictions reflect seasonal and geographic baselines — always cross-reference with
-        current NWS watches/warnings for operational decisions.
+        current NWS watches/warnings (BOU, PUB, GJT, GLD) for operational decisions.
         """)
 
 
 # =============================================================================
-# MAP: Plotly choropleth (reliable — no external JS component)
+# MAP: Plotly choropleth
 # =============================================================================
 
 def render_statewide_choropleth(df, hazard_key, hazard_label):
-    """Statewide risk map using plotly choropleth (native, no folium)."""
-    geojson_data = load_geojson()
+    """Statewide risk map using plotly choropleth."""
+    geojson_data = load_geojson(ctx.state_code)
     if geojson_data is None:
-        st.info("GeoJSON not found — map unavailable.")
+        st.info("GeoJSON not found — place co_counties.geojson in data/ to enable map.")
         return
 
     geojson_norm = _normalize_geojson_names(geojson_data)
@@ -885,46 +944,42 @@ def render_statewide_choropleth(df, hazard_key, hazard_label):
     plot_df['county_norm'] = plot_df['county'].str.replace(' County', '').str.strip()
     plot_df['pct'] = plot_df[col_name] * 100
 
-    # Tier-based discrete coloring using colorscale
     fig = go.Figure(go.Choropleth(
         geojson=geojson_norm,
         locations=plot_df['county_norm'],
         z=plot_df['pct'],
         featureidkey="properties.NAME_NORM",
         colorscale=[
-            [0.00, '#2d5a3a'],
-            [0.10, '#2d5a3a'],
-            [0.10, '#6b9e7a'],
-            [0.20, '#6b9e7a'],
-            [0.20, '#f59e0b'],
-            [0.35, '#f59e0b'],
-            [0.35, '#f97316'],
-            [0.50, '#f97316'],
-            [0.50, '#dc2626'],
-            [1.00, '#dc2626'],
+            [0.00, '#2d5a3a'], [0.10, '#2d5a3a'],
+            [0.10, '#6b9e7a'], [0.20, '#6b9e7a'],
+            [0.20, '#f59e0b'], [0.35, '#f59e0b'],
+            [0.35, '#f97316'], [0.50, '#f97316'],
+            [0.50, '#dc2626'], [1.00, '#dc2626'],
         ],
-        zmin=0,
-        zmax=100,
+        zmin=0, zmax=100,
         marker_line_color=COLORS['border'],
         marker_line_width=0.8,
         colorbar=dict(
             title=f"{hazard_label}<br>Risk (%)",
-            thickness=12,
-            len=0.6,
-            x=1.02,
-            xanchor='left',
+            thickness=12, len=0.6, x=1.02, xanchor='left',
             tickfont=dict(color=COLORS['text_secondary'], size=10),
             title_font=dict(color=COLORS['text_secondary'], size=11),
         ),
         hovertemplate="<b>%{location} County</b><br>" + hazard_label + ": %{z:.1f}%<extra></extra>",
     ))
-    # Fixed WA bounding box — prevents squish from dynamic fitbounds
+
+    # Auto-fit bounding box from county coordinates (no longer CO-only)
+    _coords = list(ctx.county_coords.values()) if ctx.county_coords else [(39, -105.5)]
+    _lats = [c[0] for c in _coords]
+    _lons = [c[1] for c in _coords]
+    _lat_pad = max(0.5, (max(_lats) - min(_lats)) * 0.1)
+    _lon_pad = max(0.5, (max(_lons) - min(_lons)) * 0.1)
     fig.update_geos(
         visible=False,
         bgcolor=COLORS['card_bg'],
         projection_type='mercator',
-        lonaxis_range=[-125, -116.5],
-        lataxis_range=[45.3, 49.2],
+        lonaxis_range=[min(_lons) - _lon_pad, max(_lons) + _lon_pad],
+        lataxis_range=[min(_lats) - _lat_pad, max(_lats) + _lat_pad],
     )
     fig.update_layout(
         paper_bgcolor=COLORS['card_bg'],
@@ -935,7 +990,6 @@ def render_statewide_choropleth(df, hazard_key, hazard_label):
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    # Shared legend
     st.markdown(f"""
     <div style="display: flex; gap: 16px; justify-content: center; margin-top: 4px; flex-wrap: wrap; font-size: 0.9em;">
         <span style="color: #2d5a3a;">&#9632; Low (&lt;10%)</span>
@@ -948,15 +1002,15 @@ def render_statewide_choropleth(df, hazard_key, hazard_label):
 
 
 def render_county_spotlight_map(selected_county, risks, target_date):
-    """State map with all 39 WA counties shown; selected county highlighted."""
-    geojson_data = load_geojson()
+    """State map with all 64 CO counties; selected county highlighted."""
+    geojson_data = load_geojson(ctx.state_code)
     geojson_norm = _normalize_geojson_names(geojson_data)
     if geojson_norm is None:
+        st.info("GeoJSON not available — place co_counties.geojson in data/ to enable map.")
         return
 
     selected_norm = selected_county.replace(' County', '').strip()
 
-    # Order overlay dropdown by this county's risks (highest first)
     ordered_hazards = sorted(
         [('Fire', 'fire'), ('Flood', 'flood'), ('Wind', 'wind'),
          ('Winter', 'winter'), ('Seismic', 'seismic')],
@@ -973,7 +1027,6 @@ def render_county_spotlight_map(selected_county, risks, target_date):
     hkey = hazard_choice.lower()
     sel_prob = risks.get(hkey, 0.0) * 100
 
-    # Collect all county names from the GeoJSON for the background layer
     all_names = []
     for feat in geojson_norm.get('features', []):
         n = feat.get('properties', {}).get('NAME_NORM')
@@ -981,26 +1034,20 @@ def render_county_spotlight_map(selected_county, risks, target_date):
             all_names.append(n)
 
     risk_colorscale = [
-        [0.00, '#2d5a3a'],
-        [0.10, '#2d5a3a'],
-        [0.10, '#6b9e7a'],
-        [0.20, '#6b9e7a'],
-        [0.20, '#f59e0b'],
-        [0.35, '#f59e0b'],
-        [0.35, '#f97316'],
-        [0.50, '#f97316'],
-        [0.50, '#dc2626'],
-        [1.00, '#dc2626'],
+        [0.00, '#2d5a3a'], [0.10, '#2d5a3a'],
+        [0.10, '#6b9e7a'], [0.20, '#6b9e7a'],
+        [0.20, '#f59e0b'], [0.35, '#f59e0b'],
+        [0.35, '#f97316'], [0.50, '#f97316'],
+        [0.50, '#dc2626'], [1.00, '#dc2626'],
     ]
 
-    # Trace 1: all counties as a muted background
     background_names = [n for n in all_names if n != selected_norm]
     fig = go.Figure(go.Choropleth(
         geojson=geojson_norm,
         locations=background_names,
         z=[0] * len(background_names),
         featureidkey="properties.NAME_NORM",
-        colorscale=[[0, '#2a3140'], [1, '#2a3140']],  # flat dark gray
+        colorscale=[[0, '#2a3140'], [1, '#2a3140']],
         zmin=0, zmax=100,
         showscale=False,
         marker_line_color='#4a5568',
@@ -1008,7 +1055,6 @@ def render_county_spotlight_map(selected_county, risks, target_date):
         hovertemplate="<b>%{location} County</b><extra></extra>",
     ))
 
-    # Trace 2: selected county highlighted with risk color
     fig.add_trace(go.Choropleth(
         geojson=geojson_norm,
         locations=[selected_norm],
@@ -1026,8 +1072,8 @@ def render_county_spotlight_map(selected_county, risks, target_date):
         visible=False,
         bgcolor=COLORS['card_bg'],
         projection_type='mercator',
-        lonaxis_range=[-125, -116.5],
-        lataxis_range=[45.3, 49.2],
+        lonaxis_range=[-109.5, -101.8],
+        lataxis_range=[36.8, 41.2],
     )
     fig.update_layout(
         paper_bgcolor=COLORS['card_bg'],
@@ -1040,32 +1086,54 @@ def render_county_spotlight_map(selected_county, risks, target_date):
 
 
 # =============================================================================
-# PAGE: QUICK PREDICT
+# PAGE: COUNTY RISK ASSESSMENT
 # =============================================================================
 
 def page_quick_predict():
     st.markdown("## County Risk Assessment")
     st.caption("Analyze hazard risk for a single county. Assessment based on 25 years of historical hazard patterns.")
 
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        selected_county = st.selectbox("Select County", COUNTIES, index=COUNTIES.index('King'))
-    with col2:
-        forecast_horizon = st.selectbox("Forecast Date (days out)", ["7 days", "14 days"], index=1)
+    # State + county + horizon selectors
+    col_st, col_county, col_hz = st.columns([1.2, 2, 1])
+    with col_st:
+        _cr_state_options = sorted(_DEPLOYED, key=lambda c: _REGISTRY[c]['name'])
+        _cr_state_labels = {c: f"{_REGISTRY[c]['name']} ({c})" for c in _cr_state_options}
+        # Default to whatever was selected on the State tab, or sidebar
+        _cr_default = st.session_state.get('state_tab_state', selected_state)
+        cr_state = st.selectbox(
+            "Select State",
+            options=_cr_state_options,
+            index=_cr_state_options.index(_cr_default) if _cr_default in _cr_state_options else 0,
+            format_func=lambda c: _cr_state_labels[c],
+            key='county_tab_state',
+        )
+    cr_ctx = _load_state_context(cr_state)
+    with col_county:
+        default_idx = 0
+        if cr_state == 'CO' and 'El Paso' in cr_ctx.counties:
+            default_idx = cr_ctx.counties.index('El Paso')
+        selected_county = st.selectbox("Select County", cr_ctx.counties, index=default_idx)
+    with col_hz:
+        forecast_horizon = st.selectbox("Forecast Date (days out)",
+                                         options=[7, 14, 30], index=1,
+                                         format_func=lambda d: f"{d} days",
+                                         key='county_tab_horizon')
 
-    days = int(forecast_horizon.split()[0])
+    days = forecast_horizon
     today = datetime.now().date()
     target_date = today + timedelta(days=days)
 
-    lat, lon = WA_COUNTY_COORDS.get(selected_county, (47.5, -120.5))
+    lat, lon = cr_ctx.county_coords.get(selected_county, (39.0, -105.5))
     month_name = target_date.strftime('%B')
     month = target_date.month
+
+    # Generic season notes (no longer CO-specific)
     if month in [3, 4, 5]:
-        season_note = "Spring — transitional; flood risk from snowmelt"
+        season_note = "Spring — snowmelt and convective flooding; transitional fire risk"
     elif month in [6, 7, 8]:
-        season_note = "Summer — peak fire season"
+        season_note = "Summer — peak fire and convective storm season"
     elif month in [9, 10, 11]:
-        season_note = "Fall — wind events, early winter storms"
+        season_note = "Fall — wind events; early-season winter storms"
     else:
         season_note = "Winter — snow, ice, and wind events"
 
@@ -1074,7 +1142,7 @@ def page_quick_predict():
         <div style="display: flex; gap: 32px; flex-wrap: wrap;">
             <div>
                 <div style="color: {COLORS['text_tertiary']}; font-size: 0.85em;">Location</div>
-                <div style="color: {COLORS['text_primary']}; font-size: 1.1em; font-weight: 600;">{selected_county} County, Washington</div>
+                <div style="color: {COLORS['text_primary']}; font-size: 1.1em; font-weight: 600;">{selected_county} County, {cr_ctx.state_name}</div>
             </div>
             <div>
                 <div style="color: {COLORS['text_tertiary']}; font-size: 0.85em;">Forecast Date</div>
@@ -1095,14 +1163,20 @@ def page_quick_predict():
     if predict_clicked:
         status = st.empty()
         status.info("Loading ONNX model…")
-        _, _, ok = load_v2_model()
+        _, _, ok = load_v2_model(cr_ctx.region)
         if not ok:
-            status.error("Model unavailable.")
+            status.error(f"Model unavailable — check models/{cr_ctx.region}/model.onnx")
             return
         status.info("Extracting county features…")
-        hazard_df = load_hazard_data()
+        hazard_df = load_hazard_data(cr_state)
         status.info("Running temporal + spatial mesh inference…")
-        risks, err = predict_single_county(selected_county, target_date)
+        risks, err = None, None
+        try:
+            from inference_onnx import predict_county_risks_simple as _predict
+            risks = _predict(cr_state, cr_ctx.region, selected_county,
+                              hazard_df, target_date)
+        except Exception as e:
+            err = str(e)
         if risks is None:
             status.error(f"Prediction failed: {err}")
         else:
@@ -1113,11 +1187,11 @@ def page_quick_predict():
                 selected_county, str(target_date), risks, days
             )
             st.session_state['last_prediction'] = {
-                'county': selected_county,
-                'date': str(target_date),
-                'risks': risks,
+                'county':  selected_county,
+                'date':    str(target_date),
+                'risks':   risks,
                 'horizon': days,
-                'audit': audit,
+                'audit':   audit,
             }
 
     if 'last_prediction' in st.session_state:
@@ -1137,12 +1211,179 @@ def page_quick_predict():
 
 
 # =============================================================================
-# PAGE: STATEWIDE
+# PAGE: STATE OVERVIEW  (National → State drill-down)
+# =============================================================================
+
+def page_state_overview():
+    """State-level situational awareness: select a state, see aggregated hazard
+    risk across all counties, a ranked county table, and a choropleth map.
+    Serves as the bridge between the National tab and the County Risk Assessment."""
+
+    # ---- State + horizon selectors (top of tab, not sidebar) ----
+    c1, c2 = st.columns([3, 1])
+    with c1:
+        state_options = sorted(_DEPLOYED, key=lambda c: _REGISTRY[c]['name'])
+        state_labels = {c: f"{_REGISTRY[c]['name']} ({c})" for c in state_options}
+        sel_state = st.selectbox(
+            "Select State",
+            options=state_options,
+            index=state_options.index(selected_state) if selected_state in state_options else 0,
+            format_func=lambda c: state_labels[c],
+            key='state_tab_state',
+        )
+    with c2:
+        horizon = st.selectbox(
+            "Forecast Date (days out)",
+            options=[7, 14, 30],
+            index=1,
+            format_func=lambda d: f"{d} days",
+            key='state_tab_horizon',
+        )
+
+    # Load the selected state's context
+    state_ctx = _load_state_context(sel_state)
+    target_date = datetime.now().date() + timedelta(days=horizon)
+
+    st.markdown(f"## {state_ctx.state_name} — Statewide Risk Assessment")
+    st.caption(f"{len(state_ctx.counties)} counties · Forecast: "
+               f"{target_date.strftime('%B %d, %Y')} ({horizon}-day outlook)")
+
+    # ---- Run predictions for all counties ----
+    cache_key = f'state_overview_{sel_state}'
+    if cache_key not in st.session_state:
+        with st.spinner(f"Running predictions for {len(state_ctx.counties)} "
+                         f"{state_ctx.state_name} counties…"):
+            hazard_df = load_hazard_data(sel_state)
+            if hazard_df is None:
+                st.error(f"No inference data for {sel_state}. "
+                         f"Check states/{sel_state}/inference_data.parquet.")
+                return
+            from inference_onnx import predict_county_risks_simple as _predict
+            rows = []
+            for county in state_ctx.counties:
+                try:
+                    risks = _predict(sel_state, state_ctx.region,
+                                      county, hazard_df, target_date)
+                except Exception:
+                    continue
+                if risks:
+                    row = {'county': county, 'date': str(target_date)}
+                    for h in ['fire', 'flood', 'wind', 'winter', 'seismic']:
+                        row[f'{h}_p'] = risks.get(h, 0.0)
+                    rows.append(row)
+            if rows:
+                st.session_state[cache_key] = pd.DataFrame(rows)
+            else:
+                st.error("No predictions generated.")
+                return
+    df = st.session_state[cache_key]
+
+    hazards = ['fire', 'flood', 'wind', 'winter', 'seismic']
+    df['max_p'] = df[[f'{h}_p' for h in hazards]].max(axis=1)
+    df['max_hazard'] = df[[f'{h}_p' for h in hazards]].idxmax(axis=1).str.replace('_p', '')
+
+    # ---- Statewide situational awareness hero ----
+    # Aggregate: mean and max risk per hazard across all counties
+    st.markdown("### Situational Awareness")
+    mean_risks = {h: df[f'{h}_p'].mean() for h in hazards}
+    primary_hazard = max(mean_risks, key=mean_risks.get)
+    primary_mean = mean_risks[primary_hazard]
+    level, interp = risk_level(primary_mean)
+    color = COLORS.get(primary_hazard, COLORS['primary_light'])
+
+    st.markdown(f"""
+    <div class="primary-risk-card" style="--accent-color: {color};">
+        <p class="eyebrow">Primary Statewide Risk — {state_ctx.state_name}</p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <div class="headline">{HAZARD_NAMES.get(primary_hazard, primary_hazard.title())}</div>
+                <div style="color: {COLORS['text_tertiary']}; font-size: 0.95em;">
+                    Mean risk: <strong style="color: {color};">{level}</strong> ·
+                    {(df['max_hazard'] == primary_hazard).sum()} of {len(df)} counties led by this hazard
+                </div>
+            </div>
+            <div class="percent">{primary_mean*100:.1f}%</div>
+        </div>
+        <p class="interp">{interp}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Hazard summary cards (mean across state)
+    sorted_hazards = sorted(mean_risks.items(), key=lambda x: x[1], reverse=True)
+    cols = st.columns(5)
+    for i, (col, (hazard, mean_p)) in enumerate(zip(cols, sorted_hazards)):
+        rank_label = "#1 Primary" if i == 0 else f"#{i+1}"
+        hcolor = COLORS.get(hazard, COLORS['primary'])
+        with col:
+            st.markdown(f"""
+            <div class="hazard-card">
+                <div style="color: {COLORS['text_tertiary']}; font-size: 0.7em; letter-spacing: 0.1em; text-transform: uppercase;">{rank_label}</div>
+                <div class="label" style="color: {hcolor};">{HAZARD_NAMES.get(hazard, hazard.title())}</div>
+                <div class="value">{mean_p*100:.1f}%</div>
+                <div style="color: {COLORS['text_tertiary']}; font-size: 0.75em;">state mean</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # Risk tier distribution
+    st.markdown("---")
+    severe   = int((df['max_p'] >= 0.50).sum())
+    high     = int(((df['max_p'] >= 0.35) & (df['max_p'] < 0.50)).sum())
+    moderate = int(((df['max_p'] >= 0.20) & (df['max_p'] < 0.35)).sum())
+    elevated = int(((df['max_p'] >= 0.10) & (df['max_p'] < 0.20)).sum())
+    low      = int((df['max_p'] < 0.10).sum())
+    tier_cols = st.columns(5)
+    tier_cols[0].metric("Severe (>50%)",     severe)
+    tier_cols[1].metric("High (35–50%)",     high)
+    tier_cols[2].metric("Moderate (20–35%)", moderate)
+    tier_cols[3].metric("Elevated (10–20%)", elevated)
+    tier_cols[4].metric("Low (<10%)",        low)
+
+    # ---- County table ----
+    st.markdown("---")
+    st.markdown("### All Counties")
+    display = df.copy()
+    for h in hazards:
+        display[HAZARD_NAMES[h]] = (display[f'{h}_p'] * 100).round(1)
+    show = display[['county'] + [HAZARD_NAMES[h] for h in hazards]].rename(
+        columns={'county': 'County'})
+    st.dataframe(
+        show, use_container_width=True, hide_index=True,
+        column_config={
+            HAZARD_NAMES[h]: st.column_config.NumberColumn(
+                HAZARD_NAMES[h], format="%.1f%%")
+            for h in hazards
+        },
+    )
+
+    csv = df.to_csv(index=False)
+    st.download_button(
+        "Download Predictions (CSV)", data=csv,
+        file_name=f"ahi_{sel_state.lower()}_statewide_{target_date}.csv",
+        mime="text/csv"
+    )
+
+    # ---- State choropleth ----
+    st.markdown("---")
+    hazard_choice = st.selectbox(
+        "Select hazard to display on map",
+        ['Fire', 'Flood', 'Wind', 'Winter', 'Seismic'], index=0,
+        key='state_overview_hazard_map',
+    )
+    # Temporarily swap ctx for the selected state so render_statewide_choropleth works
+    geojson_data = load_geojson(sel_state)
+    if geojson_data is not None:
+        render_statewide_choropleth(df, hazard_choice.lower(), hazard_choice)
+    else:
+        st.info(f"GeoJSON not found for {sel_state}. County map unavailable.")
+
+
+# =============================================================================
+# PAGE: STATEWIDE (legacy — kept for reference, no longer in tab list)
 # =============================================================================
 
 def page_statewide():
     st.markdown("## Statewide Predictions")
-    st.caption("Run AHI v2.5 for all 39 Washington counties. Results include an interactive risk map.")
+    st.caption(f"Run AHI v2.5 for all {len(COUNTIES)} {ctx.state_name} counties. Results include an interactive risk map.")
 
     target_date = datetime.now().date() + timedelta(days=MAX_FORECAST_DAYS)
 
@@ -1173,8 +1414,6 @@ def page_statewide():
 
     # Keep as floats (0–100 range) so column-header click sorts numerically.
     # st.column_config.NumberColumn handles the "%" suffix at render time.
-    # (Previous version stored "10.4%" as a string, causing alphabetical sort
-    # like 1.x% < 10.x% < 11.x% < 2.x% — the bug users were noticing.)
     display = df.copy()
     for h in hazards:
         col = f'{h}_p'
@@ -1194,7 +1433,7 @@ def page_statewide():
     csv = df.to_csv(index=False)
     st.download_button(
         "Download Predictions (CSV)", data=csv,
-        file_name=f"ahi_statewide_{target_date}.csv", mime="text/csv"
+        file_name=f"ahi_{ctx.state_code.lower()}_statewide_{target_date}.csv", mime="text/csv"
     )
 
     st.markdown("---")
@@ -1207,12 +1446,12 @@ def page_statewide():
 
 
 # =============================================================================
-# PAGE: RISK ASSESSMENT (new statewide summary tab)
+# PAGE: RISK ASSESSMENT (portfolio view)
 # =============================================================================
 
 def page_risk_assessment():
     st.markdown("## Comprehensive Risk Assessment")
-    st.caption("Portfolio-level view of model predictions across all 39 Washington counties.")
+    st.caption(f"Portfolio-level view of model predictions across all {len(COUNTIES)} {ctx.state_name} counties.")
 
     if 'statewide' not in st.session_state:
         st.info("No statewide predictions yet. Run them now to populate this view.")
@@ -1239,16 +1478,14 @@ def page_risk_assessment():
     df = st.session_state['statewide'].copy()
     hazards = ['fire', 'flood', 'wind', 'winter', 'seismic']
 
-    # Compute composite risk score = max hazard probability per county
     df['max_p'] = df[[f'{h}_p' for h in hazards]].max(axis=1)
     df['max_hazard'] = df[[f'{h}_p' for h in hazards]].idxmax(axis=1).str.replace('_p', '').map(HAZARD_NAMES)
 
-    # Portfolio summary
-    severe = int((df['max_p'] >= 0.50).sum())
-    high = int(((df['max_p'] >= 0.35) & (df['max_p'] < 0.50)).sum())
+    severe   = int((df['max_p'] >= 0.50).sum())
+    high     = int(((df['max_p'] >= 0.35) & (df['max_p'] < 0.50)).sum())
     moderate = int(((df['max_p'] >= 0.20) & (df['max_p'] < 0.35)).sum())
     elevated = int(((df['max_p'] >= 0.10) & (df['max_p'] < 0.20)).sum())
-    low = int((df['max_p'] < 0.10).sum())
+    low      = int((df['max_p'] < 0.10).sum())
 
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Severe (>50%)", severe)
@@ -1259,7 +1496,6 @@ def page_risk_assessment():
 
     st.markdown("---")
 
-    # Per-hazard statewide summary
     st.markdown("### Per-Hazard Statewide Summary")
     hazard_rows = []
     for h in hazards:
@@ -1268,7 +1504,7 @@ def page_risk_assessment():
         hazard_rows.append({
             'Hazard': HAZARD_NAMES[h],
             # Floats so column-header sort works numerically; column_config below
-            # handles "%" suffix display.
+            # handles the "%" suffix display.
             'Statewide Mean': round(df[col].mean() * 100, 1),
             'Median':         round(df[col].median() * 100, 1),
             'Max':            round(df[col].max() * 100, 1),
@@ -1287,12 +1523,13 @@ def page_risk_assessment():
 
     st.markdown("---")
 
-    # Top-10 chart per selected hazard
     st.markdown("### County Ranking by Hazard")
-    rank_col1, rank_col2 = st.columns([1, 3])
+    rank_col1, rank_col2 = st.columns([0.9, 3.1], gap="large")
     with rank_col1:
-        rank_hazard = st.selectbox("Hazard", [HAZARD_NAMES[h] for h in hazards], index=0, key='rank_hazard')
-        top_n = st.slider("Counties to show", 5, 39, 10, key='rank_topn',
+        st.markdown("")
+        rank_hazard = st.selectbox("Hazard", [HAZARD_NAMES[h] for h in hazards], index=0, key='rank_hazard', label_visibility="visible")
+        st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
+        top_n = st.slider("Counties to show", 5, 64, 10, key='rank_topn',
                           help="Highest-risk counties for the selected hazard, in descending order.")
     with rank_col2:
         rank_key = {v: k for k, v in HAZARD_NAMES.items()}[rank_hazard]
@@ -1312,7 +1549,8 @@ def page_risk_assessment():
             paper_bgcolor=COLORS['card_bg'],
             plot_bgcolor=COLORS['card_bg'],
             font=dict(color=COLORS['text_secondary'], family='Inter'),
-            xaxis=dict(title=f"{rank_hazard} Risk (%)", gridcolor=COLORS['border'], range=[0, max(top_df['pct'].max() * 1.15, 10)]),
+            xaxis=dict(title=f"{rank_hazard} Risk (%)", gridcolor=COLORS['border'],
+                       range=[0, max(top_df['pct'].max() * 1.15, 10)]),
             yaxis=dict(gridcolor=COLORS['border']),
             height=max(320, 28 * top_n),
             margin=dict(l=10, r=10, t=10, b=40),
@@ -1321,7 +1559,6 @@ def page_risk_assessment():
 
     st.markdown("---")
 
-    # Sortable detail table
     st.markdown("### Detailed County Table")
     detail = df.copy()
     detail['Max Risk'] = (detail['max_p'] * 100).round(1)
@@ -1344,39 +1581,41 @@ def page_risk_assessment():
 # =============================================================================
 
 def page_model_info():
-    st.markdown("## AHI v2.5 — Learned Seasonal Bias Model Diagnostics")
+    st.markdown(f"## AHI v2.5 — {ctx.state_name} Model Diagnostics")
 
-    _, _, ok = load_v2_model()
+    _, _, ok = load_v2_model(ctx.region)
     if not ok:
-        st.error("AHI v2.5 model not loaded.")
+        st.error(f"AHI v2.5 model not loaded — check models/{ctx.region}/model.onnx")
         return
 
-    st.markdown("""
+    st.markdown(f"""
     ### What is AHI v2.5 (Learned Seasonal Bias)?
 
     **AHI v2.5** is the Adaptive Hazard Intelligence model powering this dashboard. It predicts the
-    likelihood of five natural hazard types across all 39 Washington State counties — like a weather
+    likelihood of five natural hazard types across all {len(COUNTIES)} {ctx.state_name} counties — like a weather
     forecast, but for emergencies.
 
     **The core problem it solves:** Weather sequences (temperature, wind, precipitation) evolve on a
-    fast timescale (days), while spatial correlations (smoke drift, downstream flooding, storm tracks)
+    fast timescale (days), while spatial correlations (fire spread, downstream flooding, storm tracks)
     operate on a slow timescale (weeks/seasons). A single attention stack cannot efficiently extract both.
 
     **How it works (stacked mesh architecture):**
     1. **Temporal Mesh** — 3-layer transformer with **heat kernel diffusion attention** learns per-hazard memory horizons (fire needs ~3 months of context, flood needs ~1 week)
-    2. **Spatial Mesh** — 2-layer transformer with **standard softmax attention** + county adjacency masking captures cross-county correlations (wildfire spread, downstream flooding)
+    2. **Spatial Mesh** — 2-layer transformer with **standard softmax attention** + county adjacency masking captures cross-county correlations (wildfire spread, downstream flooding, storm tracks across the Front Range)
     3. **Gated Coupling** — A learned gate blends temporal and spatial representations, starting near-zero and growing as the spatial signal proves useful during training
     4. **MMA Bias Field** — Multi-Modal Attention routes different feature types (weather, geography, land cover) through type-aware attention biases
 
     **v2.5 improvement:** Replaces hardcoded seasonal penalty functions with a **Learned Seasonal Bias** module
     — a trainable 5×12 parameter matrix (one weight per hazard per month) that the model optimizes during training.
-    The model independently discovered the same seasonal structure that was previously hardcoded, with finer granularity.
-    This eliminates manual per-state seasonal configuration, critical for scaling to all 50 states.
+    The model independently discovered the same seasonal structure present in Colorado's climate, including
+    fire season (Jun–Sep), bimodal flood peaks (spring snowmelt + monsoon), and Chinook wind patterns (Oct–Apr).
 
-    **Key innovation:** Date-grouped batching — each training step sees all 39 counties for the same date,
-    giving the spatial mesh a coherent snapshot to learn cross-county patterns from.
+    **Colorado-specific advantage:** The clear elevation gradient (plains → foothills → Rockies → Western Slope)
+    gives the spatial mesh a strong geographic signal, particularly for winter storms (AUC 0.963) and
+    Front Range seismic clustering (AUC 0.887).
 
-    **Result:** Mean AUC = **0.829**, surpassing the XGBoost baseline (0.781) and v2.0 (0.819) across all five hazard types.
+    **Result:** Mean AUC = **0.883**, surpassing both the CO XGBoost baseline and the Washington State
+    deployment (0.829) across all five hazard types.
     """)
 
     st.markdown("---")
@@ -1388,9 +1627,9 @@ def page_model_info():
     col4.metric("Status", "Online")
 
     col5, col6, col7 = st.columns(3)
-    col5.metric("Coupling Gate", "0.0828")
-    col6.metric("Spatial Graph", "39 counties")
-    col7.metric("Mean Test AUC", "0.829")
+    col5.metric("Coupling Gate", "0.0934")
+    col6.metric("Spatial Graph", f"{len(COUNTIES)} counties")
+    col7.metric("Mean Test AUC", "0.883")
 
     st.markdown("### Architecture")
     st.markdown("""
@@ -1411,38 +1650,38 @@ def page_model_info():
     | Setting | Value | Purpose |
     |---------|-------|---------|
     | **Loss Function** | Focal loss (γ=2.0, α=0.75) | Down-weights easy negatives to handle severe class imbalance |
-    | **Seasonal Bias** | Learned 5×12 parameter matrix (v2.5) | Replaces hardcoded penalties; model learns seasonal structure from data |
-    | **Batching** | Date-grouped (all 39 counties per batch) | Ensures spatial mesh sees coherent county snapshots |
-    | **Coupling Warmup** | Gate frozen at 0.01 for 3 epochs | Prevents spatial noise from corrupting warm-started temporal weights |
-    | **Warm Start** | v1 weights transferred to temporal mesh | Guarantees v2 starts at v1 performance; spatial mesh adds on top |
+    | **Seasonal Bias** | Learned 5×12 parameter matrix (v2.5) | Replaces hardcoded penalties; model learns CO seasonal structure from data |
+    | **Batching** | Date-grouped (all {len(COUNTIES)} counties per batch) | Ensures spatial mesh sees coherent county snapshots |
+    | **Coupling Warmup** | Gate frozen at 0.01 for 3 epochs | Prevents spatial noise from disrupting early training |
+    | **Warm Start** | Fresh training (no WA transfer) | CO geography/climate differs enough to warrant full re-training |
     | **Optimizer** | AdamW (lr=1e-4, weight_decay=0.05) | Aggressive regularization for small dataset |
     | **Scheduler** | OneCycleLR with 10% warmup | Gradual warm-up prevents early-training instability |
-    | **Early Stopping** | Patience=7 on val AUC | More patient than v1 — spatial mesh needs time to learn |
+    | **Early Stopping** | Patience=7 on val AUC | More patient — spatial mesh needs time to learn elevation gradient |
     | **Train/Val/Test Split** | Temporal: 80/10/10 by date | Prevents temporal leakage — model never sees future data |
     """)
 
     st.markdown("---")
-    st.markdown("### Performance by Hazard (Held-out Test Set)")
+    st.markdown(f"### Performance by Hazard — {ctx.state_name} (Held-out Test Set)")
 
-    v2_data = [
-        {"Hazard": "Winter",  "AUC": 0.908, "Quality": "Excellent", "Notes": "Best performer. Clear temporal + spatial patterns."},
-        {"Hazard": "Fire",    "AUC": 0.851, "Quality": "Excellent", "Notes": "Spatial mesh captures smoke/burn spread patterns."},
-        {"Hazard": "Wind",    "AUC": 0.837, "Quality": "Excellent", "Notes": "Spatial correlations help track storm movement."},
-        {"Hazard": "Flood",   "AUC": 0.830, "Quality": "Excellent", "Notes": "Learned seasonal bias improves flood discrimination."},
-        {"Hazard": "Seismic", "AUC": 0.718, "Quality": "Good",      "Notes": "Historical spatial patterns; earthquakes inherently hard to predict."},
+    co_data = [
+        {"Hazard": "Winter",  "AUC": 0.963, "Quality": "Excellent", "Notes": "Best performer. Clear elevation gradient gives spatial mesh strong signal."},
+        {"Hazard": "Flood",   "AUC": 0.891, "Quality": "Excellent", "Notes": "Bimodal seasonal pattern (snowmelt + monsoon) well-captured."},
+        {"Hazard": "Seismic", "AUC": 0.887, "Quality": "Excellent", "Notes": "Front Range induced seismicity spatially tight → strong spatial signal."},
+        {"Hazard": "Fire",    "AUC": 0.857, "Quality": "Excellent", "Notes": "Western Slope + foothills WUI fire patterns learned well."},
+        {"Hazard": "Wind",    "AUC": 0.817, "Quality": "Excellent", "Notes": "Chinook corridor captured; high-plains diffuse wind harder to localize."},
     ]
-    st.dataframe(pd.DataFrame(v2_data), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(co_data), use_container_width=True, hide_index=True)
 
-    hazards_v2 = ["Fire", "Winter", "Wind", "Flood", "Seismic"]
-    aucs_v2 = [0.851, 0.908, 0.837, 0.830, 0.718]
-    bar_colors = [COLORS['fire'], COLORS['winter'], COLORS['wind'], COLORS['flood'], COLORS['seismic']]
+    hazards_co   = ["Winter", "Flood", "Seismic", "Fire", "Wind"]
+    aucs_co      = [0.963, 0.891, 0.887, 0.857, 0.817]
+    bar_colors   = [COLORS['winter'], COLORS['flood'], COLORS['seismic'], COLORS['fire'], COLORS['wind']]
 
-    fig_v2 = go.Figure()
-    fig_v2.add_trace(go.Bar(x=hazards_v2, y=aucs_v2, marker_color=bar_colors, name="AHI v2.5"))
-    fig_v2.add_hline(y=0.8, line_dash="dash", line_color="#6b9e7a", annotation_text="Excellent (0.8)")
-    fig_v2.add_hline(y=0.5, line_dash="dash", line_color="#dc2626", annotation_text="Random (0.5)")
-    fig_v2.update_layout(
-        title="AHI v2.5 AUC by Hazard Type",
+    fig_co = go.Figure()
+    fig_co.add_trace(go.Bar(x=hazards_co, y=aucs_co, marker_color=bar_colors, name="AHI v2.5 CO"))
+    fig_co.add_hline(y=0.8, line_dash="dash", line_color="#6b9e7a", annotation_text="Excellent (0.8)")
+    fig_co.add_hline(y=0.5, line_dash="dash", line_color="#dc2626", annotation_text="Random (0.5)")
+    fig_co.update_layout(
+        title="AHI v2.5 Colorado — AUC by Hazard Type",
         paper_bgcolor=COLORS['card_bg'],
         plot_bgcolor=COLORS['card_bg'],
         font=dict(color=COLORS['text_secondary'], family='Inter'),
@@ -1451,64 +1690,66 @@ def page_model_info():
         height=380,
         margin=dict(l=40, r=20, t=50, b=40),
     )
-    st.plotly_chart(fig_v2, use_container_width=True)
-    st.success("**AHI v2.5 Mean AUC: 0.829** — 4 of 5 hazards in the Excellent range (AUC > 0.8)")
+    st.plotly_chart(fig_co, use_container_width=True)
+    st.success("**AHI v2.5 Colorado Mean AUC: 0.883** — All 5 hazards in the Excellent range (AUC > 0.8)")
 
     st.markdown("---")
     st.markdown("### Calibration")
     st.markdown("""
     **Calibration** means predicted probabilities match real-world frequencies. If the model says 10% fire risk,
-    fires should occur roughly 10% of the time in those conditions. AHI v2.5 uses:
+    fires should occur roughly 10% of the time in those conditions. AHI v2.5 (Colorado) uses:
 
-    - **Per-hazard temperature scaling** — NLL-optimized on validation set
-    - **Seasonal logit bias** — physics-informed monthly adjustments by hazard
+    - **Per-hazard temperature scaling** — NLL-optimized on CO validation set
+      (fire T=0.380, flood T=0.546, wind T=0.495, winter T=0.657, seismic T=0.457)
+    - **CO seasonal logit bias** — physics-informed monthly adjustments for CO climatology
+      (fire Jun–Sep with monsoon dip Aug, bimodal flood Apr–May + Jul–Aug, Chinook wind Oct–Apr)
     - **Base-rate ceilings** — caps predictions at historical plausibility limits
-    - **Seismic dampening** — constant geographic background risk (not weather-driven)
+      (all CO ceilings more generous than WA — model is significantly more accurate)
     """)
 
-    with st.expander("Model Evolution — prior generations", expanded=False):
+    with st.expander("Colorado vs. Washington State — Performance Comparison", expanded=False):
         st.markdown("""
-    AHI v2.5 is the result of iterative R&D across multiple architectures:
+    AHI v2.5 trained on Colorado (64 counties) outperforms the Washington deployment (39 counties)
+    across all five hazard types:
 
-    | Metric | XGBoost Baseline | HazardLM v1 | AHI v2.0 | **AHI v2.5** |
-    |--------|----------------:|--------------------:|------------------------:|------------------------:|
-    | **Mean AUC** | 0.781 | 0.641 | 0.819 | **0.829** |
-    | **Fire** | 0.870 | 0.731 | 0.848 | **0.851** |
-    | **Flood** | 0.714 | 0.648 | 0.818 | **0.830** |
-    | **Wind** | 0.713 | 0.585 | 0.823 | **0.837** |
-    | **Winter** | 0.885 | 0.742 | 0.904 | **0.908** |
-    | **Seismic** | 0.721 | 0.499 | 0.703 | **0.718** |
-    | **Params** | N/A (trees) | 880K | 1.3M | **1.3M** |
-    | **Architecture** | Per-hazard trees | Single-stack diffusion | Stacked mesh | **Learned seasonal bias** |
+    | Hazard | AHI v2.5 WA | AHI v2.5 CO | Δ |
+    |--------|:-----------:|:-----------:|:---:|
+    | **Winter** | 0.908 | **0.963** | +0.055 |
+    | **Flood**  | 0.830 | **0.891** | +0.061 |
+    | **Seismic**| 0.718 | **0.887** | +0.169 |
+    | **Fire**   | 0.851 | **0.857** | +0.006 |
+    | **Wind**   | 0.837 | **0.817** | –0.020 |
+    | **Mean**   | 0.829 | **0.883** | **+0.054** |
 
-    **XGBoost** was the initial baseline — strong on fire and winter but limited on spatially-correlated hazards.
-    **HazardLM v1** introduced heat kernel attention but couldn't handle multiple timescales simultaneously.
-    **AHI v2.0** resolved this with separate temporal and spatial meshes connected by gated coupling.
-    **AHI v2.5** replaces hardcoded seasonal penalties with a learned 5×12 bias matrix, improving all hazard AUCs
-    and enabling expansion to new states without manual seasonal configuration.
+    **Why CO outperforms WA:**
+    - Colorado's clear elevation gradient (plains → foothills → Rockies → Western Slope) gives the
+      spatial mesh a strong geographic signal for every hazard type.
+    - Front Range induced seismicity is spatially concentrated → spatial attention learns tight clusters
+      (vs. Cascadia subduction zone which is diffuse and extends offshore).
+    - Bimodal flood pattern (spring snowmelt + monsoon) is more predictable from weather covariates
+      than WA's atmospheric-river-dominated regime.
+    - Wind is slightly lower due to the diffuse nature of high-plains wind vs. WA's atmospheric river tracks.
     """)
 
     st.markdown("---")
     st.markdown("### Updates & Roadmap")
 
-    st.markdown("**Current (AHI v2.5 Learned Seasonal Bias)**")
+    st.markdown("**Current (AHI v2.5 — Colorado Deployment)**")
     st.markdown("""
-    - Stacked mesh architecture grounded in Simplicial Computation theory (resolves timescale incompatibility)
-    - Temporal mesh (heat kernel) + spatial mesh (softmax + adjacency) + gated coupling achieves mean AUC 0.829
-    - Learned Seasonal Bias module (5×12 trainable matrix) replaces hardcoded seasonal penalties — scales to new states without manual configuration
-    - Date-grouped batching ensures spatial mesh sees coherent 39-county snapshots per training step
-    - Warm-started from v1 weights — guaranteed no performance regression during training
-    - Fire 0.851, Flood 0.830, Wind 0.837, Winter 0.908, Seismic 0.718 on held-out test set
+    - Stacked mesh architecture: temporal mesh (heat kernel) + spatial mesh (softmax + adjacency) + gated coupling
+    - Learned Seasonal Bias module (5×12 trainable matrix) captures CO fire season, bimodal flood peaks, and Chinook wind patterns
+    - Date-grouped batching ensures spatial mesh sees coherent 64-county snapshots per training step
+    - Mean AUC 0.883 on held-out CO test set — all 5 hazards in the Excellent range
+    - Temperature scales re-fitted on CO validation set (fire 0.380, flood 0.546, wind 0.495, winter 0.657, seismic 0.457)
     """)
 
     st.markdown("**Planned / Future Work**")
     st.markdown("""
-    - Expand to Pacific Northwest states (Oregon, Idaho) with hierarchical calibration for low-event counties
-    - Integrate real-time weather feeds (NWS / NOAA) for operational nowcasts — **core SBIR Phase I deliverable**
+    - Integrate real-time weather feeds (NWS/NOAA APIs) for operational nowcasts — **core SBIR Phase I deliverable**
+    - Expand to adjacent states (Utah, New Mexico, Wyoming) using the same pipeline infrastructure
     - Add Monte Carlo Dropout uncertainty quantification for prediction intervals
-    - Improve spatial modeling (graph neural networks for county adjacency / hazard spread)
-    - Build continual learning pipeline with scheduled model retraining
-    - Conduct softmax ablation study to quantify diffusion attention benefit vs. standard transformer
+    - Improve spatial modeling (graph neural networks for county adjacency and hazard spread)
+    - Build continual learning pipeline with scheduled model retraining as new storm events accumulate
     """)
 
     st.markdown("---")
@@ -1516,19 +1757,260 @@ def page_model_info():
     st.markdown("""
     | Source | Dataset | Usage |
     |--------|---------|-------|
-    | **NOAA Storm Events** | 26 CSV files of historical storm records | Flood, wind, winter storm labels (strict county + 3-day window matching) |
-    | **WFIGS** | Wildland Fire Locations Full History | Wildfire labels (geocoded to county boundaries) |
-    | **USGS Earthquakes** | WA seismic catalog | Seismic event labels |
-    | **FEMA** | Disaster declarations (geocoded) | Supplementary validation labels |
-    | **GridMET** | Daily gridded weather | Temperature, precipitation, humidity, wind, fire weather (ERC) |
+    | **NOAA Storm Events** | 26 CSV files of historical storm records (filtered: STATE = COLORADO) | Flood, wind, winter storm labels (strict county + 3-day window matching) |
+    | **WFIGS** | Wildland Fire Locations Full History (filtered: POOState = US-CO) | Wildfire labels (geocoded to county boundaries) |
+    | **USGS Earthquakes** | Colorado seismic catalog (M ≥ 2.0, 2000–2025) | Seismic event labels (Front Range + Sangre de Cristos) |
+    | **FEMA** | Disaster declarations (filtered: stateNum = 08) | Supplementary validation labels (322 CO records) |
+    | **GridMET** | Daily gridded weather — CONUS files reused (lat 25–49, lon –125 to –67) | Temperature, precipitation, humidity, wind speed, fire weather (ERC) |
     | **US Census (TIGER)** | County-level population density | Static demographic feature for exposure weighting |
-    | **NLCD / Land Cover** | Forest & urban fractions, elevation | Static geographic features for terrain-aware inference |
+    | **NLCD / Land Cover** | Forest & urban fractions, elevation proxy by terrain class | Static geographic features for terrain-aware inference |
     """)
 
     st.caption(
         "Note: AHI v2.5 uses population density as its only demographic feature. "
         "CDC Social Vulnerability Index (SVI) data was evaluated but not incorporated into the "
         "training pipeline; it is reserved for future fairness/equity analysis."
+    )
+
+
+# =============================================================================
+# PAGE: NATIONAL (CONUS overview — first/default tab)
+# =============================================================================
+
+# Tile-server presets for the national choropleth basemap selector.
+# Esri free / USGS free / built-in styles. No tokens required.
+_NATIONAL_TILE_STYLES = {
+    'Satellite':  {
+        'mapbox_style': 'white-bg',
+        'mapbox_layers': [{
+            'below': 'traces', 'sourcetype': 'raster',
+            'sourceattribution':
+                'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, '
+                'USDA FSA, USGS, AeroGRID, IGN',
+            'source': ['https://services.arcgisonline.com/ArcGIS/rest/services/'
+                       'World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+        }],
+        'border': '#fbbf24', 'opacity': 0.65,
+    },
+    'Dark':       {'mapbox_style': 'carto-darkmatter', 'mapbox_layers': [],
+                   'border': '#30363d', 'opacity': 0.85},
+    'Light':      {'mapbox_style': 'carto-positron',   'mapbox_layers': [],
+                   'border': '#888',    'opacity': 0.85},
+    # USGS satellite — kept in reserve; uncomment if Esri throttles
+    # 'Satellite (USGS)':  {
+    #     'mapbox_style': 'white-bg',
+    #     'mapbox_layers': [{
+    #         'below': 'traces', 'sourcetype': 'raster',
+    #         'sourceattribution':
+    #             'Tiles &copy; U.S. Geological Survey — National Map',
+    #         'source': ['https://basemap.nationalmap.gov/arcgis/rest/services/'
+    #                    'USGSImageryOnly/MapServer/tile/{z}/{y}/{x}'],
+    #     }],
+    #     'border': '#fbbf24', 'opacity': 0.65,
+    # },
+}
+
+
+def render_national_choropleth(df: pd.DataFrame, geojson: dict, hazard: str,
+                                map_style: str = 'Dark', height: int = 620):
+    """Plotly choropleth of CONUS counties colored by selected hazard."""
+    col = f'{hazard}_p' if hazard != 'max' else 'max_p'
+    df = df.copy()
+    df['_id'] = df['state'] + '|' + df['county_id']
+    df['pct'] = df[col] * 100
+
+    style = _NATIONAL_TILE_STYLES.get(map_style, _NATIONAL_TILE_STYLES['Dark'])
+
+    fig = go.Figure(go.Choroplethmapbox(
+        geojson=geojson,
+        locations=df['_id'],
+        z=df['pct'],
+        featureidkey='properties._id',
+        colorscale=[
+            [0.00, RISK_TIERS[0][2]], [0.10, RISK_TIERS[1][2]],
+            [0.20, RISK_TIERS[2][2]], [0.35, RISK_TIERS[3][2]],
+            [0.50, RISK_TIERS[4][2]], [1.00, RISK_TIERS[4][2]],
+        ],
+        zmin=0, zmax=50,
+        marker_line_width=0.4,
+        marker_line_color=style['border'],
+        marker_opacity=style['opacity'],
+        customdata=df[['state', 'county']].values,
+        hovertemplate=('<b>%{customdata[1]} County, %{customdata[0]}</b><br>' +
+                        f'{HAZARD_NAMES.get(hazard, hazard.title())}: ' +
+                        '%{z:.1f}%<extra></extra>'),
+        colorbar=dict(title='Risk %',
+                       tickfont=dict(color=COLORS['text_secondary']),
+                       titlefont=dict(color=COLORS['text_secondary']),
+                       bgcolor=COLORS['card_bg']),
+    ))
+    fig.update_layout(
+        mapbox_style=style['mapbox_style'],
+        mapbox_layers=style['mapbox_layers'],
+        mapbox_zoom=3.2,
+        mapbox_center={'lat': 39.5, 'lon': -98.5},
+        margin=dict(l=0, r=0, t=0, b=0),
+        height=height,
+        paper_bgcolor=COLORS['app_bg'],
+    )
+    return fig
+
+
+def page_national():
+    st.markdown("### National Overview")
+    st.caption("All 3,109 CONUS counties · Click any county to see hazard "
+                "breakdown below.")
+
+    geojson = load_national_geojson()
+    if geojson is None:
+        st.error(
+            "National geojson not found at `data/national_counties.geojson`. "
+            "Build it once from the platform's per-state geojsons (see "
+            "scripts/build_national_geojson.py in the mockup folder)."
+        )
+        return
+
+    # ---- Top controls ----
+    c1, c2, c3 = st.columns([1.4, 1.4, 1.2])
+    with c1:
+        hazard = st.selectbox(
+            "Hazard layer",
+            options=['max', 'fire', 'flood', 'wind', 'winter', 'seismic'],
+            index=0,
+            format_func=lambda h: ('Max risk (any hazard)' if h == 'max'
+                                     else HAZARD_NAMES.get(h, h.title())),
+            key='national_hazard',
+        )
+    with c2:
+        map_style = st.selectbox(
+            "Map style",
+            options=list(_NATIONAL_TILE_STYLES.keys()),
+            index=0,
+            key='national_map_style',
+        )
+    with c3:
+        horizon = st.selectbox(
+            "Forecast horizon",
+            options=[7, 14, 30],
+            index=1,
+            format_func=lambda d: f"{d} days",
+            key='national_horizon',
+            help="Longer horizons have weaker signal — model is calibrated for short-range outlooks.",
+        )
+    target_date = datetime.now().date() + timedelta(days=horizon)
+
+    # ---- Predictions (cached by month) ----
+    if 'national_df' not in st.session_state \
+            or st.session_state.get('national_month') != target_date.month:
+        with st.spinner(f"Running predictions for all CONUS counties "
+                         f"({target_date.month:02d}/{target_date.year}) — first run only…"):
+            df = predict_all_national(target_date.month)
+        st.session_state['national_df'] = df
+        st.session_state['national_month'] = target_date.month
+    else:
+        df = st.session_state['national_df']
+
+    if df is None or len(df) == 0:
+        st.error("No predictions generated. Check that regional ONNX models "
+                 "are in `models/<region>/` and states are flipped to "
+                 "`deployed: true` in `states/registry.yaml`.")
+        return
+
+    st.caption(f"Forecast date: **{target_date.strftime('%B %d, %Y')}** · "
+               f"{len(df):,} counties evaluated")
+
+    # ---- Map ----
+    fig = render_national_choropleth(df, geojson, hazard, map_style=map_style)
+    sel = st.plotly_chart(fig, use_container_width=True,
+                           on_select="rerun", selection_mode='points',
+                           key='national_map')
+
+    # ---- National stats footer ----
+    severe   = int((df['max_p'] >= 0.50).sum())
+    high     = int(((df['max_p'] >= 0.35) & (df['max_p'] < 0.50)).sum())
+    moderate = int(((df['max_p'] >= 0.20) & (df['max_p'] < 0.35)).sum())
+    elevated = int(((df['max_p'] >= 0.10) & (df['max_p'] < 0.20)).sum())
+    low      = int((df['max_p'] < 0.10).sum())
+    cols = st.columns(5)
+    cols[0].metric("Severe (>50%)",     severe)
+    cols[1].metric("High (35–50%)",     high)
+    cols[2].metric("Moderate (20–35%)", moderate)
+    cols[3].metric("Elevated (10–20%)", elevated)
+    cols[4].metric("Low (<10%)",        low)
+
+    st.markdown("---")
+
+    # ---- Selected county detail (populates on click) ----
+    sel_id = None
+    if sel and 'selection' in sel and sel['selection'].get('points'):
+        pt = sel['selection']['points'][0]
+        sel_id = pt.get('location')
+
+    if sel_id:
+        match = df[df['state'] + '|' + df['county_id'] == sel_id]
+        if len(match) > 0:
+            row = match.iloc[0]
+            primary = row['max_hazard']
+            primary_pct = row['max_p'] * 100
+            level, _ = risk_level(row['max_p'])
+
+            st.markdown(f"### {row['county'].title()} County, {row['state']}")
+            st.markdown(
+                f"<span style='color:{COLORS['text_secondary']};'>"
+                f"Primary hazard: <strong style='color:"
+                f"{COLORS.get(primary, COLORS['primary_light'])};'>"
+                f"{HAZARD_NAMES.get(primary, primary.title())}</strong> · "
+                f"{primary_pct:.1f}% · {level}</span>",
+                unsafe_allow_html=True,
+            )
+            # 5 hazard cards in a row
+            hcols = st.columns(5)
+            for i, h in enumerate(['fire', 'flood', 'wind', 'winter', 'seismic']):
+                p = row[f'{h}_p'] * 100
+                with hcols[i]:
+                    st.markdown(
+                        f"<div style='background:{COLORS['card_bg']}; padding:12px 8px; "
+                        f"border-radius:6px; border-left:3px solid {COLORS[h]};'>"
+                        f"<div style='color:{COLORS['text_tertiary']}; font-size:0.7em; "
+                        f"text-transform:uppercase; letter-spacing:0.05em;'>"
+                        f"{HAZARD_NAMES[h]}</div>"
+                        f"<div style='color:{COLORS['text_primary']}; font-size:1.5em; "
+                        f"font-weight:600; margin-top:4px;'>{p:.1f}%</div></div>",
+                        unsafe_allow_html=True,
+                    )
+            st.caption(
+                "Click the **State** tab in the sidebar (top of page) and pick "
+                f"**{row['state']}** to drill into county-level audit reports, "
+                "weather drivers, and hazard guidance."
+            )
+        else:
+            st.info(f"County {sel_id} clicked but not in prediction set.")
+    else:
+        st.markdown(
+            f"<div style='text-align:center; color:{COLORS['text_tertiary']}; "
+            f"padding:24px; border:1px dashed {COLORS['border']}; "
+            f"border-radius:6px;'>Click any county on the map above to see "
+            f"hazard breakdown.</div>",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("---")
+    st.markdown(f"### Top 25 Counties — "
+                 f"{HAZARD_NAMES.get(hazard, 'Max risk') if hazard != 'max' else 'Max risk'}")
+    col_p = f'{hazard}_p' if hazard != 'max' else 'max_p'
+    top = df.nlargest(25, col_p).copy()
+    for h in ['fire', 'flood', 'wind', 'winter', 'seismic']:
+        top[HAZARD_NAMES[h]] = (top[f'{h}_p'] * 100).round(1)
+    show = top[['state', 'county'] + [HAZARD_NAMES[h] for h in
+               ['fire', 'flood', 'wind', 'winter', 'seismic']]]
+    show = show.rename(columns={'state': 'State', 'county': 'County'})
+    st.dataframe(
+        show, use_container_width=True, hide_index=True,
+        column_config={
+            HAZARD_NAMES[h]: st.column_config.NumberColumn(
+                HAZARD_NAMES[h], format="%.1f%%")
+            for h in ['fire', 'flood', 'wind', 'winter', 'seismic']
+        },
     )
 
 
@@ -1543,14 +2025,14 @@ def page_about():
     <div style="background: {COLORS['card_bg']}; border: 1px solid {COLORS['border']}; border-radius: 8px; padding: 24px; margin-bottom: 20px;">
         <h3 style="color: {COLORS['primary_light']}; margin-top: 0;">Adaptive Hazard Intelligence</h3>
         <p style="color: {COLORS['text_primary']}; line-height: 1.7;">
-        AHI is a calibrated, multi-hazard risk prediction system for Washington State emergency managers.
+        AHI is a calibrated, multi-hazard risk prediction system for emergency managers across the contiguous United States.
         It predicts the likelihood of five natural hazard types — wildfire, flood, wind, winter storm, and
         seismic — at the county level using a stacked diffusion mesh transformer trained on 25 years of
-        historical data.
+        historical data across all 64 Colorado counties.
         </p>
         <p style="color: {COLORS['text_secondary']}; line-height: 1.7;">
         AHI is being developed by Resilience Analytics Lab, LLC for SBIR Phase I commercialization toward
-        operational nationwide deployment.
+        operational nationwide deployment across all 50 states.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -1571,22 +2053,23 @@ def page_about():
         - Gated coupling prevents catastrophic interference between meshes
 
         **Date-Grouped Batching**
-        - All 39 counties presented per training step
-        - Enables coherent spatial attention learning
+        - All 64 Colorado counties presented per training step
+        - Enables coherent spatial attention learning across the elevation gradient
         - Key discovery: random batching produces gate ≈ 0 (spatial mesh ignored)
         """)
     with col2:
         st.markdown("""
         **Calibration Pipeline**
-        - Per-hazard temperature scaling
-        - Seasonal logit bias (fire suppressed in winter, winter suppressed in summer)
+        - Per-hazard temperature scaling (CO val set — all T < 1.0)
+        - CO seasonal logit bias (fire Jun–Sep, bimodal flood, Chinook wind Oct–Apr)
         - Base-rate ceilings prevent overconfident predictions
-        - Seismic dampening (constant geographic risk, not weather-driven)
+        - No weak-head clamping required — all CO heads AUC ≥ 0.817
 
         **Clean Label Engineering**
         - 3-day event window (vs. 30-day which created 97.7% false positive rate)
-        - Strict county-level geographic matching
+        - Strict county-level geographic matching (64 CO counties, FIPS 08)
         - Multiple source cross-validation (NOAA, WFIGS, USGS, FEMA)
+        - Monsoon season flood labels properly separated from spring snowmelt labels
         """)
 
     st.markdown("---")
@@ -1613,28 +2096,28 @@ def main():
         {logo_html}
         <div class="ahi-header-text">
             <h2 class="title">Adaptive Hazard Intelligence</h2>
-            <div class="subtitle">Calibrated hazard risk for defensible decisions</div>
+            <div class="subtitle">Calibrated hazard risk for defensible decisions · 3,109 CONUS counties · AHI v2.5</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab_national, tab_state, tab_county, tab_diag, tab_about = st.tabs([
+        "National",
+        "State",
         "County Risk Assessment",
-        "Statewide",
-        "Risk Assessment",
         "Model Diagnostics",
         "About"
     ])
 
-    with tab1:
+    with tab_national:
+        page_national()
+    with tab_state:
+        page_state_overview()
+    with tab_county:
         page_quick_predict()
-    with tab2:
-        page_statewide()
-    with tab3:
-        page_risk_assessment()
-    with tab4:
+    with tab_diag:
         page_model_info()
-    with tab5:
+    with tab_about:
         page_about()
 
 

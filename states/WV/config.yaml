@@ -1,0 +1,285 @@
+state_code: WV
+state_name: West Virginia
+region: great_lakes
+default_county: Kanawha
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -82.79
+  - -77.5
+  lat:
+  - 37.08
+  - 40.82
+geojson_county_property: NAME
+county_coords:
+  Barbour:
+  - 39.1329
+  - -80.003
+  Berkeley:
+  - 39.464
+  - -78.0276
+  Boone:
+  - 38.0228
+  - -81.7114
+  Braxton:
+  - 38.6998
+  - -80.7194
+  Brooke:
+  - 40.2739
+  - -80.5764
+  Cabell:
+  - 38.4203
+  - -82.2418
+  Calhoun:
+  - 38.8444
+  - -81.1175
+  Clay:
+  - 38.4625
+  - -81.0752
+  Doddridge:
+  - 39.2691
+  - -80.707
+  Fayette:
+  - 38.0287
+  - -81.081
+  Gilmer:
+  - 38.924
+  - -80.8572
+  Grant:
+  - 39.1049
+  - -79.1955
+  Greenbrier:
+  - 37.9469
+  - -80.4529
+  Hampshire:
+  - 39.317
+  - -78.6142
+  Hancock:
+  - 40.5218
+  - -80.5739
+  Hardy:
+  - 39.0074
+  - -78.858
+  Harrison:
+  - 39.2835
+  - -80.3798
+  Jackson:
+  - 38.8343
+  - -81.6747
+  Jefferson:
+  - 39.3076
+  - -77.8628
+  Kanawha:
+  - 38.3364
+  - -81.528
+  Lewis:
+  - 38.9958
+  - -80.5021
+  Lincoln:
+  - 38.1753
+  - -82.0705
+  Logan:
+  - 37.8312
+  - -81.9353
+  Marion:
+  - 39.51
+  - -80.2433
+  Marshall:
+  - 39.8605
+  - -80.6634
+  Mason:
+  - 38.7696
+  - -82.0266
+  Mcdowell:
+  - 37.3785
+  - -81.6535
+  Mercer:
+  - 37.4055
+  - -81.1115
+  Mineral:
+  - 39.4147
+  - -78.944
+  Mingo:
+  - 37.7263
+  - -82.1344
+  Monongalia:
+  - 39.6303
+  - -80.0465
+  Monroe:
+  - 37.5604
+  - -80.5507
+  Morgan:
+  - 39.5604
+  - -78.2578
+  Nicholas:
+  - 38.2917
+  - -80.7993
+  Ohio:
+  - 40.097
+  - -80.6191
+  Pendleton:
+  - 38.6806
+  - -79.3509
+  Pleasants:
+  - 39.3709
+  - -81.1607
+  Pocahontas:
+  - 38.3316
+  - -80.0083
+  Preston:
+  - 39.4691
+  - -79.6682
+  Putnam:
+  - 38.5085
+  - -81.9091
+  Raleigh:
+  - 37.7713
+  - -81.2485
+  Randolph:
+  - 38.7746
+  - -79.8763
+  Ritchie:
+  - 39.1782
+  - -81.063
+  Roane:
+  - 38.7139
+  - -81.3483
+  Summers:
+  - 37.6558
+  - -80.8587
+  Taylor:
+  - 39.336
+  - -80.0462
+  Tucker:
+  - 39.1136
+  - -79.5649
+  Tyler:
+  - 39.4653
+  - -80.8848
+  Upshur:
+  - 38.8977
+  - -80.2335
+  Wayne:
+  - 38.1458
+  - -82.4268
+  Webster:
+  - 38.4946
+  - -80.4219
+  Wetzel:
+  - 39.6052
+  - -80.6391
+  Wirt:
+  - 39.0224
+  - -81.3786
+  Wood:
+  - 39.2111
+  - -81.5151
+  Wyoming:
+  - 37.6096
+  - -81.5491
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

@@ -1,0 +1,318 @@
+state_code: SD
+state_name: South Dakota
+region: northern_plains
+default_county: Minnehaha
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -104.36
+  - -96.09
+  lat:
+  - 42.53
+  - 46.07
+geojson_county_property: NAME
+county_coords:
+  Aurora:
+  - 43.7178
+  - -98.5616
+  Beadle:
+  - 44.4144
+  - -98.2781
+  Bennett:
+  - 43.1949
+  - -101.664
+  Bon Homme:
+  - 42.9883
+  - -97.8847
+  Brookings:
+  - 44.3696
+  - -96.7904
+  Brown:
+  - 45.5891
+  - -98.3516
+  Brule:
+  - 43.7179
+  - -99.0809
+  Buffalo:
+  - 44.0764
+  - -99.2049
+  Butte:
+  - 44.9056
+  - -103.5081
+  Campbell:
+  - 45.7711
+  - -100.0516
+  Charles Mix:
+  - 43.2078
+  - -98.5867
+  Clark:
+  - 44.8578
+  - -97.7294
+  Clay:
+  - 42.9144
+  - -96.9756
+  Codington:
+  - 44.9778
+  - -97.1886
+  Corson:
+  - 45.7091
+  - -101.1969
+  Custer:
+  - 43.6779
+  - -103.4518
+  Davison:
+  - 43.6746
+  - -98.146
+  Day:
+  - 45.367
+  - -97.6074
+  Deuel:
+  - 44.7598
+  - -96.668
+  Dewey:
+  - 45.1563
+  - -100.8717
+  Douglas:
+  - 43.3869
+  - -98.366
+  Edmunds:
+  - 45.4189
+  - -99.2153
+  Fall River:
+  - 43.2394
+  - -103.5275
+  Faulk:
+  - 45.0711
+  - -99.1453
+  Grant:
+  - 45.1719
+  - -96.7675
+  Gregory:
+  - 43.1923
+  - -99.1851
+  Haakon:
+  - 44.2941
+  - -101.5401
+  Hamlin:
+  - 44.6738
+  - -97.1883
+  Hand:
+  - 44.5471
+  - -99.0049
+  Hanson:
+  - 43.6747
+  - -97.7873
+  Harding:
+  - 45.5799
+  - -103.4958
+  Hughes:
+  - 44.389
+  - -99.9956
+  Hutchinson:
+  - 43.3349
+  - -97.7544
+  Hyde:
+  - 44.5467
+  - -99.4871
+  Jackson:
+  - 43.6939
+  - -101.6284
+  Jerauld:
+  - 44.0664
+  - -98.6297
+  Jones:
+  - 43.9605
+  - -100.6896
+  Kingsbury:
+  - 44.3696
+  - -97.4915
+  Lake:
+  - 44.0219
+  - -97.1294
+  Lawrence:
+  - 44.3584
+  - -103.7922
+  Lincoln:
+  - 43.2787
+  - -96.7217
+  Lyman:
+  - 43.8957
+  - -99.8468
+  Marshall:
+  - 45.7586
+  - -97.5985
+  Mccook:
+  - 43.6742
+  - -97.3684
+  Mcpherson:
+  - 45.7665
+  - -99.2215
+  Meade:
+  - 44.5663
+  - -102.7183
+  Mellette:
+  - 43.5813
+  - -100.7598
+  Miner:
+  - 44.0218
+  - -97.6102
+  Minnehaha:
+  - 43.6741
+  - -96.7914
+  Moody:
+  - 44.0219
+  - -96.6709
+  Oglala Lakota:
+  - 43.3352
+  - -102.5516
+  Pennington:
+  - 44.0047
+  - -102.8242
+  Perkins:
+  - 45.4895
+  - -102.4757
+  Potter:
+  - 45.0645
+  - -99.9573
+  Roberts:
+  - 45.6291
+  - -96.9462
+  Sanborn:
+  - 44.0233
+  - -98.0914
+  Spink:
+  - 44.9376
+  - -98.3462
+  Stanley:
+  - 44.4121
+  - -100.7354
+  Sully:
+  - 44.7157
+  - -100.1323
+  Todd:
+  - 43.1935
+  - -100.7184
+  Tripp:
+  - 43.3453
+  - -99.8839
+  Turner:
+  - 43.3107
+  - -97.1486
+  Union:
+  - 42.8321
+  - -96.656
+  Walworth:
+  - 45.4299
+  - -100.0314
+  Yankton:
+  - 43.0089
+  - -97.3947
+  Ziebach:
+  - 44.9794
+  - -101.6655
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

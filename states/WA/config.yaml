@@ -1,0 +1,237 @@
+state_code: WA
+state_name: Washington
+region: pnw
+default_county: King
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -124.47
+  - -116.66
+  lat:
+  - 45.48
+  - 49.13
+geojson_county_property: NAME
+county_coords:
+  Adams:
+  - 46.9833
+  - -118.5611
+  Asotin:
+  - 46.1916
+  - -117.2031
+  Benton:
+  - 46.2392
+  - -119.5108
+  Chelan:
+  - 47.8675
+  - -120.6183
+  Clallam:
+  - 48.111
+  - -123.9335
+  Clark:
+  - 45.779
+  - -122.4826
+  Columbia:
+  - 46.2971
+  - -117.9074
+  Cowlitz:
+  - 46.1932
+  - -122.6808
+  Douglas:
+  - 47.7356
+  - -119.6933
+  Ferry:
+  - 48.4683
+  - -118.5167
+  Franklin:
+  - 46.5346
+  - -118.8992
+  Garfield:
+  - 46.431
+  - -117.545
+  Grant:
+  - 47.2041
+  - -119.4533
+  Grays Harbor:
+  - 47.1438
+  - -123.8278
+  Island:
+  - 48.1625
+  - -122.5749
+  Jefferson:
+  - 47.7771
+  - -123.578
+  King:
+  - 47.4907
+  - -121.836
+  Kitsap:
+  - 47.6393
+  - -122.6494
+  Kittitas:
+  - 47.1241
+  - -120.6781
+  Klickitat:
+  - 45.8744
+  - -120.7894
+  Lewis:
+  - 46.5787
+  - -122.3926
+  Lincoln:
+  - 47.5759
+  - -118.4185
+  Mason:
+  - 47.3503
+  - -123.183
+  Okanogan:
+  - 48.5481
+  - -119.7402
+  Pacific:
+  - 46.5512
+  - -123.7798
+  Pend Oreille:
+  - 48.5308
+  - -117.2739
+  Pierce:
+  - 47.0376
+  - -122.1362
+  San Juan:
+  - 48.5629
+  - -122.9776
+  Skagit:
+  - 48.4828
+  - -121.8017
+  Skamania:
+  - 46.0222
+  - -121.915
+  Snohomish:
+  - 48.0461
+  - -121.7225
+  Spokane:
+  - 47.62
+  - -117.4043
+  Stevens:
+  - 48.3967
+  - -117.8554
+  Thurston:
+  - 46.9295
+  - -122.832
+  Wahkiakum:
+  - 46.2911
+  - -123.4334
+  Walla Walla:
+  - 46.2296
+  - -118.4785
+  Whatcom:
+  - 48.8309
+  - -121.8724
+  Whitman:
+  - 46.9007
+  - -117.5231
+  Yakima:
+  - 46.4565
+  - -120.7377
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

@@ -1,0 +1,288 @@
+state_code: MT
+state_name: Montana
+region: mountain_west
+default_county: Yellowstone
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -116.3
+  - -103.36
+  lat:
+  - 44.83
+  - 49.08
+geojson_county_property: NAME
+county_coords:
+  Beaverhead:
+  - 45.1308
+  - -112.8947
+  Big Horn:
+  - 45.423
+  - -107.4894
+  Blaine:
+  - 48.4306
+  - -108.9595
+  Broadwater:
+  - 46.3318
+  - -111.4956
+  Carbon:
+  - 45.2275
+  - -109.0279
+  Carter:
+  - 45.5152
+  - -104.536
+  Cascade:
+  - 47.3076
+  - -111.3466
+  Chouteau:
+  - 47.8804
+  - -110.4354
+  Custer:
+  - 46.2517
+  - -105.5713
+  Daniels:
+  - 48.7838
+  - -105.5485
+  Dawson:
+  - 47.2656
+  - -104.8988
+  Deer Lodge:
+  - 46.0606
+  - -113.0684
+  Fallon:
+  - 46.3335
+  - -104.4172
+  Fergus:
+  - 47.2626
+  - -109.2246
+  Flathead:
+  - 48.2937
+  - -114.0474
+  Gallatin:
+  - 45.5369
+  - -111.1706
+  Garfield:
+  - 47.2772
+  - -106.9934
+  Glacier:
+  - 48.705
+  - -112.9943
+  Golden Valley:
+  - 46.3808
+  - -109.1752
+  Granite:
+  - 46.4037
+  - -113.4407
+  Hill:
+  - 48.6277
+  - -110.111
+  Jefferson:
+  - 46.1478
+  - -112.0938
+  Judith Basin:
+  - 47.045
+  - -110.2656
+  Lake:
+  - 47.645
+  - -114.0893
+  Lewis And Clark:
+  - 47.1208
+  - -112.3876
+  Liberty:
+  - 48.5605
+  - -111.0248
+  Lincoln:
+  - 48.5412
+  - -115.4052
+  Madison:
+  - 45.2996
+  - -111.9193
+  Mccone:
+  - 47.6441
+  - -105.7957
+  Meagher:
+  - 46.5976
+  - -110.8843
+  Mineral:
+  - 47.1467
+  - -114.9968
+  Missoula:
+  - 47.0358
+  - -113.9246
+  Musselshell:
+  - 46.4964
+  - -108.3982
+  Park:
+  - 45.4863
+  - -110.5264
+  Petroleum:
+  - 47.1167
+  - -108.2505
+  Phillips:
+  - 48.256
+  - -107.9154
+  Pondera:
+  - 48.2285
+  - -112.2261
+  Powder River:
+  - 45.3945
+  - -105.6303
+  Powell:
+  - 46.854
+  - -112.9335
+  Prairie:
+  - 46.8605
+  - -105.3767
+  Ravalli:
+  - 46.0801
+  - -114.1211
+  Richland:
+  - 47.7875
+  - -104.5606
+  Roosevelt:
+  - 48.295
+  - -105.0159
+  Rosebud:
+  - 46.226
+  - -106.7279
+  Sanders:
+  - 47.6744
+  - -115.1303
+  Sheridan:
+  - 48.7208
+  - -104.5043
+  Silver Bow:
+  - 45.9022
+  - -112.6567
+  Stillwater:
+  - 45.6681
+  - -109.3971
+  Sweet Grass:
+  - 45.8128
+  - -109.9414
+  Teton:
+  - 47.8373
+  - -112.2402
+  Toole:
+  - 48.6547
+  - -111.6952
+  Treasure:
+  - 46.2111
+  - -107.2711
+  Valley:
+  - 48.3634
+  - -106.6686
+  Wheatland:
+  - 46.4661
+  - -109.8445
+  Wibaux:
+  - 46.9645
+  - -104.2493
+  Yellowstone:
+  - 45.9368
+  - -108.2759
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

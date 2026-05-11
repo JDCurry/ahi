@@ -1,0 +1,249 @@
+# AHI state registry - deployed states + region mapping.
+# Read by app.py to populate the state selector and resolve regional
+# ONNX paths (models/<region>/model.onnx).
+
+CO:
+  region: colorado
+  name: Colorado
+  deployed: true
+  default_county: El Paso
+AL:
+  region: southeast_gulf
+  name: Alabama
+  deployed: true
+  default_county: Jefferson
+AR:
+  region: southeast_gulf
+  name: Arkansas
+  deployed: true
+  default_county: Pulaski
+AZ:
+  region: mountain_west
+  name: Arizona
+  deployed: true
+  default_county: Maricopa
+CA:
+  region: pacific
+  name: California
+  deployed: true
+  default_county: Los Angeles
+CT:
+  region: northeast
+  name: Connecticut
+  deployed: true
+  default_county: Hartford
+DC:
+  region: northeast
+  name: District of Columbia
+  deployed: true
+  default_county: District of Columbia
+DE:
+  region: northeast
+  name: Delaware
+  deployed: true
+  default_county: New Castle
+FL:
+  region: southeast_gulf
+  name: Florida
+  deployed: true
+  default_county: Miami-Dade
+GA:
+  region: southeast_gulf
+  name: Georgia
+  deployed: true
+  default_county: Fulton
+IA:
+  region: northern_plains
+  name: Iowa
+  deployed: true
+  default_county: Polk
+ID:
+  region: mountain_west
+  name: Idaho
+  deployed: true
+  default_county: Ada
+IL:
+  region: great_lakes
+  name: Illinois
+  deployed: true
+  default_county: Cook
+IN:
+  region: great_lakes
+  name: Indiana
+  deployed: true
+  default_county: Marion
+KS:
+  region: southern_plains
+  name: Kansas
+  deployed: true
+  default_county: Sedgwick
+KY:
+  region: great_lakes
+  name: Kentucky
+  deployed: true
+  default_county: Jefferson
+LA:
+  region: southeast_gulf
+  name: Louisiana
+  deployed: true
+  default_county: Orleans
+MA:
+  region: northeast
+  name: Massachusetts
+  deployed: true
+  default_county: Middlesex
+MD:
+  region: northeast
+  name: Maryland
+  deployed: true
+  default_county: Montgomery
+ME:
+  region: northeast
+  name: Maine
+  deployed: true
+  default_county: Cumberland
+MI:
+  region: great_lakes
+  name: Michigan
+  deployed: true
+  default_county: Wayne
+MN:
+  region: northern_plains
+  name: Minnesota
+  deployed: true
+  default_county: Hennepin
+MO:
+  region: northern_plains
+  name: Missouri
+  deployed: true
+  default_county: St. Louis
+MS:
+  region: southeast_gulf
+  name: Mississippi
+  deployed: true
+  default_county: Hinds
+MT:
+  region: mountain_west
+  name: Montana
+  deployed: true
+  default_county: Yellowstone
+NC:
+  region: southeast_gulf
+  name: North Carolina
+  deployed: true
+  default_county: Mecklenburg
+ND:
+  region: northern_plains
+  name: North Dakota
+  deployed: true
+  default_county: Cass
+NE:
+  region: southern_plains
+  name: Nebraska
+  deployed: true
+  default_county: Douglas
+NH:
+  region: northeast
+  name: New Hampshire
+  deployed: true
+  default_county: Hillsborough
+NJ:
+  region: northeast
+  name: New Jersey
+  deployed: true
+  default_county: Bergen
+NM:
+  region: mountain_west
+  name: New Mexico
+  deployed: true
+  default_county: Bernalillo
+NV:
+  region: mountain_west
+  name: Nevada
+  deployed: true
+  default_county: Clark
+NY:
+  region: northeast
+  name: New York
+  deployed: true
+  default_county: New York
+OH:
+  region: great_lakes
+  name: Ohio
+  deployed: true
+  default_county: Franklin
+OK:
+  region: southern_plains
+  name: Oklahoma
+  deployed: true
+  default_county: Oklahoma
+OR:
+  region: pnw
+  name: Oregon
+  deployed: true
+  default_county: Multnomah
+PA:
+  region: northeast
+  name: Pennsylvania
+  deployed: true
+  default_county: Philadelphia
+RI:
+  region: northeast
+  name: Rhode Island
+  deployed: true
+  default_county: Providence
+SC:
+  region: southeast_gulf
+  name: South Carolina
+  deployed: true
+  default_county: Charleston
+SD:
+  region: northern_plains
+  name: South Dakota
+  deployed: true
+  default_county: Minnehaha
+TN:
+  region: great_lakes
+  name: Tennessee
+  deployed: true
+  default_county: Davidson
+TX:
+  region: southern_plains
+  name: Texas
+  deployed: true
+  default_county: Harris
+UT:
+  region: mountain_west
+  name: Utah
+  deployed: true
+  default_county: Salt Lake
+VA:
+  region: northeast
+  name: Virginia
+  deployed: true
+  default_county: Fairfax
+VT:
+  region: northeast
+  name: Vermont
+  deployed: true
+  default_county: Chittenden
+WA:
+  region: pnw
+  name: Washington
+  deployed: true
+  default_county: King
+WI:
+  region: northern_plains
+  name: Wisconsin
+  deployed: true
+  default_county: Milwaukee
+WV:
+  region: great_lakes
+  name: West Virginia
+  deployed: true
+  default_county: Kanawha
+WY:
+  region: mountain_west
+  name: Wyoming
+  deployed: true
+  default_county: Laramie

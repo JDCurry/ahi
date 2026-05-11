@@ -1,0 +1,165 @@
+state_code: AZ
+state_name: Arizona
+region: mountain_west
+default_county: Maricopa
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -114.36
+  - -108.86
+  lat:
+  - 31.18
+  - 36.18
+geojson_county_property: NAME
+county_coords:
+  Apache:
+  - 35.3847
+  - -109.4884
+  Cochise:
+  - 31.8794
+  - -109.7513
+  Coconino:
+  - 35.8355
+  - -111.7688
+  Gila:
+  - 33.7993
+  - -110.81
+  Graham:
+  - 32.9321
+  - -109.8872
+  Greenlee:
+  - 33.2143
+  - -109.2401
+  La Paz:
+  - 33.729
+  - -113.9828
+  Maricopa:
+  - 33.3485
+  - -112.4933
+  Mohave:
+  - 35.6978
+  - -113.7621
+  Navajo:
+  - 35.3907
+  - -110.3204
+  Pima:
+  - 32.0994
+  - -111.7892
+  Pinal:
+  - 32.9048
+  - -111.3447
+  Santa Cruz:
+  - 31.5261
+  - -110.8466
+  Yavapai:
+  - 34.5993
+  - -112.5524
+  Yuma:
+  - 32.769
+  - -113.9056
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

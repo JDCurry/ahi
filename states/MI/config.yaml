@@ -1,0 +1,369 @@
+state_code: MI
+state_name: Michigan
+region: great_lakes
+default_county: Wayne
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -90.66
+  - -82.01
+  lat:
+  - 41.4
+  - 48.47
+geojson_county_property: NAME
+county_coords:
+  Alcona:
+  - 44.6917
+  - -83.225
+  Alger:
+  - 46.65
+  - -86.35
+  Allegan:
+  - 42.6083
+  - -86.2667
+  Alpena:
+  - 45.025
+  - -83.2667
+  Antrim:
+  - 44.9948
+  - -85.1407
+  Arenac:
+  - 44.035
+  - -83.8068
+  Baraga:
+  - 46.7305
+  - -88.3337
+  Barry:
+  - 42.5959
+  - -85.3093
+  Bay:
+  - 43.7372
+  - -83.9358
+  Benzie:
+  - 44.6458
+  - -86.2967
+  Berrien:
+  - 41.9417
+  - -86.6417
+  Branch:
+  - 41.9126
+  - -85.0588
+  Calhoun:
+  - 42.2468
+  - -85.0062
+  Cass:
+  - 41.9135
+  - -85.9916
+  Charlevoix:
+  - 45.5667
+  - -85.475
+  Cheboygan:
+  - 45.4836
+  - -84.4894
+  Chippewa:
+  - 46.4121
+  - -84.6867
+  Clare:
+  - 43.9843
+  - -84.847
+  Clinton:
+  - 42.9427
+  - -84.6013
+  Crawford:
+  - 44.6833
+  - -84.6107
+  Delta:
+  - 45.7711
+  - -86.8924
+  Dickinson:
+  - 45.9927
+  - -87.8673
+  Eaton:
+  - 42.5962
+  - -84.8386
+  Emmet:
+  - 45.5629
+  - -85.0169
+  Genesee:
+  - 43.0024
+  - -83.6927
+  Gladwin:
+  - 43.9866
+  - -84.3862
+  Gogebic:
+  - 46.5959
+  - -90.0655
+  Grand Traverse:
+  - 44.8024
+  - -85.4726
+  Gratiot:
+  - 43.2924
+  - -84.6072
+  Hillsdale:
+  - 41.886
+  - -84.5935
+  Houghton:
+  - 46.9354
+  - -88.7423
+  Huron:
+  - 43.9105
+  - -82.8323
+  Ingham:
+  - 42.5998
+  - -84.3731
+  Ionia:
+  - 42.9443
+  - -85.0746
+  Iosco:
+  - 44.3583
+  - -83.2667
+  Iron:
+  - 46.1954
+  - -88.5542
+  Isabella:
+  - 43.6411
+  - -84.8473
+  Jackson:
+  - 42.248
+  - -84.4244
+  Kalamazoo:
+  - 42.243
+  - -85.5312
+  Kalkaska:
+  - 44.6857
+  - -85.0913
+  Kent:
+  - 43.0306
+  - -85.55
+  Keweenaw:
+  - 47.9833
+  - -88.5583
+  Lake:
+  - 43.9907
+  - -85.8012
+  Lapeer:
+  - 43.0972
+  - -83.2253
+  Leelanau:
+  - 45.1083
+  - -85.9333
+  Lenawee:
+  - 41.8951
+  - -84.0653
+  Livingston:
+  - 42.6039
+  - -83.911
+  Luce:
+  - 46.7534
+  - -85.5503
+  Mackinac:
+  - 45.9874
+  - -84.9895
+  Macomb:
+  - 42.6717
+  - -82.9053
+  Manistee:
+  - 44.3167
+  - -86.35
+  Marquette:
+  - 46.6134
+  - -87.6152
+  Mason:
+  - 43.9833
+  - -86.5167
+  Mecosta:
+  - 43.6424
+  - -85.3245
+  Menominee:
+  - 45.5354
+  - -87.4788
+  Midland:
+  - 43.6456
+  - -84.3874
+  Missaukee:
+  - 44.3385
+  - -85.0956
+  Monroe:
+  - 41.9079
+  - -83.4947
+  Montcalm:
+  - 43.3027
+  - -85.1989
+  Montmorency:
+  - 45.0289
+  - -84.1293
+  Muskegon:
+  - 43.3167
+  - -86.475
+  Newaygo:
+  - 43.555
+  - -85.801
+  Oakland:
+  - 42.6603
+  - -83.387
+  Oceana:
+  - 43.6452
+  - -86.5809
+  Ogemaw:
+  - 44.3358
+  - -84.1263
+  Ontonagon:
+  - 46.9
+  - -89.5167
+  Osceola:
+  - 43.9907
+  - -85.3254
+  Oscoda:
+  - 44.6824
+  - -84.1297
+  Otsego:
+  - 45.0292
+  - -84.6138
+  Ottawa:
+  - 43.025
+  - -86.3083
+  Presque Isle:
+  - 45.3583
+  - -83.4333
+  Roscommon:
+  - 44.335
+  - -84.612
+  Saginaw:
+  - 43.3315
+  - -84.0324
+  Sanilac:
+  - 43.4366
+  - -82.666
+  Schoolcraft:
+  - 46.046
+  - -86.177
+  Shiawassee:
+  - 42.9549
+  - -84.1477
+  St. Clair:
+  - 42.832
+  - -82.6079
+  St. Joseph:
+  - 41.915
+  - -85.5264
+  Tuscola:
+  - 43.4974
+  - -83.4035
+  Van Buren:
+  - 42.275
+  - -86.3917
+  Washtenaw:
+  - 42.2537
+  - -83.8374
+  Wayne:
+  - 42.2755
+  - -83.3305
+  Wexford:
+  - 44.3382
+  - -85.5787
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

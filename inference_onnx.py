@@ -1,34 +1,35 @@
 """
-ONNX inference core for AHI v2.5 (Experiment D — Learned Seasonal Bias).
-NO PyTorch dependency — uses onnxruntime for lightweight deployment.
+State-aware ONNX inference engine for AHI v2.5.
 
-Replaces inference_core.py for environments where torch is too heavy (e.g.,
-Render 512MB free/starter tier). Calibration pipeline is identical.
+Single deployment serves multiple states. Each state has its own:
+  - calibration JSONs (temperature_scales, seasonal_bias, base_rate_ceiling)
+  - inference parquet (states/XX/inference_data.parquet)
+  - GeoJSON (states/XX/counties.geojson)
+  - config.yaml (UI content)
 
-v2.5 improvements over v2.0:
-  - Model trained with LearnedSeasonalBias (nn.Parameter(5,12)) instead of
-    hardcoded seasonal_penalty(). The model independently discovered seasonal
-    structure matching domain priors, with finer granularity.
-  - Mean test AUC: 0.829 (up from 0.819 in v2.0)
-  - Flood T overridden to 0.90 (NLL-optimal 0.321 crushes predictions).
+Regional ONNX models are stored under models/<region>/model.onnx and shared
+across all states in the same region. State -> region mapping lives in
+states/registry.yaml.
 
-Calibration pipeline (applied in order):
-  1. Temperature scaling  - per-hazard T fitted on validation set (NLL optimization)
-  2. Seasonal prior       - physics-informed logit bias by month (WA climatology)
-  3. Base-rate ceiling     - caps max probability at historical plausibility limits
+Calibration pipeline (per state):
+  1. raw_logit / T               # state's temperature_scales.json
+  2. + seasonal_bias[h][m]       # state's seasonal_bias.json
+  3. sigmoid                     # convert to probability
+  4. min(p, ceiling[h][m])       # state's base_rate_ceiling.json
+
+Author: Joshua D. Curry
 """
 import json
 import math
-import numpy as np
-import pandas as pd
-from pathlib import Path
 from datetime import date
+from pathlib import Path
 from typing import Dict, Optional, Tuple
 
-# Hazard types
+import numpy as np
+import pandas as pd
+
 HAZARD_TYPES = ['fire', 'flood', 'wind', 'winter', 'seismic']
 
-# Feature columns used during training
 STATIC_FEATURE_COLS = [
     'latitude', 'longitude', 'day_of_year', 'month', 'year',
     'tmmx', 'tmmn', 'rmin', 'rmax', 'vs', 'erc', 'pr', 'vpd',
@@ -36,131 +37,175 @@ STATIC_FEATURE_COLS = [
     'elevation', 'forest_fraction', 'urban_fraction', 'pop_density'
 ]
 
-_COUNTY_MAP = {}
-_STATE_MAP = {}
+# ---------------------------------------------------------------------------
+# Per-state calibration cache: {state_code: {temperatures, biases, ceilings}}
+# ---------------------------------------------------------------------------
+_STATE_CALIBRATION_CACHE: Dict[str, Dict] = {}
+_REGIONAL_ONNX_CACHE:     Dict[str, object] = {}   # region -> ort.InferenceSession
+_COUNTY_MAP: Dict[str, int] = {}
+_STATE_MAP:  Dict[str, int] = {}
 
-# --- Seasonal prior: logit bias by month for WA state ---
-SEASONAL_LOGIT_BIAS = {
-    'fire': {
-        1: -3.0, 2: -3.0, 3: -2.0, 4: -1.0, 5: -0.5,
-        6: 0.0, 7: 0.0, 8: 0.0, 9: 0.0, 10: -0.5,
-        11: -2.0, 12: -3.0,
-    },
-    'winter': {
-        1: 0.0, 2: 0.0, 3: -0.5, 4: -0.5, 5: -1.5,
-        6: -3.0, 7: -3.0, 8: -3.0, 9: -2.0, 10: -0.5,
-        11: 0.0, 12: 0.0,
-    },
-    'wind': {
-        1: 0.0, 2: 0.0, 3: 0.0, 4: -0.3, 5: -0.5,
-        6: -0.5, 7: -0.5, 8: -0.3, 9: 0.0, 10: 0.0,
-        11: 0.0, 12: 0.0,
-    },
-    'flood': {m: 0.0 for m in range(1, 13)},
-    'seismic': {m: 0.0 for m in range(1, 13)},
-}
-
-BASE_RATE_CEILING = {
-    'fire': 0.35, 'flood': 0.35, 'wind': 0.25,
-    'winter': 0.35, 'seismic': 0.05,
-}
-
-SEASONAL_CEILING = {
-    'winter': {
-        1: 0.35, 2: 0.35, 3: 0.25, 4: 0.15,
-        5: 0.08, 6: 0.05, 7: 0.05, 8: 0.05,
-        9: 0.08, 10: 0.20, 11: 0.35, 12: 0.35,
-    },
-}
+ROOT = Path(__file__).resolve().parent
 
 
-def _get_ceiling(hazard: str, month: int) -> float:
-    if month and 1 <= month <= 12 and hazard in SEASONAL_CEILING:
-        return SEASONAL_CEILING[hazard][month]
-    return BASE_RATE_CEILING.get(hazard, 1.0)
+# ---------------------------------------------------------------------------
+# State calibration loader
+# ---------------------------------------------------------------------------
+
+def _load_state_calibration(state_code: str) -> Dict:
+    """Load (and cache) all three calibration JSONs for a state."""
+    if state_code in _STATE_CALIBRATION_CACHE:
+        return _STATE_CALIBRATION_CACHE[state_code]
+
+    state_dir = ROOT / 'states' / state_code
+
+    # Temperature scales
+    t_path = state_dir / 'temperature_scales.json'
+    if t_path.exists():
+        with open(t_path) as f:
+            t_doc = json.load(f)
+        temperatures = t_doc.get('temperatures', t_doc)
+        temperatures = {h: float(temperatures[h]) for h in HAZARD_TYPES if h in temperatures}
+    else:
+        print(f"[CALIBRATION] {state_code}: no temperature_scales.json — using T=1.0")
+        temperatures = {h: 1.0 for h in HAZARD_TYPES}
+
+    # Seasonal bias
+    sb_path = state_dir / 'seasonal_bias.json'
+    biases = {h: {m: 0.0 for m in range(1, 13)} for h in HAZARD_TYPES}
+    if sb_path.exists():
+        with open(sb_path) as f:
+            sb_doc = json.load(f)
+        for h, monthly in sb_doc.get('biases', {}).items():
+            if h in HAZARD_TYPES:
+                biases[h] = {int(m): float(v) for m, v in monthly.items()}
+    else:
+        print(f"[CALIBRATION] {state_code}: no seasonal_bias.json — using zero biases")
+
+    # Ceilings
+    bc_path = state_dir / 'base_rate_ceiling.json'
+    base_ceiling = {h: 1.0 for h in HAZARD_TYPES}
+    seasonal_ceiling = {}
+    if bc_path.exists():
+        with open(bc_path) as f:
+            bc_doc = json.load(f)
+        for h, v in bc_doc.get('base_rate_ceiling', {}).items():
+            if h in HAZARD_TYPES:
+                base_ceiling[h] = float(v)
+        for h, monthly in bc_doc.get('seasonal_ceiling', {}).items():
+            if h in HAZARD_TYPES:
+                seasonal_ceiling[h] = {int(m): float(v) for m, v in monthly.items()}
+    else:
+        print(f"[CALIBRATION] {state_code}: no base_rate_ceiling.json — using p=1.0")
+
+    cal = {
+        'temperatures':     temperatures,
+        'biases':           biases,
+        'base_ceiling':     base_ceiling,
+        'seasonal_ceiling': seasonal_ceiling,
+    }
+    _STATE_CALIBRATION_CACHE[state_code] = cal
+    print(f"[CALIBRATION] Loaded {state_code} calibration "
+          f"(T fire={temperatures.get('fire', 1.0):.3f})")
+    return cal
 
 
-def load_temperature_scales(path: Optional[str] = None) -> Dict[str, float]:
-    """Load per-hazard temperature scales from JSON file."""
-    search_paths = [
-        Path(path) if path else None,
-        Path('temperature_scales.json'),
-        Path('outputs/ahi_v2/temperature_scales_v2.json'),
-        Path('data/temperature_scales.json'),
+def _get_ceiling(state_code: str, hazard: str, month: int) -> float:
+    cal = _load_state_calibration(state_code)
+    sc = cal['seasonal_ceiling']
+    if month and 1 <= month <= 12 and hazard in sc:
+        return sc[hazard].get(month, cal['base_ceiling'].get(hazard, 1.0))
+    return cal['base_ceiling'].get(hazard, 1.0)
+
+
+def _apply_calibration(state_code: str, raw_logit: float,
+                        hazard: str, month: int) -> float:
+    """Apply state-specific calibration to a single raw logit."""
+    cal = _load_state_calibration(state_code)
+
+    T = max(cal['temperatures'].get(hazard, 1.0), 0.01)
+    scaled = raw_logit / T
+
+    bias = cal['biases'].get(hazard, {}).get(month, 0.0)
+    scaled += bias
+
+    prob = 1.0 / (1.0 + math.exp(-scaled))
+    ceiling = _get_ceiling(state_code, hazard, month)
+    return max(0.0, min(prob, ceiling))
+
+
+# ---------------------------------------------------------------------------
+# Regional ONNX session
+# ---------------------------------------------------------------------------
+
+def _get_onnx_session(region: str):
+    """Lazy-load (and cache) the regional ONNX session."""
+    if region in _REGIONAL_ONNX_CACHE:
+        return _REGIONAL_ONNX_CACHE[region]
+
+    try:
+        import onnxruntime as ort
+    except ImportError:
+        print("[AHI] onnxruntime not installed — ONNX inference unavailable")
+        return None
+
+    candidates = [
+        ROOT / 'models' / region / 'model.onnx',
+        Path(f'/mount/src/ahi-platform/models/{region}/model.onnx'),  # Render
     ]
-    for p in search_paths:
-        if p is not None and p.exists():
-            try:
-                with open(p) as f:
-                    data = json.load(f)
-                temps = data.get('temperatures', data)
-                loaded = {h: float(temps[h]) for h in HAZARD_TYPES if h in temps}
-                print(f"[CALIBRATION] Loaded temperature scales from {p}: {loaded}")
-                return loaded
-            except Exception as e:
-                print(f"[CALIBRATION] Error loading {p}: {e}")
-    print("[CALIBRATION] No temperature_scales.json found - using T=1.0")
-    return {h: 1.0 for h in HAZARD_TYPES}
-
-
-def _apply_calibration(raw_logit: float, hazard: str, month: int,
-                       temperatures: Optional[Dict[str, float]] = None) -> float:
-    """Apply calibration pipeline to a single raw logit."""
-    if temperatures is None:
-        temperatures = load_temperature_scales()
-
-    T = temperatures.get(hazard, 1.0)
-    T = max(T, 0.01)
-    WEAK_HEADS = {'seismic'}
-    if hazard in WEAK_HEADS:
-        T = max(T, 1.0)
-    scaled_logit = raw_logit / T
-
-    WEAK_HEAD_BIAS = {'seismic': -1.5}
-    if hazard in WEAK_HEAD_BIAS:
-        scaled_logit += WEAK_HEAD_BIAS[hazard]
-
-    if month and 1 <= month <= 12 and hazard in SEASONAL_LOGIT_BIAS:
-        bias = SEASONAL_LOGIT_BIAS[hazard].get(month, 0.0)
-        scaled_logit += bias
-
-    prob = 1.0 / (1.0 + math.exp(-scaled_logit))
-    ceiling = _get_ceiling(hazard, month)
-    prob = min(prob, ceiling)
-    return max(0.0, prob)
-
-
-# --- ONNX Session (lazy-loaded) ---
-_onnx_session = None
-
-def _get_onnx_session():
-    """Lazy-load ONNX inference session."""
-    global _onnx_session
-    if _onnx_session is not None:
-        return _onnx_session
-
-    import onnxruntime as ort
-
-    onnx_paths = [
-        Path("outputs/ahi_v2/model.onnx"),
-        Path("/mount/src/ahi/outputs/ahi_v2/model.onnx"),
-    ]
-    for p in onnx_paths:
+    for p in candidates:
         if p.exists():
             opts = ort.SessionOptions()
             opts.inter_op_num_threads = 1
             opts.intra_op_num_threads = 1
-            _onnx_session = ort.InferenceSession(str(p), sess_options=opts,
-                                                  providers=['CPUExecutionProvider'])
-            print(f"[AHI] ONNX model loaded from {p}")
-            return _onnx_session
+            session = ort.InferenceSession(
+                str(p), sess_options=opts, providers=['CPUExecutionProvider']
+            )
+            _REGIONAL_ONNX_CACHE[region] = session
+            print(f"[AHI] Loaded regional model {region} from {p} "
+                  f"({p.stat().st_size / 1024 / 1024:.1f} MB)")
+            return session
 
-    print("[AHI] No ONNX model found!")
+    print(f"[AHI] No ONNX model found for region '{region}' — checked {candidates}")
+    _REGIONAL_ONNX_CACHE[region] = None   # cache the negative result so we don't spam the log
     return None
 
 
-def _build_maps(hazard_df: pd.DataFrame):
-    """Build county and state maps from dataset."""
+def model_available(region: str) -> bool:
+    """Cheap, side-effect-free check for whether a regional model exists on disk.
+
+    Used by validation tooling to decide whether to run model-dependent checks
+    (extreme events, ceiling lock-in, logit traces) or just data-only checks.
+    """
+    candidates = [
+        ROOT / 'models' / region / 'model.onnx',
+        Path(f'/mount/src/ahi-platform/models/{region}/model.onnx'),
+    ]
+    return any(p.exists() for p in candidates)
+
+
+def _run_onnx_inference(region: str, static_cont: np.ndarray, temporal: np.ndarray,
+                        region_ids: np.ndarray, state_ids: np.ndarray,
+                        nlcd_ids: np.ndarray) -> Optional[Dict[str, float]]:
+    session = _get_onnx_session(region)
+    if session is None:
+        return None
+    feeds = {
+        'static_cont': static_cont.astype(np.float32),
+        'temporal':    temporal.astype(np.float32),
+        'region_ids':  region_ids.astype(np.int64),
+        'state_ids':   state_ids.astype(np.int64),
+        'nlcd_ids':    nlcd_ids.astype(np.int64),
+    }
+    outputs = session.run(None, feeds)
+    return {h: float(outputs[i].flatten()[0]) for i, h in enumerate(HAZARD_TYPES)}
+
+
+# ---------------------------------------------------------------------------
+# Map builders
+# ---------------------------------------------------------------------------
+
+def _build_maps(hazard_df: pd.DataFrame) -> None:
     global _COUNTY_MAP, _STATE_MAP
     if 'county' in hazard_df.columns:
         counties = sorted(hazard_df['county'].unique())
@@ -170,26 +215,9 @@ def _build_maps(hazard_df: pd.DataFrame):
         _STATE_MAP = {s: i for i, s in enumerate(states)}
 
 
-def _run_onnx_inference(static_cont: np.ndarray, temporal: np.ndarray,
-                        region_ids: np.ndarray, state_ids: np.ndarray,
-                        nlcd_ids: np.ndarray) -> Optional[Dict[str, float]]:
-    """Run ONNX inference and return raw logits per hazard."""
-    session = _get_onnx_session()
-    if session is None:
-        return None
-
-    feeds = {
-        'static_cont': static_cont.astype(np.float32),
-        'temporal': temporal.astype(np.float32),
-        'region_ids': region_ids.astype(np.int64),
-        'state_ids': state_ids.astype(np.int64),
-        'nlcd_ids': nlcd_ids.astype(np.int64),
-    }
-
-    outputs = session.run(None, feeds)
-    # Outputs: [fire_logits, flood_logits, wind_logits, winter_logits, seismic_logits]
-    return {h: float(outputs[i].flatten()[0]) for i, h in enumerate(HAZARD_TYPES)}
-
+# ---------------------------------------------------------------------------
+# Tensor builder
+# ---------------------------------------------------------------------------
 
 def build_tensors_from_county_data(
     county_row: pd.Series,
@@ -198,8 +226,8 @@ def build_tensors_from_county_data(
     static_pad_dim: int = 50,
     temporal_seq_len: int = 14,
     temporal_feat_dim: int = 20,
+    default_state: str = 'CO',
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Build inference arrays from a county data row. Returns numpy arrays."""
     static_values = []
     for col in STATIC_FEATURE_COLS:
         if col in county_row.index:
@@ -234,128 +262,151 @@ def build_tensors_from_county_data(
     temporal = np.zeros((1, temporal_seq_len, temporal_feat_dim), dtype=np.float32)
 
     county_id = _COUNTY_MAP.get(county_name, 0) if county_name else 0
-    state_name = county_row.get('state', 'WA') if 'state' in county_row.index else 'WA'
+    state_name = (county_row.get('state', default_state)
+                  if 'state' in county_row.index else default_state)
     state_id = _STATE_MAP.get(state_name, 0)
 
     region_ids = np.array([county_id], dtype=np.int64)
-    state_ids = np.array([state_id], dtype=np.int64)
-    nlcd_ids = np.array([0], dtype=np.int64)
-
+    state_ids  = np.array([state_id], dtype=np.int64)
+    nlcd_ids   = np.array([0],         dtype=np.int64)
     return static_cont, temporal, region_ids, state_ids, nlcd_ids
 
 
+# ---------------------------------------------------------------------------
+# Public API: predict_county_risks_simple
+# ---------------------------------------------------------------------------
+
 def predict_county_risks_simple(
-    model,  # ignored — kept for API compatibility
+    state_code: str,
+    region: str,
     county_name: str,
     hazard_df: pd.DataFrame,
-    target_date: date = None
+    target_date: Optional[date] = None,
 ) -> Dict[str, float]:
-    """Simplified county risk prediction using ONNX runtime."""
-    if not _COUNTY_MAP and hazard_df is not None and len(hazard_df) > 0:
+    """Predict calibrated risk for a single county.
+
+    Args:
+        state_code: Two-letter state code, used to look up calibration JSONs.
+        region:     Region folder name, used to look up the ONNX model.
+        county_name: County to predict for.
+        hazard_df:  State's inference parquet (states/XX/inference_data.parquet).
+        target_date: Date for prediction (sets month/day_of_year features).
+
+    Returns:
+        {hazard: calibrated_probability} for all 5 hazards.
+    """
+    if hazard_df is not None and len(hazard_df) > 0:
         _build_maps(hazard_df)
 
-    temperatures = load_temperature_scales()
     month = target_date.month if target_date is not None else 0
-
     county_upper = county_name.upper().replace(' COUNTY', '').strip()
 
     if hazard_df is not None and len(hazard_df) > 0 and 'county' in hazard_df.columns:
-        county_mask = hazard_df['county'].str.upper().str.replace(' COUNTY', '').str.strip() == county_upper
-        county_rows = hazard_df[county_mask]
+        mask = (
+            hazard_df['county'].str.upper()
+                               .str.replace(' COUNTY', '', regex=False)
+                               .str.strip()
+            == county_upper
+        )
+        rows = hazard_df[mask]
     else:
-        county_rows = pd.DataFrame()
+        rows = pd.DataFrame()
 
-    if len(county_rows) == 0:
+    if len(rows) == 0:
+        print(f"[INFERENCE] {state_code}: county not found: {county_name}")
         return _generate_fallback_risks(county_name)
 
-    if 'date' in county_rows.columns:
-        county_rows = county_rows.sort_values('date', ascending=False)
-    county_row = county_rows.iloc[0]
+    if 'date' in rows.columns:
+        rows = rows.sort_values('date', ascending=False)
+
+    # Prefer same-month row for seasonally consistent weather features
+    if target_date is not None and 'month' in rows.columns:
+        same_month = rows[rows['month'] == target_date.month]
+        county_row = same_month.iloc[0] if len(same_month) > 0 else rows.iloc[0]
+    else:
+        county_row = rows.iloc[0]
     actual_county = county_row.get('county', county_name)
 
     try:
         static_cont, temporal, region_ids, state_ids, nlcd_ids = \
-            build_tensors_from_county_data(county_row, actual_county, target_date)
-
-        logits = _run_onnx_inference(static_cont, temporal, region_ids, state_ids, nlcd_ids)
+            build_tensors_from_county_data(county_row, actual_county, target_date,
+                                            default_state=state_code)
+        logits = _run_onnx_inference(region, static_cont, temporal,
+                                      region_ids, state_ids, nlcd_ids)
         if logits is None:
             return _generate_fallback_risks(county_name)
-
-        risks = {}
-        for h in HAZARD_TYPES:
-            risks[h] = _apply_calibration(logits[h], h, month, temperatures)
-        return risks
-
+        return {h: _apply_calibration(state_code, logits[h], h, month)
+                for h in HAZARD_TYPES}
     except Exception as e:
-        print(f"[INFERENCE] Error predicting for {county_name}: {e}")
+        print(f"[INFERENCE] {state_code}: error predicting for {county_name}: {e}")
         import traceback
         traceback.print_exc()
         return _generate_fallback_risks(county_name)
 
 
 def predict_from_ahi_v2(
-    model,  # ignored
+    state_code: str,
+    region: str,
     static_cont, temporal, region_ids, state_ids, nlcd_ids,
-    adjacency_mask=None,
     hazard_types=None,
     month: int = 0,
-    temperatures: Optional[Dict[str, float]] = None,
 ) -> Dict[str, float]:
-    """Batch ONNX inference with calibration. API-compatible with torch version."""
+    """Batch-friendly inference + calibration for a state."""
     hazard_types = hazard_types or HAZARD_TYPES
-    if temperatures is None:
-        temperatures = load_temperature_scales()
 
-    # Convert to numpy if needed
+    for arr in (static_cont, temporal, region_ids, state_ids, nlcd_ids):
+        if hasattr(arr, 'numpy'):
+            arr = arr.numpy()
+
     if hasattr(static_cont, 'numpy'):
         static_cont = static_cont.numpy()
-        temporal = temporal.numpy()
-        region_ids = region_ids.numpy()
-        state_ids = state_ids.numpy()
-        nlcd_ids = nlcd_ids.numpy()
+        temporal    = temporal.numpy()
+        region_ids  = region_ids.numpy()
+        state_ids   = state_ids.numpy()
+        nlcd_ids    = nlcd_ids.numpy()
 
     batch_size = static_cont.shape[0]
+    session = _get_onnx_session(region)
+    if session is None:
+        if batch_size == 1:
+            return {h: 0.0 for h in hazard_types}
+        return {h: [0.0] * batch_size for h in hazard_types}
+
+    feeds = {
+        'static_cont': static_cont.astype(np.float32),
+        'temporal':    temporal.astype(np.float32),
+        'region_ids':  region_ids.astype(np.int64),
+        'state_ids':   state_ids.astype(np.int64),
+        'nlcd_ids':    nlcd_ids.astype(np.int64),
+    }
+    outputs = session.run(None, feeds)
 
     if batch_size == 1:
-        logits = _run_onnx_inference(static_cont, temporal, region_ids, state_ids, nlcd_ids)
-        if logits is None:
-            return {h: 0.0 for h in hazard_types}
-        return {h: _apply_calibration(logits[h], h, month, temperatures) for h in hazard_types}
-    else:
-        # Process each county individually (ONNX exported with dynamic batch)
-        risks = {h: [] for h in hazard_types}
-        session = _get_onnx_session()
-        if session is None:
-            return {h: [0.0] * batch_size for h in hazard_types}
+        return {h: _apply_calibration(state_code, float(outputs[i].flatten()[0]), h, month)
+                for i, h in enumerate(HAZARD_TYPES) if h in hazard_types}
 
-        feeds = {
-            'static_cont': static_cont.astype(np.float32),
-            'temporal': temporal.astype(np.float32),
-            'region_ids': region_ids.astype(np.int64),
-            'state_ids': state_ids.astype(np.int64),
-            'nlcd_ids': nlcd_ids.astype(np.int64),
-        }
-        outputs = session.run(None, feeds)
+    risks = {h: [] for h in hazard_types}
+    for i, h in enumerate(HAZARD_TYPES):
+        if h in hazard_types:
+            for raw in outputs[i].flatten():
+                risks[h].append(_apply_calibration(state_code, float(raw), h, month))
+    return risks
 
-        for h_idx, h in enumerate(HAZARD_TYPES):
-            if h in hazard_types:
-                logit_arr = outputs[h_idx].flatten()
-                for raw_logit in logit_arr:
-                    risks[h].append(_apply_calibration(float(raw_logit), h, month, temperatures))
-        return risks
 
+# ---------------------------------------------------------------------------
+# Fallback (county not in dataset)
+# ---------------------------------------------------------------------------
 
 def _generate_fallback_risks(county_name: str) -> Dict[str, float]:
-    """Generate plausible fallback risks based on county name hash."""
     try:
         seed = abs(hash(county_name)) % 10000
     except Exception:
         seed = 42
     rng = np.random.RandomState(seed)
     return {
-        'fire': float(rng.beta(2, 5)),
-        'flood': float(rng.beta(2, 8)),
-        'wind': float(rng.beta(2, 6)),
-        'winter': float(rng.beta(2, 5)),
-        'seismic': float(rng.beta(1, 15))
+        'fire':    float(rng.beta(2, 5)),
+        'flood':   float(rng.beta(2, 8)),
+        'wind':    float(rng.beta(2, 6)),
+        'winter':  float(rng.beta(2, 5)),
+        'seismic': float(rng.beta(1, 15)),
     }

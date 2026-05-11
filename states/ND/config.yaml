@@ -1,0 +1,279 @@
+state_code: ND
+state_name: North Dakota
+region: northern_plains
+default_county: Cass
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -104.4
+  - -96.4
+  lat:
+  - 45.8
+  - 49.11
+geojson_county_property: NAME
+county_coords:
+  Adams:
+  - 46.097
+  - -102.5283
+  Barnes:
+  - 46.9357
+  - -98.0715
+  Benson:
+  - 48.0693
+  - -99.3653
+  Billings:
+  - 47.0229
+  - -103.3765
+  Bottineau:
+  - 48.7924
+  - -100.8333
+  Bowman:
+  - 46.1127
+  - -103.5207
+  Burke:
+  - 48.7909
+  - -102.5183
+  Burleigh:
+  - 46.9769
+  - -100.4687
+  Cass:
+  - 46.9326
+  - -97.2479
+  Cavalier:
+  - 48.7722
+  - -98.4648
+  Dickey:
+  - 46.1102
+  - -98.5047
+  Divide:
+  - 48.815
+  - -103.4873
+  Dunn:
+  - 47.3561
+  - -102.6182
+  Eddy:
+  - 47.7177
+  - -98.9016
+  Emmons:
+  - 46.2844
+  - -100.2387
+  Foster:
+  - 47.4571
+  - -98.883
+  Golden Valley:
+  - 46.9392
+  - -103.8466
+  Grand Forks:
+  - 47.9217
+  - -97.4567
+  Grant:
+  - 46.3579
+  - -101.6394
+  Griggs:
+  - 47.457
+  - -98.2369
+  Hettinger:
+  - 46.4325
+  - -102.4601
+  Kidder:
+  - 46.9794
+  - -99.78
+  Lamoure:
+  - 46.457
+  - -98.5355
+  Logan:
+  - 46.4574
+  - -99.4774
+  Mchenry:
+  - 48.2337
+  - -100.636
+  Mcintosh:
+  - 46.1118
+  - -99.4412
+  Mckenzie:
+  - 47.7397
+  - -103.3963
+  Mclean:
+  - 47.6071
+  - -101.3208
+  Mercer:
+  - 47.3089
+  - -101.8317
+  Morton:
+  - 46.716
+  - -101.2799
+  Mountrail:
+  - 48.2006
+  - -102.3553
+  Nelson:
+  - 47.9213
+  - -98.1921
+  Oliver:
+  - 47.1154
+  - -101.3403
+  Pembina:
+  - 48.7673
+  - -97.5517
+  Pierce:
+  - 48.2488
+  - -99.9722
+  Ramsey:
+  - 48.2686
+  - -98.7203
+  Ransom:
+  - 46.4561
+  - -97.6574
+  Renville:
+  - 48.7185
+  - -101.6571
+  Richland:
+  - 46.264
+  - -96.948
+  Rolette:
+  - 48.7723
+  - -99.8409
+  Sargent:
+  - 46.1079
+  - -97.6307
+  Sheridan:
+  - 47.5751
+  - -100.3456
+  Sioux:
+  - 46.1128
+  - -101.0411
+  Slope:
+  - 46.4474
+  - -103.46
+  Stark:
+  - 46.8109
+  - -102.6551
+  Steele:
+  - 47.4559
+  - -97.7246
+  Stutsman:
+  - 46.9788
+  - -98.9587
+  Towner:
+  - 48.685
+  - -99.2457
+  Traill:
+  - 47.454
+  - -97.1615
+  Walsh:
+  - 48.3696
+  - -97.7213
+  Ward:
+  - 48.2209
+  - -101.5405
+  Wells:
+  - 47.5872
+  - -99.6608
+  Williams:
+  - 48.3435
+  - -103.4804
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

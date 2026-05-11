@@ -1,0 +1,396 @@
+state_code: IN
+state_name: Indiana
+region: great_lakes
+default_county: Marion
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -88.17
+  - -84.63
+  lat:
+  - 37.71
+  - 41.94
+geojson_county_property: NAME
+county_coords:
+  Adams:
+  - 40.7455
+  - -84.9367
+  Allen:
+  - 41.0908
+  - -85.0666
+  Bartholomew:
+  - 39.2059
+  - -85.8977
+  Benton:
+  - 40.6062
+  - -87.3109
+  Blackford:
+  - 40.4736
+  - -85.3248
+  Boone:
+  - 40.0508
+  - -86.4687
+  Brown:
+  - 39.1961
+  - -86.2274
+  Carroll:
+  - 40.5828
+  - -86.5634
+  Cass:
+  - 40.7614
+  - -86.3458
+  Clark:
+  - 38.4772
+  - -85.7072
+  Clay:
+  - 39.3926
+  - -87.1158
+  Clinton:
+  - 40.3017
+  - -86.4751
+  Crawford:
+  - 38.2924
+  - -86.4517
+  Daviess:
+  - 38.7023
+  - -87.0721
+  Dearborn:
+  - 39.1451
+  - -84.9733
+  Decatur:
+  - 39.3069
+  - -85.5012
+  Dekalb:
+  - 41.3975
+  - -84.9991
+  Delaware:
+  - 40.2275
+  - -85.3969
+  Dubois:
+  - 38.3642
+  - -86.8798
+  Elkhart:
+  - 41.5973
+  - -85.8588
+  Fayette:
+  - 39.64
+  - -85.1787
+  Floyd:
+  - 38.3187
+  - -85.907
+  Fountain:
+  - 40.1207
+  - -87.2421
+  Franklin:
+  - 39.4149
+  - -85.0603
+  Fulton:
+  - 41.0469
+  - -86.2636
+  Gibson:
+  - 38.3119
+  - -87.5846
+  Grant:
+  - 40.5158
+  - -85.6547
+  Greene:
+  - 39.0364
+  - -86.962
+  Hamilton:
+  - 40.0724
+  - -86.052
+  Hancock:
+  - 39.8235
+  - -85.7733
+  Harrison:
+  - 38.1949
+  - -86.1114
+  Hendricks:
+  - 39.7694
+  - -86.51
+  Henry:
+  - 39.931
+  - -85.3964
+  Howard:
+  - 40.4836
+  - -86.1169
+  Huntington:
+  - 40.8291
+  - -85.4882
+  Jackson:
+  - 38.9064
+  - -86.0375
+  Jasper:
+  - 41.0227
+  - -87.1162
+  Jay:
+  - 40.4379
+  - -85.0056
+  Jefferson:
+  - 38.7857
+  - -85.4387
+  Jennings:
+  - 38.9969
+  - -85.6281
+  Johnson:
+  - 39.4899
+  - -86.1016
+  Knox:
+  - 38.689
+  - -87.4183
+  Kosciusko:
+  - 41.244
+  - -85.8607
+  Lagrange:
+  - 41.6426
+  - -85.4265
+  Lake:
+  - 41.4718
+  - -87.3764
+  Laporte:
+  - 41.5488
+  - -86.7425
+  Lawrence:
+  - 38.8411
+  - -86.4835
+  Madison:
+  - 40.1615
+  - -85.7193
+  Marion:
+  - 39.7817
+  - -86.1385
+  Marshall:
+  - 41.3248
+  - -86.2618
+  Martin:
+  - 38.7079
+  - -86.8031
+  Miami:
+  - 40.7693
+  - -86.045
+  Monroe:
+  - 39.1608
+  - -86.5231
+  Montgomery:
+  - 40.0403
+  - -86.8933
+  Morgan:
+  - 39.4815
+  - -86.4462
+  Newton:
+  - 40.9556
+  - -87.3975
+  Noble:
+  - 41.3986
+  - -85.4174
+  Ohio:
+  - 38.9501
+  - -84.9651
+  Orange:
+  - 38.5417
+  - -86.4951
+  Owen:
+  - 39.3127
+  - -86.8377
+  Parke:
+  - 39.7735
+  - -87.2063
+  Perry:
+  - 38.0795
+  - -86.638
+  Pike:
+  - 38.3987
+  - -87.2321
+  Porter:
+  - 41.5085
+  - -87.0733
+  Posey:
+  - 38.0217
+  - -87.8686
+  Pulaski:
+  - 41.0418
+  - -86.6988
+  Putnam:
+  - 39.6661
+  - -86.845
+  Randolph:
+  - 40.1576
+  - -85.0113
+  Ripley:
+  - 39.1033
+  - -85.2625
+  Rush:
+  - 39.6199
+  - -85.4658
+  Scott:
+  - 38.685
+  - -85.7475
+  Shelby:
+  - 39.5236
+  - -85.7917
+  Spencer:
+  - 38.0139
+  - -87.008
+  St. Joseph:
+  - 41.6167
+  - -86.2899
+  Starke:
+  - 41.2809
+  - -86.6477
+  Steuben:
+  - 41.6438
+  - -85.0008
+  Sullivan:
+  - 39.0887
+  - -87.4147
+  Switzerland:
+  - 38.8261
+  - -85.037
+  Tippecanoe:
+  - 40.3885
+  - -86.8941
+  Tipton:
+  - 40.3113
+  - -86.0519
+  Union:
+  - 39.6255
+  - -84.9251
+  Vanderburgh:
+  - 38.0248
+  - -87.5858
+  Vermillion:
+  - 39.8535
+  - -87.4639
+  Vigo:
+  - 39.4305
+  - -87.39
+  Wabash:
+  - 40.8455
+  - -85.794
+  Warren:
+  - 40.3468
+  - -87.3534
+  Warrick:
+  - 38.0921
+  - -87.2721
+  Washington:
+  - 38.5999
+  - -86.1053
+  Wayne:
+  - 39.8644
+  - -85.0099
+  Wells:
+  - 40.7291
+  - -85.2213
+  White:
+  - 40.7497
+  - -86.8656
+  Whitley:
+  - 41.1393
+  - -85.5051
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

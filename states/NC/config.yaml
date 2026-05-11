@@ -1,0 +1,420 @@
+state_code: NC
+state_name: North Carolina
+region: southeast_gulf
+default_county: Mecklenburg
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -84.73
+  - -75.01
+  lat:
+  - 33.74
+  - 36.79
+geojson_county_property: NAME
+county_coords:
+  Alamance:
+  - 36.0436
+  - -79.3994
+  Alexander:
+  - 35.921
+  - -81.1771
+  Alleghany:
+  - 36.4916
+  - -81.127
+  Anson:
+  - 34.9737
+  - -80.1027
+  Ashe:
+  - 36.4341
+  - -81.5004
+  Avery:
+  - 36.0766
+  - -81.9226
+  Beaufort:
+  - 35.4869
+  - -76.8452
+  Bertie:
+  - 36.0656
+  - -76.9666
+  Bladen:
+  - 34.6146
+  - -78.5635
+  Brunswick:
+  - 34.0388
+  - -78.2275
+  Buncombe:
+  - 35.6112
+  - -82.5301
+  Burke:
+  - 35.7496
+  - -81.7046
+  Cabarrus:
+  - 35.3868
+  - -80.5519
+  Caldwell:
+  - 35.953
+  - -81.5463
+  Camden:
+  - 36.341
+  - -76.1604
+  Carteret:
+  - 34.8613
+  - -76.5364
+  Caswell:
+  - 36.3932
+  - -79.3335
+  Catawba:
+  - 35.6621
+  - -81.2151
+  Chatham:
+  - 35.7026
+  - -79.2555
+  Cherokee:
+  - 35.1339
+  - -84.0635
+  Chowan:
+  - 36.1265
+  - -76.602
+  Clay:
+  - 35.0572
+  - -83.7502
+  Cleveland:
+  - 35.334
+  - -81.5555
+  Columbus:
+  - 34.2657
+  - -78.655
+  Craven:
+  - 35.1175
+  - -77.0815
+  Cumberland:
+  - 35.0487
+  - -78.8276
+  Currituck:
+  - 36.3671
+  - -75.9367
+  Dare:
+  - 35.6643
+  - -75.6849
+  Davidson:
+  - 35.7931
+  - -80.2127
+  Davie:
+  - 35.9291
+  - -80.5445
+  Duplin:
+  - 34.9364
+  - -77.933
+  Durham:
+  - 36.0359
+  - -78.8766
+  Edgecombe:
+  - 35.9128
+  - -77.597
+  Forsyth:
+  - 36.1306
+  - -80.2564
+  Franklin:
+  - 36.0827
+  - -78.2857
+  Gaston:
+  - 35.2943
+  - -81.1802
+  Gates:
+  - 36.445
+  - -76.7005
+  Graham:
+  - 35.3502
+  - -83.8336
+  Granville:
+  - 36.3039
+  - -78.6527
+  Greene:
+  - 35.485
+  - -77.6757
+  Guilford:
+  - 36.0794
+  - -79.7889
+  Halifax:
+  - 36.2574
+  - -77.6514
+  Harnett:
+  - 35.3689
+  - -78.8694
+  Haywood:
+  - 35.5559
+  - -82.982
+  Henderson:
+  - 35.3362
+  - -82.48
+  Hertford:
+  - 36.3586
+  - -76.9806
+  Hoke:
+  - 35.0175
+  - -79.2373
+  Hyde:
+  - 35.408
+  - -76.1446
+  Iredell:
+  - 35.8068
+  - -80.8735
+  Jackson:
+  - 35.2875
+  - -83.1407
+  Johnston:
+  - 35.5177
+  - -78.3658
+  Jones:
+  - 35.0217
+  - -77.355
+  Lee:
+  - 35.4752
+  - -79.1715
+  Lenoir:
+  - 35.2387
+  - -77.6413
+  Lincoln:
+  - 35.4857
+  - -81.2235
+  Macon:
+  - 35.1505
+  - -83.4221
+  Madison:
+  - 35.858
+  - -82.7058
+  Martin:
+  - 35.8432
+  - -77.109
+  Mcdowell:
+  - 35.6816
+  - -82.0493
+  Mecklenburg:
+  - 35.2466
+  - -80.8327
+  Mitchell:
+  - 36.0132
+  - -82.1635
+  Montgomery:
+  - 35.3324
+  - -79.9054
+  Moore:
+  - 35.3106
+  - -79.4813
+  Nash:
+  - 35.9672
+  - -77.9866
+  New Hanover:
+  - 34.1814
+  - -77.8656
+  Northampton:
+  - 36.4178
+  - -77.3967
+  Onslow:
+  - 34.7097
+  - -77.4157
+  Orange:
+  - 36.061
+  - -79.1207
+  Pamlico:
+  - 35.151
+  - -76.6697
+  Pasquotank:
+  - 36.2649
+  - -76.249
+  Pender:
+  - 34.5151
+  - -77.8883
+  Perquimans:
+  - 36.1772
+  - -76.4075
+  Person:
+  - 36.39
+  - -78.9718
+  Pitt:
+  - 35.5932
+  - -77.3744
+  Polk:
+  - 35.2793
+  - -82.1697
+  Randolph:
+  - 35.7103
+  - -79.806
+  Richmond:
+  - 35.006
+  - -79.7477
+  Robeson:
+  - 34.6401
+  - -79.1039
+  Rockingham:
+  - 36.396
+  - -79.775
+  Rowan:
+  - 35.6394
+  - -80.5246
+  Rutherford:
+  - 35.4026
+  - -81.9198
+  Sampson:
+  - 34.9913
+  - -78.3712
+  Scotland:
+  - 34.8408
+  - -79.4804
+  Stanly:
+  - 35.3119
+  - -80.251
+  Stokes:
+  - 36.4019
+  - -80.2397
+  Surry:
+  - 36.4146
+  - -80.6879
+  Swain:
+  - 35.4868
+  - -83.4929
+  Transylvania:
+  - 35.2021
+  - -82.7984
+  Tyrrell:
+  - 35.8693
+  - -76.1706
+  Union:
+  - 34.9883
+  - -80.5308
+  Vance:
+  - 36.3648
+  - -78.4079
+  Wake:
+  - 35.7902
+  - -78.6505
+  Warren:
+  - 36.3965
+  - -78.1067
+  Washington:
+  - 35.8392
+  - -76.5694
+  Watauga:
+  - 36.2311
+  - -81.6964
+  Wayne:
+  - 35.3639
+  - -78.0041
+  Wilkes:
+  - 36.2062
+  - -81.163
+  Wilson:
+  - 35.7052
+  - -77.9187
+  Yadkin:
+  - 36.1605
+  - -80.6653
+  Yancey:
+  - 35.8989
+  - -82.3075
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

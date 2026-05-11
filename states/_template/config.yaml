@@ -1,0 +1,79 @@
+# State configuration template — copy this to states/<XX>/config.yaml
+# and fill in state-specific content. Run scripts/onboard_state.py to bootstrap.
+#
+# Required:
+#   state_code, state_name, region, default_county
+#   map_bbox, county_coords (every county in the state)
+#   hazard_guidance (5 tiers x 5 hazards = 25 sentences)
+#   performance (after temperature scaling completes)
+#
+# Optional but recommended for complete UI parity with CO:
+#   county_utility, nws_offices, state_agencies
+#   season_notes, audit_factors
+
+state_code: XX
+state_name: TODO
+region: TODO            # folder name under models/
+default_county: TODO
+
+page_title: "Adaptive Hazard Intelligence — TODO"
+tagline: "Multi-hazard risk intelligence for all NN TODO counties"
+
+map_bbox:
+  lon: [TODO_W, TODO_E]
+  lat: [TODO_S, TODO_N]
+
+geojson_county_property: "NAME"   # check your geojson; common values: NAME, COUNTY, NAMELSAD
+
+county_coords: {}        # {County Name: [lat, lon]}
+county_utility: {}       # {County Name: "Utility provider"}
+
+nws_offices: []          # [{code: XXX, name: "City", jurisdiction: "..."}]
+state_agencies:
+  emergency: ""
+  fire: ""
+  forestry: ""
+  transport: ""
+  utility_regulator: ""
+
+hazard_guidance:
+  fire:    {Low: "", Elevated: "", Moderate: "", High: "", Severe: ""}
+  flood:   {Low: "", Elevated: "", Moderate: "", High: "", Severe: ""}
+  wind:    {Low: "", Elevated: "", Moderate: "", High: "", Severe: ""}
+  winter:  {Low: "", Elevated: "", Moderate: "", High: "", Severe: ""}
+  seismic: {Low: "", Elevated: "", Moderate: "", High: "", Severe: ""}
+
+season_notes:
+  spring: ""
+  summer: ""
+  fall:   ""
+  winter: ""
+
+audit_factors:
+  fire:    {spring: "", summer: "", fall: "", winter: ""}
+  flood:   {spring: "", summer: "", fall: "", winter: ""}
+  wind:    {spring: "", summer: "", fall: "", winter: ""}
+  winter:  {spring: "", summer: "", fall: "", winter: ""}
+  seismic: {spring: "", summer: "", fall: "", winter: ""}
+
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:    {auc: 0.0, quality: "", notes: ""}
+    flood:   {auc: 0.0, quality: "", notes: ""}
+    wind:    {auc: 0.0, quality: "", notes: ""}
+    winter:  {auc: 0.0, quality: "", notes: ""}
+    seismic: {auc: 0.0, quality: "", notes: ""}
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: "2000–2025"
+  data_sources:
+    - "NOAA GridMET daily weather (CONUS)"
+    - "WFIGS Wildland Fire Locations"
+    - "USGS Earthquake Catalog"
+    - "NOAA Storm Events Database"
+    - "FEMA Disaster Declarations"
+
+versions:
+  model: "AHI v2.5 (TODO)"
+  data:  "NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025"

@@ -1,0 +1,263 @@
+# Colorado state configuration for AHI v2.5
+# All state-specific UI content lives here. The app.py reads this at startup.
+
+state_code: CO
+state_name: Colorado
+region: colorado   # interim region name; will become "mountain_west" after regional training
+default_county: El Paso
+
+# Page header / branding
+page_title: "Adaptive Hazard Intelligence — Colorado"
+tagline: "Multi-hazard risk intelligence for all 64 Colorado counties"
+
+# Choropleth map bounding box
+map_bbox:
+  lon: [-109.5, -101.8]
+  lat: [36.8, 41.2]
+
+# GeoJSON property name to match against COUNTIES list
+# (varies between datasets; CO uses "NAME" for the county name)
+geojson_county_property: "NAME"
+
+# County coordinates (lat, lon) — used for marker placement and distance calcs
+county_coords:
+  Adams:       [39.87, -104.34]
+  Alamosa:     [37.57, -105.79]
+  Arapahoe:    [39.65, -104.34]
+  Archuleta:   [37.19, -107.04]
+  Baca:        [37.37, -102.55]
+  Bent:        [37.95, -103.08]
+  Boulder:     [40.09, -105.37]
+  Broomfield:  [39.95, -105.05]
+  Chaffee:     [38.73, -106.19]
+  Cheyenne:    [38.82, -102.60]
+  Clear Creek: [39.70, -105.64]
+  Conejos:     [37.20, -106.21]
+  Costilla:    [37.27, -105.43]
+  Crowley:     [38.32, -103.81]
+  Custer:      [38.07, -105.37]
+  Delta:       [38.86, -107.86]
+  Denver:      [39.76, -104.88]
+  Dolores:     [37.75, -108.52]
+  Douglas:     [39.33, -104.93]
+  Eagle:       [39.63, -106.70]
+  Elbert:      [39.29, -104.13]
+  El Paso:     [38.84, -104.52]
+  Fremont:     [38.46, -105.44]
+  Garfield:    [39.59, -107.90]
+  Gilpin:      [39.85, -105.53]
+  Grand:       [40.09, -106.12]
+  Gunnison:    [38.67, -107.04]
+  Hinsdale:    [37.80, -107.31]
+  Huerfano:    [37.69, -104.96]
+  Jackson:     [40.66, -106.34]
+  Jefferson:   [39.58, -105.20]
+  Kiowa:       [38.43, -102.76]
+  Kit Carson:  [39.31, -102.59]
+  Lake:        [39.21, -106.36]
+  La Plata:    [37.27, -107.83]
+  Larimer:     [40.66, -105.50]
+  Las Animas:  [37.32, -104.10]
+  Lincoln:     [38.98, -103.50]
+  Logan:       [40.73, -103.11]
+  Mesa:        [38.98, -108.44]
+  Mineral:     [37.68, -106.92]
+  Moffat:      [40.62, -108.19]
+  Montezuma:   [37.36, -108.58]
+  Montrose:    [38.40, -108.27]
+  Morgan:      [40.26, -103.82]
+  Otero:       [37.90, -103.69]
+  Ouray:       [38.15, -107.74]
+  Park:        [39.11, -105.68]
+  Phillips:    [40.59, -102.35]
+  Pitkin:      [39.22, -106.92]
+  Prowers:     [38.09, -102.38]
+  Pueblo:      [38.16, -104.52]
+  Rio Blanco:  [39.98, -108.23]
+  Rio Grande:  [37.59, -106.41]
+  Routt:       [40.49, -106.98]
+  Saguache:    [38.08, -106.28]
+  San Juan:    [37.76, -107.66]
+  San Miguel:  [37.99, -108.55]
+  Sedgwick:    [40.87, -102.38]
+  Summit:      [39.58, -106.10]
+  Teller:      [38.88, -105.13]
+  Washington:  [39.97, -103.21]
+  Weld:        [40.56, -104.44]
+  Yuma:        [40.00, -102.42]
+
+# Primary utility provider per county (sourced from CO PUC maps)
+county_utility:
+  Adams:       "Xcel Energy (PSCo) / United Power (rural NE)"
+  Alamosa:     "San Luis Valley REC"
+  Arapahoe:    "Xcel Energy (PSCo)"
+  Archuleta:   "La Plata Electric Association"
+  Baca:        "Black Hills Energy / K.C. Electric"
+  Bent:        "Southeast Colorado Power Association"
+  Boulder:     "Xcel Energy (PSCo) / United Power (rural E)"
+  Broomfield:  "Xcel Energy (PSCo)"
+  Chaffee:     "Sangre de Cristo Electric / Xcel Energy"
+  Cheyenne:    "Highline Electric Association"
+  Clear Creek: "Xcel Energy (PSCo)"
+  Conejos:     "San Luis Valley REC / Sangre de Cristo Electric"
+  Costilla:    "Sangre de Cristo Electric"
+  Crowley:     "Southeast Colorado Power / San Isabel Electric"
+  Custer:      "San Isabel Electric"
+  Delta:       "Delta-Montrose Electric Association (DMEA)"
+  Denver:      "Xcel Energy (PSCo)"
+  Dolores:     "Empire Electric Association"
+  Douglas:     "Xcel Energy (PSCo) / Intermountain Rural Electric (IREA)"
+  Eagle:       "Holy Cross Energy"
+  Elbert:      "Mountain View Electric (MVEA) / IREA"
+  El Paso:     "Xcel Energy (PSCo) / Black Hills Energy / Mountain View Electric"
+  Fremont:     "Sangre de Cristo Electric / Xcel Energy"
+  Garfield:    "Holy Cross Energy"
+  Gilpin:      "Xcel Energy (PSCo)"
+  Grand:       "Mountain Parks Electric"
+  Gunnison:    "Gunnison County Electric Association"
+  Hinsdale:    "Gunnison County Electric Association"
+  Huerfano:    "San Isabel Electric"
+  Jackson:     "Mountain Parks Electric"
+  Jefferson:   "Xcel Energy (PSCo) / IREA (southern rural)"
+  Kiowa:       "Southeast Colorado Power / Highline Electric"
+  Kit Carson:  "Mountain View Electric (MVEA)"
+  Lake:        "Xcel Energy (PSCo) / Mountain Parks Electric"
+  La Plata:    "La Plata Electric Association"
+  Larimer:     "Xcel Energy (PSCo) / Poudre Valley REA (rural)"
+  Las Animas:  "San Isabel Electric / Xcel Energy"
+  Lincoln:     "Mountain View Electric (MVEA)"
+  Logan:       "Poudre Valley REA / United Power"
+  Mesa:        "Holy Cross Energy / Grand Valley Power"
+  Mineral:     "San Luis Valley REC"
+  Moffat:      "Yampa Valley Electric Association"
+  Montezuma:   "Empire Electric Association"
+  Montrose:    "Delta-Montrose Electric Association (DMEA)"
+  Morgan:      "Morgan County REA / United Power"
+  Otero:       "Southeast Colorado Power Association"
+  Ouray:       "Delta-Montrose Electric Association (DMEA)"
+  Park:        "Mountain Parks Electric / IREA"
+  Phillips:    "Highline Electric Association"
+  Pitkin:      "Holy Cross Energy"
+  Prowers:     "Southeast Colorado Power / Black Hills Energy"
+  Pueblo:      "Xcel Energy (PSCo) / Black Hills Energy"
+  Rio Blanco:  "Yampa Valley Electric Association"
+  Rio Grande:  "San Luis Valley REC"
+  Routt:       "Yampa Valley Electric Association"
+  Saguache:    "San Luis Valley REC"
+  San Juan:    "Empire Electric Association"
+  San Miguel:  "Empire Electric / City of Telluride (municipal)"
+  Sedgwick:    "Highline Electric Association"
+  Summit:      "Mountain Parks Electric / Holy Cross Energy"
+  Teller:      "Xcel Energy (PSCo) / Sangre de Cristo Electric"
+  Washington:  "Morgan County REA / Highline Electric"
+  Weld:        "Xcel Energy (PSCo) / United Power / Poudre Valley REA"
+  Yuma:        "Highline Electric / Y-W Electric"
+
+# Reference NWS forecast offices that issue warnings for this state
+nws_offices:
+  - {code: BOU, name: "Boulder",       jurisdiction: "Front Range / NE plains"}
+  - {code: PUB, name: "Pueblo",        jurisdiction: "S Colorado / SE plains"}
+  - {code: GJT, name: "Grand Junction", jurisdiction: "Western Slope"}
+  - {code: GLD, name: "Goodland",      jurisdiction: "NE corner / KS border"}
+
+# State agencies referenced in HAZARD_GUIDANCE
+state_agencies:
+  emergency: "Colorado Division of Homeland Security and Emergency Management"
+  fire:      "Colorado Division of Fire Prevention & Control"
+  forestry:  "Colorado State Forest Service (CSFS)"
+  transport: "CDOT"
+  utility_regulator: "Colorado PUC"
+
+# Per-hazard, per-tier operational guidance.
+# Tiers: Low / Elevated / Moderate / High / Severe (matches RISK_TIERS in app.py)
+hazard_guidance:
+  fire:
+    Low:      "Monitor fire weather outlook. Continue standard defensible-space inspection schedule."
+    Elevated: "Review evacuation routes. Verify water supply access points at critical facilities. Monitor CSFS fire outlook."
+    Moderate: "Coordinate with local fire districts on resource availability. Confirm mutual-aid agreements. Monitor Red Flag Watch criteria."
+    High:     "Pre-position suppression resources. Stage air assets if available. Brief incident command structure. Alert at-risk populations in WUI zones."
+    Severe:   "Activate operations. Implement evacuation protocols for WUI zones. Confirm shelter capacity. Coordinate with Colorado Division of Fire Prevention & Control."
+  flood:
+    Low:      "Routine monitoring of USGS stream gauges. Maintain standard drainage inspection cycle."
+    Elevated: "Inspect drainage and culverts. Verify stream gauge telemetry. Review road closure plans for flood-prone corridors."
+    Moderate: "Pre-stage pumps and sandbags at historically flood-prone areas. Brief CDOT on closure triggers. Monitor snowpack/SWE data."
+    High:     "Deploy mobile pumps. Alert at-risk occupancies in floodplain. Coordinate with CDOT on State Highway closure triggers. Issue downstream warnings."
+    Severe:   "Activate flood response. Execute pre-planned closures. Open shelters. Coordinate swiftwater rescue posture. Contact NWS BOU/PUB/GJT/GLD as appropriate."
+  wind:
+    Low:      "Routine monitoring. No special action required."
+    Elevated: "Coordinate with utilities on line-inspection schedules. Secure outdoor equipment at critical facilities. Monitor Chinook watch criteria."
+    Moderate: "Pre-position generators at critical facilities. Alert manufactured-housing communities and campgrounds. Brief utilities on potential outage response."
+    High:     "Stage mutual-aid crews for utility response. Pre-position backup power. Review debris-management posture. Notify CDOT of potential road closures on exposed corridors."
+    Severe:   "Activate operations. Coordinate widespread outage response. Confirm 911 redundancy and EOC staffing. Monitor I-70 mountain corridor and US-40 closures."
+  winter:
+    Low:      "Routine monitoring. Verify seasonal readiness of plowing and treatment supplies."
+    Elevated: "Check backup power at warming shelters. Verify road-treatment supply levels. Monitor NWS winter storm outlook."
+    Moderate: "Coordinate with CDOT on plowing priorities. Prepare travel-advisory messaging templates. Pre-position treatment supplies on priority routes."
+    High:     "Open warming shelters as needed. Pre-position treatment supplies on priority routes. Issue travel advisories. Notify CDOT of potential Eisenhower/Johnson Tunnel closure conditions."
+    Severe:   "Activate cold-weather response. Expand shelter capacity. Coordinate welfare checks on vulnerable populations. Expect extended highway closures on I-70 and high passes."
+  seismic:
+    Low:      "Baseline seismic risk. Maintain standard preparedness posture."
+    Elevated: "Baseline seismic risk (geographic prior). Periodic review of structural assessments for critical facilities recommended."
+    Moderate: "Baseline seismic risk. Confirm communications redundancy and SAR readiness on standard schedule. Note Front Range induced seismicity history."
+    High:     "Baseline seismic risk. Note: AHI does not forecast individual seismic events — this value reflects geographic risk only. Cross-reference USGS hazard maps."
+    Severe:   "Baseline seismic risk. Note: AHI does not forecast seismic events — see USGS for real-time hazard information. Review critical facility structural assessments."
+
+# Plain-language seasonal context shown next to the date picker
+season_notes:
+  spring: "Spring — snowmelt flood season; late-season snow still possible"
+  summer: "Summer — peak fire season; monsoon convective flooding (Jul–Aug)"
+  fall:   "Fall — Chinook wind events; early winter storms at elevation"
+  winter: "Winter — snow, blizzard, and Chinook downslope wind events"
+
+# Audit factor explanations: (hazard, season) -> sentence
+# Used in the per-prediction audit panel
+audit_factors:
+  fire:
+    summer: "Peak fire season in Colorado — elevated fuel aridity following spring dryout and low relative humidity historically precede fire events in summer months, particularly on the Western Slope and eastern foothills."
+    spring: "Spring fire transition — rapidly curing grasses and variable Chinook winds elevate fire potential in the foothills and eastern plains April–May."
+    fall:   "Post-summer fuel loads and October dry periods can sustain fire risk on the eastern slopes and Front Range foothills before significant precipitation arrives."
+    winter: "Winter fire risk is suppressed by the learned seasonal bias; this ranking reflects residual geographic patterns (wind-driven ignition risk, not fuel aridity)."
+  flood:
+    spring: "Spring snowmelt from the Rocky Mountains is Colorado's primary flood driver — historically the highest flood-rate period across the Front Range and mountain valleys, concentrated April–June."
+    summer: "Colorado's monsoon season (July–August) drives convective flooding, particularly in the San Juan Mountains and southern Front Range; this is a secondary but significant flood peak distinct from spring snowmelt."
+    fall:   "Post-monsoon and early-season storm transitions; elevated values may reflect late-season watershed saturation or rain-on-snow events at mid-elevation."
+    winter: "Winter flood risk is generally low; elevated values may reflect rain-on-snow events at lower elevation or dam-controlled reservoir releases."
+  wind:
+    fall:   "Colorado's fall transition brings the onset of Chinook (downslope) winds to the Front Range — historically the first major high-wind events of the season along the I-25 corridor and foothills."
+    winter: "Peak Chinook and downslope wind season — Front Range and foothill counties experience the most intense and sustained wind events November–March, with gusts regularly exceeding 70 mph."
+    spring: "Spring high-wind season on the eastern plains — transition storm systems and strong thermal gradients produce some of the year's most frequent and damaging wind events."
+    summer: "Summer wind risk is lower than the Chinook peak; elevated values may reflect convective-outflow winds or isolated severe thunderstorm activity on the eastern plains."
+  winter:
+    winter: "Peak winter storm season — the Front Range urban corridor and mountain counties face the highest risk of heavy snow, blizzard, and ice storm conditions December–February."
+    fall:   "Early-season winter storm risk — Colorado's first significant snowstorms often arrive in October/November, particularly above 6,000 ft elevation along the Front Range."
+    spring: "Late-season winter storm risk — March and April snowstorms are common in Colorado, frequently producing the heaviest single-storm totals of the year (wet, dense snow)."
+    summer: "Summer winter storm risk is near-zero; the learned seasonal bias suppresses this head; value reflects residual calibration only."
+  seismic:
+    spring: "Seismic risk reflects geographic proximity to the Rocky Mountain Front Range fault systems and the history of induced seismicity — not weather conditions."
+    summer: "Seismic risk reflects geographic proximity to the Rocky Mountain Front Range fault systems and the history of induced seismicity — not weather conditions."
+    fall:   "Seismic risk reflects geographic proximity to the Rocky Mountain Front Range fault systems and the history of induced seismicity — not weather conditions."
+    winter: "Seismic risk reflects geographic proximity to the Rocky Mountain Front Range fault systems and the history of induced seismicity — not weather conditions."
+
+# Model performance for the About / Model Info tab
+performance:
+  mean_auc: 0.883
+  per_hazard:
+    winter:  {auc: 0.963, quality: Excellent, notes: "Best performer. Clear elevation gradient gives spatial mesh strong signal."}
+    flood:   {auc: 0.891, quality: Excellent, notes: "Bimodal seasonal pattern (snowmelt + monsoon) well-captured."}
+    seismic: {auc: 0.887, quality: Excellent, notes: "Front Range induced seismicity spatially tight → strong spatial signal."}
+    fire:    {auc: 0.857, quality: Excellent, notes: "Western Slope + foothills WUI fire patterns learned well."}
+    wind:    {auc: 0.817, quality: Excellent, notes: "Chinook corridor captured; high-plains diffuse wind harder to localize."}
+  coupling_gate: 0.0934
+  parameters: 1294547
+  data_period: "2000–2025"
+  data_sources:
+    - "NOAA GridMET daily weather (CONUS)"
+    - "WFIGS Wildland Fire Locations"
+    - "USGS Earthquake Catalog"
+    - "NOAA Storm Events Database"
+    - "FEMA Disaster Declarations"
+
+# Model + data version strings shown in audit reports and About page
+versions:
+  model: "AHI v2.5 (Colorado)"
+  data:  "NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025"

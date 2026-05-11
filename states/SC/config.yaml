@@ -1,0 +1,258 @@
+state_code: SC
+state_name: South Carolina
+region: southeast_gulf
+default_county: Charleston
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -83.39
+  - -78.65
+  lat:
+  - 32.06
+  - 35.35
+geojson_county_property: NAME
+county_coords:
+  Abbeville:
+  - 34.2226
+  - -82.4594
+  Aiken:
+  - 33.5442
+  - -81.6349
+  Allendale:
+  - 32.9881
+  - -81.3582
+  Anderson:
+  - 34.5192
+  - -82.6378
+  Bamberg:
+  - 33.2147
+  - -81.0542
+  Barnwell:
+  - 33.2661
+  - -81.4351
+  Beaufort:
+  - 32.3569
+  - -80.6923
+  Berkeley:
+  - 33.1971
+  - -79.9521
+  Calhoun:
+  - 33.6749
+  - -80.7801
+  Charleston:
+  - 32.8267
+  - -79.8941
+  Cherokee:
+  - 35.0481
+  - -81.6205
+  Chester:
+  - 34.6922
+  - -81.1597
+  Chesterfield:
+  - 34.6398
+  - -80.1586
+  Clarendon:
+  - 33.6657
+  - -80.2166
+  Colleton:
+  - 32.8435
+  - -80.6495
+  Darlington:
+  - 34.3325
+  - -79.9578
+  Dillon:
+  - 34.3916
+  - -79.3788
+  Dorchester:
+  - 33.0793
+  - -80.4064
+  Edgefield:
+  - 33.7722
+  - -81.9664
+  Fairfield:
+  - 34.3951
+  - -81.1212
+  Florence:
+  - 34.0244
+  - -79.7028
+  Georgetown:
+  - 33.4154
+  - -79.2996
+  Greenville:
+  - 34.8937
+  - -82.3704
+  Greenwood:
+  - 34.1536
+  - -82.1259
+  Hampton:
+  - 32.7763
+  - -81.1408
+  Horry:
+  - 33.9044
+  - -78.976
+  Jasper:
+  - 32.4203
+  - -81.022
+  Kershaw:
+  - 34.3387
+  - -80.5904
+  Lancaster:
+  - 34.6866
+  - -80.7054
+  Laurens:
+  - 34.4833
+  - -82.0056
+  Lee:
+  - 34.1632
+  - -80.2544
+  Lexington:
+  - 33.9022
+  - -81.2719
+  Marion:
+  - 34.0799
+  - -79.3625
+  Marlboro:
+  - 34.6019
+  - -79.6786
+  Mccormick:
+  - 33.8994
+  - -82.3098
+  Newberry:
+  - 34.2898
+  - -81.6001
+  Oconee:
+  - 34.7534
+  - -83.0659
+  Orangeburg:
+  - 33.4392
+  - -80.7999
+  Pickens:
+  - 34.8873
+  - -82.7253
+  Richland:
+  - 34.0218
+  - -80.9028
+  Saluda:
+  - 34.0059
+  - -81.7266
+  Spartanburg:
+  - 34.9307
+  - -81.9906
+  Sumter:
+  - 33.9162
+  - -80.3824
+  Union:
+  - 34.6895
+  - -81.6191
+  Williamsburg:
+  - 33.6199
+  - -79.7278
+  York:
+  - 34.9749
+  - -81.1844
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

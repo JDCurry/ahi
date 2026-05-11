@@ -1,0 +1,168 @@
+state_code: ME
+state_name: Maine
+region: northeast
+default_county: Cumberland
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -71.06
+  - -67.31
+  lat:
+  - 43.13
+  - 46.96
+geojson_county_property: NAME
+county_coords:
+  Androscoggin:
+  - 44.1656
+  - -70.2065
+  Aroostook:
+  - 46.6563
+  - -68.5953
+  Cumberland:
+  - 43.8059
+  - -70.3297
+  Franklin:
+  - 44.973
+  - -70.4429
+  Hancock:
+  - 44.5615
+  - -68.369
+  Kennebec:
+  - 44.4089
+  - -69.7676
+  Knox:
+  - 44.0255
+  - -69.0159
+  Lincoln:
+  - 43.9974
+  - -69.5257
+  Oxford:
+  - 44.4977
+  - -70.7559
+  Penobscot:
+  - 45.3969
+  - -68.6508
+  Piscataquis:
+  - 45.8341
+  - -69.2847
+  Sagadahoc:
+  - 43.9114
+  - -69.8391
+  Somerset:
+  - 45.509
+  - -69.9575
+  Waldo:
+  - 44.481
+  - -69.1195
+  Washington:
+  - 44.9677
+  - -67.6086
+  York:
+  - 43.4286
+  - -70.6699
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

@@ -1,0 +1,384 @@
+state_code: OH
+state_name: Ohio
+region: great_lakes
+default_county: Franklin
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -84.96
+  - -80.43
+  lat:
+  - 38.32
+  - 42.21
+geojson_county_property: NAME
+county_coords:
+  Adams:
+  - 38.838
+  - -83.4776
+  Allen:
+  - 40.7937
+  - -84.1207
+  Ashland:
+  - 40.8111
+  - -82.2718
+  Ashtabula:
+  - 41.9134
+  - -80.7645
+  Athens:
+  - 39.3675
+  - -82.0701
+  Auglaize:
+  - 40.5106
+  - -84.2245
+  Belmont:
+  - 40.0145
+  - -80.9846
+  Brown:
+  - 38.9506
+  - -83.8541
+  Butler:
+  - 39.4467
+  - -84.5781
+  Carroll:
+  - 40.5813
+  - -81.1059
+  Champaign:
+  - 40.1345
+  - -83.7645
+  Clark:
+  - 39.9129
+  - -83.7984
+  Clermont:
+  - 39.0254
+  - -84.1697
+  Clinton:
+  - 39.3934
+  - -83.7955
+  Columbiana:
+  - 40.7625
+  - -80.8028
+  Coshocton:
+  - 40.3011
+  - -81.9056
+  Crawford:
+  - 40.8496
+  - -82.9187
+  Cuyahoga:
+  - 41.5667
+  - -81.6833
+  Darke:
+  - 40.1351
+  - -84.6189
+  Defiance:
+  - 41.3173
+  - -84.5156
+  Delaware:
+  - 40.2787
+  - -83.0009
+  Erie:
+  - 41.4417
+  - -82.5167
+  Fairfield:
+  - 39.74
+  - -82.5978
+  Fayette:
+  - 39.5429
+  - -83.4675
+  Franklin:
+  - 39.9709
+  - -83.0178
+  Fulton:
+  - 41.6058
+  - -84.1404
+  Gallia:
+  - 38.8127
+  - -82.3979
+  Geauga:
+  - 41.5316
+  - -81.1969
+  Greene:
+  - 39.6971
+  - -83.8809
+  Guernsey:
+  - 40.0255
+  - -81.4769
+  Hamilton:
+  - 39.1806
+  - -84.5608
+  Hancock:
+  - 40.9956
+  - -83.6691
+  Hardin:
+  - 40.672
+  - -83.6498
+  Harrison:
+  - 40.294
+  - -81.0758
+  Henry:
+  - 41.3268
+  - -84.0552
+  Highland:
+  - 39.1993
+  - -83.6124
+  Hocking:
+  - 39.4994
+  - -82.4506
+  Holmes:
+  - 40.5655
+  - -81.9431
+  Huron:
+  - 41.1407
+  - -82.5871
+  Jackson:
+  - 39.0192
+  - -82.6188
+  Jefferson:
+  - 40.3698
+  - -80.7394
+  Knox:
+  - 40.4197
+  - -82.4133
+  Lake:
+  - 41.8167
+  - -81.2667
+  Lawrence:
+  - 38.6246
+  - -82.5631
+  Licking:
+  - 40.0888
+  - -82.4774
+  Logan:
+  - 40.3918
+  - -83.7689
+  Lorain:
+  - 41.4735
+  - -82.1588
+  Lucas:
+  - 41.6873
+  - -83.4941
+  Madison:
+  - 39.9093
+  - -83.3955
+  Mahoning:
+  - 41.0127
+  - -80.7606
+  Marion:
+  - 40.5883
+  - -83.1891
+  Medina:
+  - 41.129
+  - -81.8805
+  Meigs:
+  - 39.052
+  - -82.0426
+  Mercer:
+  - 40.5404
+  - -84.6289
+  Miami:
+  - 40.0487
+  - -84.2331
+  Monroe:
+  - 39.7145
+  - -81.0917
+  Montgomery:
+  - 39.7544
+  - -84.2923
+  Morgan:
+  - 39.6085
+  - -81.8622
+  Morrow:
+  - 40.5358
+  - -82.7958
+  Muskingum:
+  - 39.9681
+  - -81.962
+  Noble:
+  - 39.7791
+  - -81.5068
+  Ottawa:
+  - 41.6083
+  - -83.0167
+  Paulding:
+  - 41.1165
+  - -84.5726
+  Perry:
+  - 39.736
+  - -82.2139
+  Pickaway:
+  - 39.6512
+  - -83.0452
+  Pike:
+  - 39.0756
+  - -83.0861
+  Portage:
+  - 41.1676
+  - -81.1973
+  Preble:
+  - 39.7425
+  - -84.6479
+  Putnam:
+  - 41.0139
+  - -84.1113
+  Richland:
+  - 40.7757
+  - -82.5522
+  Ross:
+  - 39.3411
+  - -83.0641
+  Sandusky:
+  - 41.3515
+  - -83.1295
+  Scioto:
+  - 38.7844
+  - -82.9653
+  Seneca:
+  - 41.1234
+  - -83.1271
+  Shelby:
+  - 40.342
+  - -84.219
+  Stark:
+  - 40.8115
+  - -81.3673
+  Summit:
+  - 41.1331
+  - -81.5396
+  Trumbull:
+  - 41.3166
+  - -80.761
+  Tuscarawas:
+  - 40.4376
+  - -81.4698
+  Union:
+  - 40.3104
+  - -83.3951
+  Van Wert:
+  - 40.8505
+  - -84.5713
+  Vinton:
+  - 39.2283
+  - -82.5327
+  Warren:
+  - 39.4246
+  - -84.1652
+  Washington:
+  - 39.4245
+  - -81.5353
+  Wayne:
+  - 40.8284
+  - -81.8867
+  Williams:
+  - 41.5647
+  - -84.593
+  Wood:
+  - 41.3932
+  - -83.6466
+  Wyandot:
+  - 40.8432
+  - -83.3137
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

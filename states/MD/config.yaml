@@ -1,0 +1,192 @@
+state_code: MD
+state_name: Maryland
+region: northeast
+default_county: Montgomery
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -79.61
+  - -75.03
+  lat:
+  - 37.78
+  - 39.87
+geojson_county_property: NAME
+county_coords:
+  Allegany:
+  - 39.5739
+  - -78.6066
+  Anne Arundel:
+  - 38.9694
+  - -76.5563
+  Baltimore:
+  - 39.4645
+  - -76.6231
+  Baltimore City:
+  - 39.2973
+  - -76.6205
+  Calvert:
+  - 38.5387
+  - -76.5517
+  Caroline:
+  - 38.9074
+  - -75.8391
+  Carroll:
+  - 39.5432
+  - -77.0251
+  Cecil:
+  - 39.5504
+  - -75.9404
+  Charles:
+  - 38.4537
+  - -77.0733
+  Dorchester:
+  - 38.3982
+  - -76.1179
+  Frederick:
+  - 39.4757
+  - -77.3752
+  Garrett:
+  - 39.4751
+  - -79.293
+  Harford:
+  - 39.4885
+  - -76.2655
+  Howard:
+  - 39.2343
+  - -76.9021
+  Kent:
+  - 39.218
+  - -76.1847
+  Montgomery:
+  - 39.1511
+  - -77.1911
+  Prince GEORGE'S:
+  - 38.8402
+  - -76.8241
+  Queen ANNE'S:
+  - 39.0217
+  - -76.06
+  Somerset:
+  - 38.0779
+  - -75.8577
+  St. MARY'S:
+  - 38.2075
+  - -76.5355
+  Talbot:
+  - 38.7537
+  - -76.2221
+  Washington:
+  - 39.5431
+  - -77.7476
+  Wicomico:
+  - 38.3496
+  - -75.5988
+  Worcester:
+  - 38.2307
+  - -75.35
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

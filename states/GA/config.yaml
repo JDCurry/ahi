@@ -1,0 +1,597 @@
+state_code: GA
+state_name: Georgia
+region: southeast_gulf
+default_county: Fulton
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -85.86
+  - -80.74
+  lat:
+  - 30.37
+  - 35.25
+geojson_county_property: NAME
+county_coords:
+  Appling:
+  - 31.7492
+  - -82.2889
+  Atkinson:
+  - 31.2971
+  - -82.88
+  Bacon:
+  - 31.5537
+  - -82.4526
+  Baker:
+  - 31.3262
+  - -84.4447
+  Baldwin:
+  - 33.0693
+  - -83.2496
+  Banks:
+  - 34.3543
+  - -83.4972
+  Barrow:
+  - 33.9932
+  - -83.7127
+  Bartow:
+  - 34.2376
+  - -84.8404
+  Ben Hill:
+  - 31.7598
+  - -83.2204
+  Berrien:
+  - 31.276
+  - -83.2296
+  Bibb:
+  - 32.8065
+  - -83.6974
+  Bleckley:
+  - 32.4344
+  - -83.3279
+  Brantley:
+  - 31.1969
+  - -81.982
+  Brooks:
+  - 30.8419
+  - -83.5802
+  Bryan:
+  - 32.0132
+  - -81.4421
+  Bulloch:
+  - 32.3967
+  - -81.743
+  Burke:
+  - 33.0612
+  - -82.0008
+  Butts:
+  - 33.2878
+  - -83.9572
+  Calhoun:
+  - 31.5292
+  - -84.6245
+  Camden:
+  - 30.9225
+  - -81.6363
+  Candler:
+  - 32.4034
+  - -82.0737
+  Carroll:
+  - 33.5828
+  - -85.0799
+  Catoosa:
+  - 34.9036
+  - -85.1383
+  Charlton:
+  - 30.7815
+  - -82.1376
+  Chatham:
+  - 31.9739
+  - -81.0938
+  Chattahoochee:
+  - 32.347
+  - -84.7871
+  Chattooga:
+  - 34.475
+  - -85.3453
+  Cherokee:
+  - 34.2439
+  - -84.4762
+  Clarke:
+  - 33.9512
+  - -83.3673
+  Clay:
+  - 31.6262
+  - -84.98
+  Clayton:
+  - 33.5419
+  - -84.3576
+  Clinch:
+  - 30.9148
+  - -82.7059
+  Cobb:
+  - 33.9415
+  - -84.5767
+  Coffee:
+  - 31.5492
+  - -82.8492
+  Colquitt:
+  - 31.1884
+  - -83.7689
+  Columbia:
+  - 33.5441
+  - -82.2641
+  Cook:
+  - 31.154
+  - -83.4304
+  Coweta:
+  - 33.3533
+  - -84.7633
+  Crawford:
+  - 32.7145
+  - -83.9863
+  Crisp:
+  - 31.9229
+  - -83.7681
+  Dade:
+  - 34.8545
+  - -85.5045
+  Dawson:
+  - 34.4443
+  - -84.1705
+  Decatur:
+  - 30.8783
+  - -84.5791
+  Dekalb:
+  - 33.7715
+  - -84.2264
+  Dodge:
+  - 32.1721
+  - -83.1684
+  Dooly:
+  - 32.1572
+  - -83.7988
+  Dougherty:
+  - 31.5334
+  - -84.2163
+  Douglas:
+  - 33.7019
+  - -84.768
+  Early:
+  - 31.3228
+  - -84.9037
+  Echols:
+  - 30.7101
+  - -82.8938
+  Effingham:
+  - 32.3672
+  - -81.3413
+  Elbert:
+  - 34.1168
+  - -82.84
+  Emanuel:
+  - 32.5897
+  - -82.3018
+  Evans:
+  - 32.1567
+  - -81.8868
+  Fannin:
+  - 34.8641
+  - -84.3197
+  Fayette:
+  - 33.4139
+  - -84.4943
+  Floyd:
+  - 34.2631
+  - -85.2144
+  Forsyth:
+  - 34.2255
+  - -84.1251
+  Franklin:
+  - 34.3754
+  - -83.2291
+  Fulton:
+  - 33.79
+  - -84.4677
+  Gilmer:
+  - 34.6912
+  - -84.4556
+  Glascock:
+  - 33.2293
+  - -82.6107
+  Glynn:
+  - 31.2133
+  - -81.4936
+  Gordon:
+  - 34.5032
+  - -84.8759
+  Grady:
+  - 30.8746
+  - -84.2344
+  Greene:
+  - 33.5787
+  - -83.1666
+  Gwinnett:
+  - 33.9619
+  - -84.0236
+  Habersham:
+  - 34.631
+  - -83.5311
+  Hall:
+  - 34.317
+  - -83.8197
+  Hancock:
+  - 33.2704
+  - -83.0007
+  Haralson:
+  - 33.7942
+  - -85.211
+  Harris:
+  - 32.736
+  - -84.9089
+  Hart:
+  - 34.3509
+  - -82.9642
+  Heard:
+  - 33.297
+  - -85.1283
+  Henry:
+  - 33.453
+  - -84.1542
+  Houston:
+  - 32.4589
+  - -83.6663
+  Irwin:
+  - 31.6023
+  - -83.2763
+  Jackson:
+  - 34.134
+  - -83.5664
+  Jasper:
+  - 33.3164
+  - -83.6881
+  Jeff Davis:
+  - 31.8056
+  - -82.637
+  Jefferson:
+  - 33.0547
+  - -82.4182
+  Jenkins:
+  - 32.7924
+  - -81.9636
+  Johnson:
+  - 32.7015
+  - -82.66
+  Jones:
+  - 33.0251
+  - -83.5605
+  Lamar:
+  - 33.0765
+  - -84.1395
+  Lanier:
+  - 31.0379
+  - -83.0626
+  Laurens:
+  - 32.4636
+  - -82.9222
+  Lee:
+  - 31.7795
+  - -84.1412
+  Liberty:
+  - 31.8072
+  - -81.4558
+  Lincoln:
+  - 33.7936
+  - -82.4511
+  Long:
+  - 31.7525
+  - -81.7456
+  Lowndes:
+  - 30.8338
+  - -83.2677
+  Lumpkin:
+  - 34.5713
+  - -84.003
+  Macon:
+  - 32.3584
+  - -84.0425
+  Madison:
+  - 34.1278
+  - -83.209
+  Marion:
+  - 32.3534
+  - -84.5246
+  Mcduffie:
+  - 33.4828
+  - -82.4813
+  Mcintosh:
+  - 31.4838
+  - -81.3755
+  Meriwether:
+  - 33.0405
+  - -84.6883
+  Miller:
+  - 31.164
+  - -84.7307
+  Mitchell:
+  - 31.2253
+  - -84.1944
+  Monroe:
+  - 33.0138
+  - -83.9187
+  Montgomery:
+  - 32.1733
+  - -82.5348
+  Morgan:
+  - 33.5908
+  - -83.4924
+  Murray:
+  - 34.7883
+  - -84.7482
+  Muscogee:
+  - 32.51
+  - -84.877
+  Newton:
+  - 33.555
+  - -83.8502
+  Oconee:
+  - 33.8349
+  - -83.437
+  Oglethorpe:
+  - 33.8806
+  - -83.0808
+  Paulding:
+  - 33.9205
+  - -84.8673
+  Peach:
+  - 32.5688
+  - -83.8269
+  Pickens:
+  - 34.4643
+  - -84.4656
+  Pierce:
+  - 31.3588
+  - -82.2127
+  Pike:
+  - 33.0923
+  - -84.3892
+  Polk:
+  - 34.0018
+  - -85.1882
+  Pulaski:
+  - 32.2323
+  - -83.4759
+  Putnam:
+  - 33.3217
+  - -83.3729
+  Quitman:
+  - 31.8673
+  - -85.0188
+  Rabun:
+  - 34.8817
+  - -83.4022
+  Randolph:
+  - 31.7626
+  - -84.7542
+  Richmond:
+  - 33.3596
+  - -82.0736
+  Rockdale:
+  - 33.6542
+  - -84.0267
+  Schley:
+  - 32.2617
+  - -84.3147
+  Screven:
+  - 32.7505
+  - -81.6119
+  Seminole:
+  - 30.9387
+  - -84.8689
+  Spalding:
+  - 33.2609
+  - -84.2842
+  Stephens:
+  - 34.5541
+  - -83.2932
+  Stewart:
+  - 32.0784
+  - -84.8352
+  Sumter:
+  - 32.04
+  - -84.197
+  Talbot:
+  - 32.6995
+  - -84.533
+  Taliaferro:
+  - 33.5661
+  - -82.8788
+  Tattnall:
+  - 32.0456
+  - -82.0581
+  Taylor:
+  - 32.5554
+  - -84.2505
+  Telfair:
+  - 31.9298
+  - -82.939
+  Terrell:
+  - 31.7768
+  - -84.4369
+  Thomas:
+  - 30.8636
+  - -83.9193
+  Tift:
+  - 31.4574
+  - -83.5266
+  Toombs:
+  - 32.1216
+  - -82.3313
+  Towns:
+  - 34.9167
+  - -83.7373
+  Treutlen:
+  - 32.4039
+  - -82.5673
+  Troup:
+  - 33.0335
+  - -85.0284
+  Turner:
+  - 31.7164
+  - -83.6241
+  Twiggs:
+  - 32.6671
+  - -83.4271
+  Union:
+  - 34.8335
+  - -83.9905
+  Upson:
+  - 32.8813
+  - -84.2993
+  Walker:
+  - 34.7355
+  - -85.3009
+  Walton:
+  - 33.7815
+  - -83.7338
+  Ware:
+  - 31.0532
+  - -82.4233
+  Warren:
+  - 33.4089
+  - -82.6767
+  Washington:
+  - 32.9695
+  - -82.7959
+  Wayne:
+  - 31.5514
+  - -81.9166
+  Webster:
+  - 32.0468
+  - -84.5511
+  Wheeler:
+  - 32.117
+  - -82.7245
+  White:
+  - 34.6463
+  - -83.7471
+  Whitfield:
+  - 34.8055
+  - -84.9673
+  Wilcox:
+  - 31.9729
+  - -83.4323
+  Wilkes:
+  - 33.7819
+  - -82.7432
+  Wilkinson:
+  - 32.8024
+  - -83.1712
+  Worth:
+  - 31.5514
+  - -83.8508
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

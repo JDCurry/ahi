@@ -1,0 +1,321 @@
+state_code: FL
+state_name: Florida
+region: southeast_gulf
+default_county: Miami-Dade
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -87.86
+  - -79.8
+  lat:
+  - 24.6
+  - 31.32
+geojson_county_property: NAME
+county_coords:
+  Alachua:
+  - 29.6853
+  - -82.3564
+  Baker:
+  - 30.3416
+  - -82.2537
+  Bay:
+  - 30.0665
+  - -85.6865
+  Bradford:
+  - 29.9465
+  - -82.1758
+  Brevard:
+  - 28.3002
+  - -80.7029
+  Broward:
+  - 26.1546
+  - -80.4642
+  Calhoun:
+  - 30.4087
+  - -85.2006
+  Charlotte:
+  - 26.8984
+  - -81.9151
+  Citrus:
+  - 28.858
+  - -82.5611
+  Clay:
+  - 29.9501
+  - -81.8272
+  Collier:
+  - 26.1392
+  - -81.4298
+  Columbia:
+  - 30.2138
+  - -82.6262
+  Desoto:
+  - 27.1858
+  - -81.8095
+  Dixie:
+  - 29.5471
+  - -83.2495
+  Duval:
+  - 30.3495
+  - -81.6262
+  Escambia:
+  - 30.5599
+  - -87.3083
+  Flagler:
+  - 29.4658
+  - -81.2814
+  Franklin:
+  - 29.7235
+  - -84.8052
+  Gadsden:
+  - 30.553
+  - -84.6362
+  Gilchrist:
+  - 29.7515
+  - -82.8011
+  Glades:
+  - 26.977
+  - -81.2285
+  Gulf:
+  - 29.8524
+  - -85.2341
+  Hamilton:
+  - 30.4858
+  - -82.9528
+  Hardee:
+  - 27.4914
+  - -81.8093
+  Hendry:
+  - 26.6269
+  - -81.2255
+  Hernando:
+  - 28.5389
+  - -82.4529
+  Highlands:
+  - 27.3285
+  - -81.2803
+  Hillsborough:
+  - 27.8282
+  - -82.3106
+  Holmes:
+  - 30.8557
+  - -85.8176
+  Indian River:
+  - 27.7112
+  - -80.5908
+  Jackson:
+  - 30.7825
+  - -85.1984
+  Jefferson:
+  - 30.2924
+  - -83.9589
+  Lafayette:
+  - 30.0253
+  - -83.1728
+  Lake:
+  - 28.809
+  - -81.782
+  Lee:
+  - 26.5606
+  - -81.9901
+  Leon:
+  - 30.4721
+  - -84.224
+  Levy:
+  - 29.2618
+  - -82.7782
+  Liberty:
+  - 30.2827
+  - -84.897
+  Madison:
+  - 30.457
+  - -83.4728
+  Manatee:
+  - 27.4703
+  - -82.4883
+  Marion:
+  - 29.2324
+  - -82.0226
+  Martin:
+  - 27.0884
+  - -80.3602
+  Miami-dade:
+  - 25.5688
+  - -80.4873
+  Monroe:
+  - 25.0667
+  - -80.85
+  Nassau:
+  - 30.5404
+  - -81.8871
+  Okaloosa:
+  - 30.6128
+  - -86.5929
+  Okeechobee:
+  - 27.3053
+  - -80.8612
+  Orange:
+  - 28.5287
+  - -81.2614
+  Osceola:
+  - 28.0117
+  - -81.1167
+  Palm Beach:
+  - 26.6499
+  - -80.4336
+  Pasco:
+  - 28.3169
+  - -82.4743
+  Pinellas:
+  - 27.9048
+  - -82.7909
+  Polk:
+  - 27.9737
+  - -81.6822
+  Putnam:
+  - 29.6038
+  - -81.7891
+  Santa Rosa:
+  - 30.6221
+  - -87.0279
+  Sarasota:
+  - 27.1639
+  - -82.3879
+  Seminole:
+  - 28.7272
+  - -81.2194
+  St. Johns:
+  - 29.9366
+  - -81.4123
+  St. Lucie:
+  - 27.3739
+  - -80.4251
+  Sumter:
+  - 28.6503
+  - -82.1079
+  Suwannee:
+  - 30.1674
+  - -83.022
+  Taylor:
+  - 29.9352
+  - -83.6836
+  Union:
+  - 30.0456
+  - -82.3942
+  Volusia:
+  - 29.038
+  - -81.1267
+  Wakulla:
+  - 30.0256
+  - -84.3413
+  Walton:
+  - 30.5589
+  - -86.1352
+  Washington:
+  - 30.6036
+  - -85.6736
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

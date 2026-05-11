@@ -1,0 +1,435 @@
+state_code: KS
+state_name: Kansas
+region: southern_plains
+default_county: Sedgwick
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -102.37
+  - -94.2
+  lat:
+  - 36.85
+  - 40.13
+geojson_county_property: NAME
+county_coords:
+  Allen:
+  - 37.8857
+  - -95.3014
+  Anderson:
+  - 38.2141
+  - -95.2933
+  Atchison:
+  - 39.5318
+  - -95.3134
+  Barber:
+  - 37.2288
+  - -98.6847
+  Barton:
+  - 38.4789
+  - -98.7565
+  Bourbon:
+  - 37.8552
+  - -94.8493
+  Brown:
+  - 39.8264
+  - -95.5642
+  Butler:
+  - 37.781
+  - -96.8391
+  Chase:
+  - 38.3019
+  - -96.5939
+  Chautauqua:
+  - 37.1501
+  - -96.2454
+  Cherokee:
+  - 37.1693
+  - -94.8463
+  Cheyenne:
+  - 39.7858
+  - -101.7311
+  Clark:
+  - 37.2354
+  - -99.8203
+  Clay:
+  - 39.3495
+  - -97.1652
+  Cloud:
+  - 39.4803
+  - -97.6493
+  Coffey:
+  - 38.2367
+  - -95.7341
+  Comanche:
+  - 37.1912
+  - -99.2719
+  Cowley:
+  - 37.2376
+  - -96.8375
+  Crawford:
+  - 37.5073
+  - -94.8518
+  Decatur:
+  - 39.7846
+  - -100.4599
+  Dickinson:
+  - 38.8663
+  - -97.1527
+  Doniphan:
+  - 39.788
+  - -95.1467
+  Douglas:
+  - 38.8846
+  - -95.2926
+  Edwards:
+  - 37.8876
+  - -99.3121
+  Elk:
+  - 37.4537
+  - -96.2441
+  Ellis:
+  - 38.9146
+  - -99.3172
+  Ellsworth:
+  - 38.6966
+  - -98.2047
+  Finney:
+  - 38.0443
+  - -100.7373
+  Ford:
+  - 37.6916
+  - -99.8879
+  Franklin:
+  - 38.5644
+  - -95.286
+  Geary:
+  - 39.0024
+  - -96.7524
+  Gove:
+  - 38.916
+  - -100.4829
+  Graham:
+  - 39.3496
+  - -99.8833
+  Grant:
+  - 37.5621
+  - -101.308
+  Gray:
+  - 37.738
+  - -100.4378
+  Greeley:
+  - 38.4804
+  - -101.806
+  Greenwood:
+  - 37.8776
+  - -96.2327
+  Hamilton:
+  - 37.9989
+  - -101.7912
+  Harper:
+  - 37.1915
+  - -98.0755
+  Harvey:
+  - 38.0432
+  - -97.4273
+  Haskell:
+  - 37.5622
+  - -100.8712
+  Hodgeman:
+  - 38.0875
+  - -99.8979
+  Jackson:
+  - 39.4167
+  - -95.7938
+  Jefferson:
+  - 39.2357
+  - -95.3834
+  Jewell:
+  - 39.7846
+  - -98.2183
+  Johnson:
+  - 38.8837
+  - -94.8223
+  Kearny:
+  - 38.0
+  - -101.3198
+  Kingman:
+  - 37.5589
+  - -98.1363
+  Kiowa:
+  - 37.5582
+  - -99.286
+  Labette:
+  - 37.1912
+  - -95.2976
+  Lane:
+  - 38.4812
+  - -100.4664
+  Leavenworth:
+  - 39.1992
+  - -95.0379
+  Lincoln:
+  - 39.0453
+  - -98.2077
+  Linn:
+  - 38.2122
+  - -94.8429
+  Logan:
+  - 38.9173
+  - -101.1484
+  Lyon:
+  - 38.4559
+  - -96.1526
+  Marion:
+  - 38.3587
+  - -97.0968
+  Marshall:
+  - 39.7835
+  - -96.5229
+  Mcpherson:
+  - 38.3916
+  - -97.6481
+  Meade:
+  - 37.2381
+  - -100.3662
+  Miami:
+  - 38.5635
+  - -94.8381
+  Mitchell:
+  - 39.3932
+  - -98.2094
+  Montgomery:
+  - 37.1924
+  - -95.7429
+  Morris:
+  - 38.6874
+  - -96.6498
+  Morton:
+  - 37.1913
+  - -101.7993
+  Nemaha:
+  - 39.7833
+  - -96.0141
+  Neosho:
+  - 37.5584
+  - -95.3068
+  Ness:
+  - 38.4794
+  - -99.9162
+  Norton:
+  - 39.7843
+  - -99.9035
+  Osage:
+  - 38.6522
+  - -95.727
+  Osborne:
+  - 39.3502
+  - -98.768
+  Ottawa:
+  - 39.1325
+  - -97.6502
+  Pawnee:
+  - 38.1813
+  - -99.2366
+  Phillips:
+  - 39.7845
+  - -99.347
+  Pottawatomie:
+  - 39.379
+  - -96.3423
+  Pratt:
+  - 37.6477
+  - -98.7396
+  Rawlins:
+  - 39.7852
+  - -101.0757
+  Reno:
+  - 37.9529
+  - -98.086
+  Republic:
+  - 39.8278
+  - -97.6506
+  Rice:
+  - 38.3471
+  - -98.201
+  Riley:
+  - 39.2963
+  - -96.7349
+  Rooks:
+  - 39.3501
+  - -99.3251
+  Rush:
+  - 38.5231
+  - -99.3092
+  Russell:
+  - 38.9147
+  - -98.7624
+  Saline:
+  - 38.7838
+  - -97.6499
+  Scott:
+  - 38.482
+  - -100.9069
+  Sedgwick:
+  - 37.6847
+  - -97.461
+  Seward:
+  - 37.1932
+  - -100.8513
+  Shawnee:
+  - 39.0414
+  - -95.7564
+  Sheridan:
+  - 39.3502
+  - -100.4418
+  Sherman:
+  - 39.3514
+  - -101.72
+  Smith:
+  - 39.785
+  - -98.7855
+  Stafford:
+  - 38.0309
+  - -98.7175
+  Stanton:
+  - 37.563
+  - -101.7842
+  Stevens:
+  - 37.1922
+  - -101.312
+  Sumner:
+  - 37.2372
+  - -97.4765
+  Thomas:
+  - 39.3509
+  - -101.0555
+  Trego:
+  - 38.9142
+  - -99.8727
+  Wabaunsee:
+  - 38.9532
+  - -96.205
+  Wallace:
+  - 38.9165
+  - -101.7636
+  Washington:
+  - 39.7841
+  - -97.0875
+  Wichita:
+  - 38.4819
+  - -101.3474
+  Wilson:
+  - 37.5592
+  - -95.7434
+  Woodson:
+  - 37.8866
+  - -95.7402
+  Wyandotte:
+  - 39.1147
+  - -94.7645
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

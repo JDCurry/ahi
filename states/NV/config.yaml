@@ -1,0 +1,171 @@
+state_code: NV
+state_name: Nevada
+region: mountain_west
+default_county: Clark
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -120.14
+  - -114.49
+  lat:
+  - 35.8
+  - 41.82
+geojson_county_property: NAME
+county_coords:
+  Carson City:
+  - 39.1512
+  - -119.7476
+  Churchill:
+  - 39.5807
+  - -118.3357
+  Clark:
+  - 36.2139
+  - -115.0137
+  Douglas:
+  - 38.9122
+  - -119.6158
+  Elko:
+  - 41.144
+  - -115.3547
+  Esmeralda:
+  - 37.7838
+  - -117.6315
+  Eureka:
+  - 39.9803
+  - -116.2678
+  Humboldt:
+  - 41.4067
+  - -118.111
+  Lander:
+  - 39.9304
+  - -117.0394
+  Lincoln:
+  - 37.6413
+  - -114.8794
+  Lyon:
+  - 39.0193
+  - -119.1886
+  Mineral:
+  - 38.5378
+  - -118.4347
+  Nye:
+  - 38.036
+  - -116.4701
+  Pershing:
+  - 40.4406
+  - -118.4042
+  Storey:
+  - 39.447
+  - -119.5295
+  Washoe:
+  - 40.6569
+  - -119.6646
+  White Pine:
+  - 39.441
+  - -114.9009
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025

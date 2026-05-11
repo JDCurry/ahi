@@ -1,0 +1,366 @@
+state_code: MS
+state_name: Mississippi
+region: southeast_gulf
+default_county: Hinds
+page_title: Adaptive Hazard Intelligence — TODO
+tagline: Multi-hazard risk intelligence for all NN TODO counties
+map_bbox:
+  lon:
+  - -91.65
+  - -87.94
+  lat:
+  - 30.03
+  - 35.24
+geojson_county_property: NAME
+county_coords:
+  Adams:
+  - 31.4829
+  - -91.3536
+  Alcorn:
+  - 34.8808
+  - -88.5802
+  Amite:
+  - 31.1744
+  - -90.8044
+  Attala:
+  - 33.0863
+  - -89.5817
+  Benton:
+  - 34.8172
+  - -89.1885
+  Bolivar:
+  - 33.7969
+  - -90.8808
+  Calhoun:
+  - 33.9363
+  - -89.3364
+  Carroll:
+  - 33.4484
+  - -89.9201
+  Chickasaw:
+  - 33.9208
+  - -88.9479
+  Choctaw:
+  - 33.3472
+  - -89.2484
+  Claiborne:
+  - 31.9737
+  - -90.9119
+  Clarke:
+  - 32.0414
+  - -88.6894
+  Clay:
+  - 33.6557
+  - -88.7815
+  Coahoma:
+  - 34.2299
+  - -90.6018
+  Copiah:
+  - 31.8693
+  - -90.4488
+  Covington:
+  - 31.6332
+  - -89.5526
+  Desoto:
+  - 34.8754
+  - -89.9911
+  Forrest:
+  - 31.1887
+  - -89.2578
+  Franklin:
+  - 31.4772
+  - -90.8979
+  George:
+  - 30.8626
+  - -88.644
+  Greene:
+  - 31.2141
+  - -88.6392
+  Grenada:
+  - 33.77
+  - -89.802
+  Hancock:
+  - 30.3937
+  - -89.4746
+  Harrison:
+  - 30.416
+  - -89.0816
+  Hinds:
+  - 32.2666
+  - -90.4429
+  Holmes:
+  - 33.1235
+  - -90.092
+  Humphreys:
+  - 33.1286
+  - -90.5266
+  Issaquena:
+  - 32.7412
+  - -90.989
+  Itawamba:
+  - 34.2799
+  - -88.3613
+  Jackson:
+  - 30.4627
+  - -88.6227
+  Jasper:
+  - 32.0191
+  - -89.1189
+  Jefferson:
+  - 31.7343
+  - -91.0371
+  Jefferson Davis:
+  - 31.5696
+  - -89.8229
+  Jones:
+  - 31.6225
+  - -89.1688
+  Kemper:
+  - 32.7546
+  - -88.6412
+  Lafayette:
+  - 34.3567
+  - -89.4849
+  Lamar:
+  - 31.2059
+  - -89.5086
+  Lauderdale:
+  - 32.4043
+  - -88.6626
+  Lawrence:
+  - 31.5501
+  - -90.107
+  Leake:
+  - 32.7535
+  - -89.524
+  Lee:
+  - 34.2898
+  - -88.6804
+  Leflore:
+  - 33.5504
+  - -90.3011
+  Lincoln:
+  - 31.5324
+  - -90.4539
+  Lowndes:
+  - 33.4728
+  - -88.4437
+  Madison:
+  - 32.6347
+  - -90.034
+  Marion:
+  - 31.2308
+  - -89.8224
+  Marshall:
+  - 34.7621
+  - -89.5029
+  Monroe:
+  - 33.8922
+  - -88.4805
+  Montgomery:
+  - 33.494
+  - -89.6163
+  Neshoba:
+  - 32.7534
+  - -89.1176
+  Newton:
+  - 32.4002
+  - -89.1188
+  Noxubee:
+  - 33.1101
+  - -88.5698
+  Oktibbeha:
+  - 33.425
+  - -88.8796
+  Panola:
+  - 34.3639
+  - -89.9505
+  Pearl River:
+  - 30.7686
+  - -89.5899
+  Perry:
+  - 31.1718
+  - -88.9923
+  Pike:
+  - 31.1748
+  - -90.4042
+  Pontotoc:
+  - 34.2254
+  - -89.0374
+  Prentiss:
+  - 34.6183
+  - -88.5201
+  Quitman:
+  - 34.2513
+  - -90.2891
+  Rankin:
+  - 32.264
+  - -89.9459
+  Scott:
+  - 32.4063
+  - -89.5376
+  Sharkey:
+  - 32.8796
+  - -90.8133
+  Simpson:
+  - 31.9132
+  - -89.9195
+  Smith:
+  - 32.0176
+  - -89.5066
+  Stone:
+  - 30.79
+  - -89.1177
+  Sunflower:
+  - 33.6019
+  - -90.5888
+  Tallahatchie:
+  - 33.9505
+  - -90.1733
+  Tate:
+  - 34.6504
+  - -89.9448
+  Tippah:
+  - 34.7683
+  - -88.9089
+  Tishomingo:
+  - 34.7402
+  - -88.2393
+  Tunica:
+  - 34.6506
+  - -90.3751
+  Union:
+  - 34.4905
+  - -89.0039
+  Walthall:
+  - 31.1484
+  - -90.106
+  Warren:
+  - 32.3571
+  - -90.8522
+  Washington:
+  - 33.2837
+  - -90.9473
+  Wayne:
+  - 31.6407
+  - -88.6958
+  Webster:
+  - 33.6131
+  - -89.2849
+  Wilkinson:
+  - 31.1611
+  - -91.311
+  Winston:
+  - 33.0885
+  - -89.0345
+  Yalobusha:
+  - 34.0282
+  - -89.7076
+  Yazoo:
+  - 32.7803
+  - -90.3966
+county_utility: {}
+nws_offices: []
+state_agencies:
+  emergency: ''
+  fire: ''
+  forestry: ''
+  transport: ''
+  utility_regulator: ''
+hazard_guidance:
+  fire:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  flood:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  wind:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  winter:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+  seismic:
+    Low: ''
+    Elevated: ''
+    Moderate: ''
+    High: ''
+    Severe: ''
+season_notes:
+  spring: ''
+  summer: ''
+  fall: ''
+  winter: ''
+audit_factors:
+  fire:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  flood:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  wind:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  winter:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+  seismic:
+    spring: ''
+    summer: ''
+    fall: ''
+    winter: ''
+performance:
+  mean_auc: 0.0
+  per_hazard:
+    fire:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    flood:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    wind:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    winter:
+      auc: 0.0
+      quality: ''
+      notes: ''
+    seismic:
+      auc: 0.0
+      quality: ''
+      notes: ''
+  coupling_gate: 0.0
+  parameters: 0
+  data_period: 2000–2025
+  data_sources:
+  - NOAA GridMET daily weather (CONUS)
+  - WFIGS Wildland Fire Locations
+  - USGS Earthquake Catalog
+  - NOAA Storm Events Database
+  - FEMA Disaster Declarations
+versions:
+  model: AHI v2.5 (TODO)
+  data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025
