@@ -1205,8 +1205,8 @@ def page_quick_predict():
             default_idx = cr_ctx.counties.index('El Paso')
         selected_county = st.selectbox("Select County", cr_ctx.counties, index=default_idx)
     with col_hz:
-        forecast_horizon = st.selectbox("Forecast Date (days out)",
-                                         options=[7, 14, 30], index=1,
+        forecast_horizon = st.selectbox("Forecast Window",
+                                         options=[14, 30], index=0,
                                          format_func=lambda d: f"{d} days",
                                          key='county_tab_horizon')
 
