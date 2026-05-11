@@ -831,53 +831,65 @@ def load_national_geojson():
         return json.load(f)
 
 
-# Cache version — bump this to force a fresh national prediction run
-_NATIONAL_CACHE_VERSION = 3   # bumped: county_coords populated for all 49 states
+# ---------------------------------------------------------------------------
+# National predictions — loaded from precomputed CSVs for instant startup.
+# CSVs are generated offline via:  python scripts/precompute_national.py
+# One CSV per month: data/national_predictions_month05.csv, etc.
+# ---------------------------------------------------------------------------
 
 @st.cache_data(show_spinner=False)
-def predict_all_national(month: int, _cache_version: int = _NATIONAL_CACHE_VERSION):
-    """Run predictions for every county in every deployed state, keyed by month
-    (the seasonal calibration is month-driven, so caching by month is safe).
+def predict_all_national(month: int):
+    """Load precomputed national predictions for a given month.
 
+    Falls back to live inference if no precomputed file exists (slow).
     Returns DataFrame with columns:
         state, county, county_id, fire_p, flood_p, wind_p, winter_p, seismic_p,
         max_p, max_hazard
     """
+    csv_path = Path(f'data/national_predictions_month{month:02d}.csv')
+    if csv_path.exists():
+        df = pd.read_csv(csv_path)
+        # Ensure max columns exist
+        p_cols = [f'{h}_p' for h in ['fire', 'flood', 'wind', 'winter', 'seismic']]
+        if 'max_p' not in df.columns:
+            df['max_p'] = df[p_cols].max(axis=1)
+            df['max_hazard'] = df[p_cols].idxmax(axis=1).str.replace('_p', '')
+        print(f"[NATIONAL] Loaded precomputed month {month}: "
+              f"{len(df)} counties from {csv_path}")
+        return df
+
+    # Fallback: live inference (slow, memory-heavy — for dev only)
+    print(f"[NATIONAL] No precomputed CSV for month {month} — running live inference")
+    return _predict_all_national_live(month)
+
+
+def _predict_all_national_live(month: int):
+    """Live inference fallback — runs ONNX for every county. Slow."""
     from datetime import datetime
     from inference_onnx import predict_county_risks_simple as _predict, _build_maps
 
     target_date = datetime.now().date().replace(day=15) if month == datetime.now().month \
-                    else datetime(2025, month, 15).date()
+                    else datetime(2026, month, 15).date()
 
     registry = load_registry()
     deployed = [code for code, m in registry.items() if m.get('deployed', False)]
     rows = []
-    state_ok = 0
-    state_fail = []
 
     for state_code in deployed:
         try:
             state_ctx = StateContext.load(state_code)
-        except Exception as e:
-            state_fail.append(f"{state_code}: ctx load failed: {e}")
+        except Exception:
             continue
         hazard_df = pd.read_parquet(state_ctx.parquet_path) if state_ctx.parquet_path.exists() else None
         if hazard_df is None or len(hazard_df) == 0:
-            state_fail.append(f"{state_code}: no parquet or empty")
             continue
-        if 'date' in hazard_df.columns:
-            hazard_df['date'] = pd.to_datetime(hazard_df['date'])
-
-        # Rebuild county/state ID maps per state so embeddings match
         _build_maps(hazard_df)
 
-        n_before = len(rows)
         for county in state_ctx.counties:
             try:
                 risks = _predict(state_ctx.state_code, state_ctx.region,
                                   county, hazard_df, target_date)
-            except Exception as e:
-                print(f"[NATIONAL] {state_code}/{county}: {e}")
+            except Exception:
                 continue
             if not risks:
                 continue
@@ -891,13 +903,6 @@ def predict_all_national(month: int, _cache_version: int = _NATIONAL_CACHE_VERSI
                 'winter_p':  risks.get('winter', 0.0),
                 'seismic_p': risks.get('seismic', 0.0),
             })
-        added = len(rows) - n_before
-        print(f"[NATIONAL] {state_code}: {added}/{len(state_ctx.counties)} counties OK")
-        state_ok += 1
-
-    if state_fail:
-        print(f"[NATIONAL] Failed states: {state_fail}")
-    print(f"[NATIONAL] Total: {len(rows)} counties from {state_ok}/{len(deployed)} states")
 
     if not rows:
         return None
@@ -1927,9 +1932,9 @@ def render_national_choropleth(df: pd.DataFrame, geojson: dict, hazard: str,
         hovertemplate=('<b>%{customdata[1]} County, %{customdata[0]}</b><br>' +
                         f'{HAZARD_NAMES.get(hazard, hazard.title())}: ' +
                         '%{z:.1f}%<extra></extra>'),
-        colorbar=dict(title='Risk %',
+        colorbar=dict(title_text='Risk %',
+                       title_font_color=COLORS['text_secondary'],
                        tickfont=dict(color=COLORS['text_secondary']),
-                       titlefont=dict(color=COLORS['text_secondary']),
                        bgcolor=COLORS['card_bg']),
     ))
     fig.update_layout(
@@ -1958,8 +1963,12 @@ def page_national():
         )
         return
 
-    # ---- Top controls ----
-    c1, c2, c3 = st.columns([1.4, 1.4, 1.2])
+    # ---- Top controls (hazard layer + map style only) ----
+    now = datetime.now().date()
+    cur_month = now.month
+    month_label = now.strftime('%B %Y')
+
+    c1, c2 = st.columns([1.5, 1.5])
     with c1:
         hazard = st.selectbox(
             "Hazard layer",
@@ -1976,36 +1985,18 @@ def page_national():
             index=0,
             key='national_map_style',
         )
-    with c3:
-        horizon = st.selectbox(
-            "Forecast horizon",
-            options=[7, 14, 30],
-            index=1,
-            format_func=lambda d: f"{d} days",
-            key='national_horizon',
-            help="Longer horizons have weaker signal — model is calibrated for short-range outlooks.",
-        )
-    target_date = datetime.now().date() + timedelta(days=horizon)
 
-    # ---- Predictions (cached by month) ----
-    if 'national_df' not in st.session_state \
-            or st.session_state.get('national_month') != target_date.month:
-        with st.spinner(f"Running predictions for all CONUS counties "
-                         f"({target_date.month:02d}/{target_date.year}) — first run only…"):
-            df = predict_all_national(target_date.month)
-        st.session_state['national_df'] = df
-        st.session_state['national_month'] = target_date.month
-    else:
-        df = st.session_state['national_df']
+    # ---- Predictions (loaded from precomputed CSV — instant) ----
+    df = predict_all_national(cur_month)
 
     if df is None or len(df) == 0:
-        st.error("No predictions generated. Check that regional ONNX models "
-                 "are in `models/<region>/` and states are flipped to "
-                 "`deployed: true` in `states/registry.yaml`.")
+        st.error("No precomputed predictions found for this month. "
+                 "Run `python scripts/precompute_national.py` to generate them.")
         return
 
-    st.caption(f"Forecast date: **{target_date.strftime('%B %d, %Y')}** · "
-               f"{len(df):,} counties evaluated")
+    st.caption(f"**{month_label}** · {len(df):,} counties · "
+               f"Predictions calibrated from historical patterns for {now.strftime('%B')}. "
+               f"Drill into the **State** tab for county-level detail.")
 
     # ---- Map ----
     fig = render_national_choropleth(df, geojson, hazard, map_style=map_style)
