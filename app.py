@@ -1311,34 +1311,26 @@ def page_state_overview():
     risk across all counties, a ranked county table, and a choropleth map.
     Serves as the bridge between the National tab and the County Risk Assessment."""
 
-    # ---- State + horizon selectors (top of tab, not sidebar) ----
-    c1, c2 = st.columns([3, 1])
-    with c1:
-        state_options = sorted(_DEPLOYED, key=lambda c: _REGISTRY[c]['name'])
-        state_labels = {c: f"{_REGISTRY[c]['name']} ({c})" for c in state_options}
-        sel_state = st.selectbox(
-            "Select State",
-            options=state_options,
-            index=state_options.index(selected_state) if selected_state in state_options else 0,
-            format_func=lambda c: state_labels[c],
-            key='state_tab_state',
-        )
-    with c2:
-        horizon = st.selectbox(
-            "Forecast Date (days out)",
-            options=[7, 14, 30],
-            index=1,
-            format_func=lambda d: f"{d} days",
-            key='state_tab_horizon',
-        )
+    # ---- State selector (no horizon — state view is a monthly overview) ----
+    state_options = sorted(_DEPLOYED, key=lambda c: _REGISTRY[c]['name'])
+    state_labels = {c: f"{_REGISTRY[c]['name']} ({c})" for c in state_options}
+    sel_state = st.selectbox(
+        "Select State",
+        options=state_options,
+        index=state_options.index(selected_state) if selected_state in state_options else 0,
+        format_func=lambda c: state_labels[c],
+        key='state_tab_state',
+    )
 
     # Load the selected state's context
     state_ctx = _load_state_context(sel_state)
-    target_date = datetime.now().date() + timedelta(days=horizon)
+    target_date = datetime.now().date() + timedelta(days=14)
+    month_label = target_date.strftime('%B %Y')
 
     st.markdown(f"## {state_ctx.state_name} — Statewide Risk Assessment")
-    st.caption(f"{len(state_ctx.counties)} counties · Forecast: "
-               f"{target_date.strftime('%B %d, %Y')} ({horizon}-day outlook)")
+    st.caption(f"{len(state_ctx.counties)} counties · {month_label} outlook · "
+               f"Based on historical patterns for {target_date.strftime('%B')}. "
+               f"Use the **County Risk Assessment** tab for specific date forecasts.")
 
     # ---- Run predictions for all counties ----
     cache_key = f'state_overview_{sel_state}'
