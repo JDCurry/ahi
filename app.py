@@ -1692,7 +1692,7 @@ def page_risk_assessment():
 
 def page_model_info():
     st.markdown("## AHI v2.5 — CONUS Model Diagnostics")
-    st.caption("9 regional models · 49 states + DC · 3,109 counties")
+    st.caption("9 regional models · 48 states + DC · 3,109 counties")
 
     st.markdown("""
     ### What is AHI v2.5?
@@ -1727,7 +1727,7 @@ def page_model_info():
 
     col5, col6, col7, col8 = st.columns(4)
     col5.metric("Regional Models", "9")
-    col6.metric("States + DC", "49 + DC")
+    col6.metric("States + DC", "48 + DC")
     col7.metric("CONUS Counties", "3,109")
     col8.metric("Reference AUC (CO)", "0.883")
 
@@ -1864,7 +1864,7 @@ def page_model_info():
 
     st.markdown("**Current (AHI v2.5 — CONUS Deployment)**")
     st.markdown("""
-    - 9 regional ONNX models serving 49 states + DC (3,109 counties)
+    - 9 regional ONNX models serving 48 states + DC (3,109 counties)
     - Stacked mesh architecture: temporal mesh (heat kernel) + spatial mesh (softmax + adjacency) + gated coupling
     - Learned Seasonal Bias module (5×12 trainable matrix) discovers regional seasonal structure from data
     - Per-state calibration: temperature scaling + seasonal bias + base-rate ceilings
@@ -2144,7 +2144,7 @@ def page_about():
         AHI is a calibrated, multi-hazard risk prediction system deployed across the contiguous United States.
         It predicts the likelihood of five natural hazard types — wildfire, flood, wind, winter storm, and
         seismic — at the county level using a stacked diffusion mesh transformer trained on 25 years of
-        historical data. AHI currently covers <strong>3,109 counties</strong> across <strong>49 states and DC</strong>
+        historical data. AHI currently covers <strong>3,109 counties</strong> across <strong>48 states and DC</strong>
         through 9 regional models with per-state calibration.
         </p>
         <p style="color: {COLORS['text_secondary']}; line-height: 1.7;">
@@ -2175,7 +2175,7 @@ def page_about():
         - Key discovery: random batching produces gate ≈ 0 (spatial mesh ignored)
 
         **Regional Model Strategy**
-        - 9 climate-coherent regions serving 49 states + DC
+        - 9 climate-coherent regions serving 48 states + DC
         - Same architecture, region-specific weights
         - Per-state calibration ensures locally meaningful predictions
         """)
