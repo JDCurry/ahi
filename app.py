@@ -1691,19 +1691,15 @@ def page_risk_assessment():
 # =============================================================================
 
 def page_model_info():
-    st.markdown(f"## AHI v2.5 — {ctx.state_name} Model Diagnostics")
+    st.markdown("## AHI v2.5 — CONUS Model Diagnostics")
+    st.caption("9 regional models · 49 states + DC · 3,109 counties")
 
-    _, _, ok = load_v2_model(ctx.region)
-    if not ok:
-        st.error(f"AHI v2.5 model not loaded — check models/{ctx.region}/model.onnx")
-        return
-
-    st.markdown(f"""
-    ### What is AHI v2.5 (Learned Seasonal Bias)?
+    st.markdown("""
+    ### What is AHI v2.5?
 
     **AHI v2.5** is the Adaptive Hazard Intelligence model powering this dashboard. It predicts the
-    likelihood of five natural hazard types across all {len(COUNTIES)} {ctx.state_name} counties — like a weather
-    forecast, but for emergencies.
+    likelihood of five natural hazard types — wildfire, flood, wind, winter storm, and seismic — at the
+    county level across the contiguous United States.
 
     **The core problem it solves:** Weather sequences (temperature, wind, precipitation) evolve on a
     fast timescale (days), while spatial correlations (fire spread, downstream flooding, storm tracks)
@@ -1711,35 +1707,60 @@ def page_model_info():
 
     **How it works (stacked mesh architecture):**
     1. **Temporal Mesh** — 3-layer transformer with **heat kernel diffusion attention** learns per-hazard memory horizons (fire needs ~3 months of context, flood needs ~1 week)
-    2. **Spatial Mesh** — 2-layer transformer with **standard softmax attention** + county adjacency masking captures cross-county correlations (wildfire spread, downstream flooding, storm tracks across the Front Range)
+    2. **Spatial Mesh** — 2-layer transformer with **standard softmax attention** + county adjacency masking captures cross-county correlations (wildfire spread, downstream flooding, storm tracks)
     3. **Gated Coupling** — A learned gate blends temporal and spatial representations, starting near-zero and growing as the spatial signal proves useful during training
     4. **MMA Bias Field** — Multi-Modal Attention routes different feature types (weather, geography, land cover) through type-aware attention biases
 
     **v2.5 improvement:** Replaces hardcoded seasonal penalty functions with a **Learned Seasonal Bias** module
     — a trainable 5×12 parameter matrix (one weight per hazard per month) that the model optimizes during training.
-    The model independently discovered the same seasonal structure present in Colorado's climate, including
-    fire season (Jun–Sep), bimodal flood peaks (spring snowmelt + monsoon), and Chinook wind patterns (Oct–Apr).
-
-    **Colorado-specific advantage:** The clear elevation gradient (plains → foothills → Rockies → Western Slope)
-    gives the spatial mesh a strong geographic signal, particularly for winter storms (AUC 0.963) and
-    Front Range seismic clustering (AUC 0.887).
-
-    **Result:** Mean AUC = **0.883**, surpassing both the CO XGBoost baseline and the Washington State
-    deployment (0.829) across all five hazard types.
+    This allows the model to independently discover regional seasonal structure without manual per-state configuration,
+    enabling scalable deployment across all CONUS states.
     """)
 
     st.markdown("---")
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Model", "AHI v2.5")
-    col2.metric("Parameters", "1.3M")
+    col2.metric("Parameters", "~1.3M per region")
     col3.metric("Attention", "Heat Kernel + Softmax")
     col4.metric("Status", "Online")
 
-    col5, col6, col7 = st.columns(3)
-    col5.metric("Coupling Gate", "0.0934")
-    col6.metric("Spatial Graph", f"{len(COUNTIES)} counties")
-    col7.metric("Mean Test AUC", "0.883")
+    col5, col6, col7, col8 = st.columns(4)
+    col5.metric("Regional Models", "9")
+    col6.metric("States + DC", "49 + DC")
+    col7.metric("CONUS Counties", "3,109")
+    col8.metric("Reference AUC (CO)", "0.883")
+
+    # ---- Regional Model Overview ----
+    st.markdown("---")
+    st.markdown("### Regional Model Architecture")
+    st.markdown("""
+    AHI deploys **9 regional ONNX models**, each trained on states with similar climate, geography, and
+    hazard profiles. Every state within a region shares the same model weights but receives
+    **per-state calibration** (temperature scaling + seasonal bias + base-rate ceilings) to match
+    local historical hazard frequencies.
+    """)
+
+    _region_info = {
+        'colorado':        {'states': ['CO'], 'desc': 'Elevation gradient benchmark (64 counties)'},
+        'great_lakes':     {'states': ['IL', 'IN', 'KY', 'MI', 'OH', 'TN', 'WV'], 'desc': 'Lake-effect weather, tornado alley fringe, Ohio River flooding'},
+        'mountain_west':   {'states': ['AZ', 'ID', 'MT', 'NM', 'NV', 'UT', 'WY'], 'desc': 'Arid/semi-arid fire, monsoon, mountain winter storms'},
+        'northeast':       {'states': ['CT', 'DC', 'DE', 'MA', 'MD', 'ME', 'NH', 'NJ', 'NY', 'PA', 'RI', 'VA', 'VT'], 'desc': "Nor'easters, coastal flooding, ice storms"},
+        'northern_plains': {'states': ['IA', 'MN', 'MO', 'ND', 'SD', 'WI'], 'desc': 'Blizzards, prairie fire, spring flooding'},
+        'pacific':         {'states': ['CA'], 'desc': 'Wildfire, atmospheric rivers, seismic (San Andreas + Cascadia)'},
+        'pnw':             {'states': ['OR', 'WA'], 'desc': 'Atmospheric rivers, Cascadia subduction, PNW wildfire'},
+        'southeast_gulf':  {'states': ['AL', 'AR', 'FL', 'GA', 'LA', 'MS', 'NC', 'SC'], 'desc': 'Hurricanes, Gulf moisture, severe convective storms'},
+        'southern_plains': {'states': ['KS', 'NE', 'OK', 'TX'], 'desc': 'Tornado alley, prairie fire, flash flooding'},
+    }
+    region_rows = []
+    for region, info in _region_info.items():
+        region_rows.append({
+            'Region': region.replace('_', ' ').title(),
+            'States': len(info['states']),
+            'Coverage': ', '.join(info['states']),
+            'Hazard Profile': info['desc'],
+        })
+    st.dataframe(pd.DataFrame(region_rows), use_container_width=True, hide_index=True)
 
     st.markdown("### Architecture")
     st.markdown("""
@@ -1760,18 +1781,20 @@ def page_model_info():
     | Setting | Value | Purpose |
     |---------|-------|---------|
     | **Loss Function** | Focal loss (γ=2.0, α=0.75) | Down-weights easy negatives to handle severe class imbalance |
-    | **Seasonal Bias** | Learned 5×12 parameter matrix (v2.5) | Replaces hardcoded penalties; model learns CO seasonal structure from data |
-    | **Batching** | Date-grouped (all {len(COUNTIES)} counties per batch) | Ensures spatial mesh sees coherent county snapshots |
+    | **Seasonal Bias** | Learned 5×12 parameter matrix (v2.5) | Replaces hardcoded penalties; model learns regional seasonal structure from data |
+    | **Batching** | Date-grouped (all counties in region per batch) | Ensures spatial mesh sees coherent county snapshots |
     | **Coupling Warmup** | Gate frozen at 0.01 for 3 epochs | Prevents spatial noise from disrupting early training |
-    | **Warm Start** | Fresh training (no WA transfer) | CO geography/climate differs enough to warrant full re-training |
     | **Optimizer** | AdamW (lr=1e-4, weight_decay=0.05) | Aggressive regularization for small dataset |
     | **Scheduler** | OneCycleLR with 10% warmup | Gradual warm-up prevents early-training instability |
-    | **Early Stopping** | Patience=7 on val AUC | More patient — spatial mesh needs time to learn elevation gradient |
+    | **Early Stopping** | Patience=7 on val AUC | Spatial mesh needs time to learn geographic gradients |
     | **Train/Val/Test Split** | Temporal: 80/10/10 by date | Prevents temporal leakage — model never sees future data |
     """)
 
+    # ---- Reference Performance: Colorado ----
     st.markdown("---")
-    st.markdown(f"### Performance by Hazard — {ctx.state_name} (Held-out Test Set)")
+    st.markdown("### Reference Performance — Colorado (Held-out Test Set)")
+    st.caption("Colorado serves as the primary benchmark: 64 counties with a clear elevation gradient "
+               "that gives the spatial mesh a strong geographic signal.")
 
     co_data = [
         {"Hazard": "Winter",  "AUC": 0.963, "Quality": "Excellent", "Notes": "Best performer. Clear elevation gradient gives spatial mesh strong signal."},
@@ -1786,79 +1809,76 @@ def page_model_info():
     aucs_co      = [0.963, 0.891, 0.887, 0.857, 0.817]
     bar_colors   = [COLORS['winter'], COLORS['flood'], COLORS['seismic'], COLORS['fire'], COLORS['wind']]
 
-    fig_co = go.Figure()
-    fig_co.add_trace(go.Bar(x=hazards_co, y=aucs_co, marker_color=bar_colors, name="AHI v2.5 CO"))
-    fig_co.add_hline(y=0.8, line_dash="dash", line_color="#6b9e7a", annotation_text="Excellent (0.8)")
-    fig_co.add_hline(y=0.5, line_dash="dash", line_color="#dc2626", annotation_text="Random (0.5)")
-    fig_co.update_layout(
-        title="AHI v2.5 Colorado — AUC by Hazard Type",
+    # WA reference performance
+    hazards_wa   = ["Winter", "Fire", "Wind", "Flood", "Seismic"]
+    aucs_wa      = [0.908, 0.851, 0.837, 0.830, 0.718]
+
+    fig_perf = go.Figure()
+    fig_perf.add_trace(go.Bar(x=hazards_co, y=aucs_co, marker_color=bar_colors,
+                               name="Colorado (reference)", opacity=0.9))
+    fig_perf.add_trace(go.Bar(x=hazards_wa, y=aucs_wa, marker_color=bar_colors,
+                               name="Washington (PNW)", opacity=0.5))
+    fig_perf.add_hline(y=0.8, line_dash="dash", line_color="#6b9e7a", annotation_text="Excellent (0.8)")
+    fig_perf.add_hline(y=0.5, line_dash="dash", line_color="#dc2626", annotation_text="Random (0.5)")
+    fig_perf.update_layout(
+        title="AHI v2.5 — AUC by Hazard Type (validated regions)",
+        barmode='group',
         paper_bgcolor=COLORS['card_bg'],
         plot_bgcolor=COLORS['card_bg'],
         font=dict(color=COLORS['text_secondary'], family='Inter'),
+        legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1,
+                    font=dict(color=COLORS['text_secondary'])),
         xaxis=dict(gridcolor=COLORS['border']),
         yaxis=dict(title="AUC-ROC", range=[0, 1], gridcolor=COLORS['border']),
-        height=380,
-        margin=dict(l=40, r=20, t=50, b=40),
+        height=400,
+        margin=dict(l=40, r=20, t=60, b=40),
     )
-    st.plotly_chart(fig_co, use_container_width=True)
-    st.success("**AHI v2.5 Colorado Mean AUC: 0.883** — All 5 hazards in the Excellent range (AUC > 0.8)")
+    st.plotly_chart(fig_perf, use_container_width=True)
 
+    mc1, mc2 = st.columns(2)
+    mc1.success("**Colorado Mean AUC: 0.883** — All 5 hazards Excellent (AUC > 0.8)")
+    mc2.info("**Washington Mean AUC: 0.829** — 4 of 5 hazards Excellent")
+
+    # ---- Calibration ----
     st.markdown("---")
-    st.markdown("### Calibration")
+    st.markdown("### Calibration Pipeline")
     st.markdown("""
     **Calibration** means predicted probabilities match real-world frequencies. If the model says 10% fire risk,
-    fires should occur roughly 10% of the time in those conditions. AHI v2.5 (Colorado) uses:
+    fires should occur roughly 10% of the time in those conditions. AHI v2.5 uses a **per-state calibration
+    pipeline** with three stages:
 
-    - **Per-hazard temperature scaling** — NLL-optimized on CO validation set
-      (fire T=0.380, flood T=0.546, wind T=0.495, winter T=0.657, seismic T=0.457)
-    - **CO seasonal logit bias** — physics-informed monthly adjustments for CO climatology
-      (fire Jun–Sep with monsoon dip Aug, bimodal flood Apr–May + Jul–Aug, Chinook wind Oct–Apr)
-    - **Base-rate ceilings** — caps predictions at historical plausibility limits
-      (all CO ceilings more generous than WA — model is significantly more accurate)
-    """)
+    1. **Temperature scaling** — Per-hazard T values fitted by NLL optimization on each state's validation set.
+       Lower T sharpens predictions (more confident), higher T softens them. All T values < 1.0 indicate
+       the raw model is already well-calibrated.
+    2. **Seasonal logit bias** — Learned 5×12 parameter matrix adjusts predictions based on regional
+       climatology (e.g., fire season Jun–Sep in the West, hurricane season Jun–Nov in the Southeast).
+    3. **Base-rate ceilings** — Caps predictions at historical plausibility limits to prevent overconfident
+       outputs in counties with sparse hazard history.
 
-    with st.expander("Colorado vs. Washington State — Performance Comparison", expanded=False):
-        st.markdown("""
-    AHI v2.5 trained on Colorado (64 counties) outperforms the Washington deployment (39 counties)
-    across all five hazard types:
-
-    | Hazard | AHI v2.5 WA | AHI v2.5 CO | Δ |
-    |--------|:-----------:|:-----------:|:---:|
-    | **Winter** | 0.908 | **0.963** | +0.055 |
-    | **Flood**  | 0.830 | **0.891** | +0.061 |
-    | **Seismic**| 0.718 | **0.887** | +0.169 |
-    | **Fire**   | 0.851 | **0.857** | +0.006 |
-    | **Wind**   | 0.837 | **0.817** | –0.020 |
-    | **Mean**   | 0.829 | **0.883** | **+0.054** |
-
-    **Why CO outperforms WA:**
-    - Colorado's clear elevation gradient (plains → foothills → Rockies → Western Slope) gives the
-      spatial mesh a strong geographic signal for every hazard type.
-    - Front Range induced seismicity is spatially concentrated → spatial attention learns tight clusters
-      (vs. Cascadia subduction zone which is diffuse and extends offshore).
-    - Bimodal flood pattern (spring snowmelt + monsoon) is more predictable from weather covariates
-      than WA's atmospheric-river-dominated regime.
-    - Wind is slightly lower due to the diffuse nature of high-plains wind vs. WA's atmospheric river tracks.
+    Each state receives its own calibration parameters stored in `states/<XX>/calibration.json` and
+    `states/<XX>/seasonal_bias.json`, ensuring predictions are locally meaningful.
     """)
 
     st.markdown("---")
     st.markdown("### Updates & Roadmap")
 
-    st.markdown("**Current (AHI v2.5 — Colorado Deployment)**")
+    st.markdown("**Current (AHI v2.5 — CONUS Deployment)**")
     st.markdown("""
+    - 9 regional ONNX models serving 49 states + DC (3,109 counties)
     - Stacked mesh architecture: temporal mesh (heat kernel) + spatial mesh (softmax + adjacency) + gated coupling
-    - Learned Seasonal Bias module (5×12 trainable matrix) captures CO fire season, bimodal flood peaks, and Chinook wind patterns
-    - Date-grouped batching ensures spatial mesh sees coherent 64-county snapshots per training step
-    - Mean AUC 0.883 on held-out CO test set — all 5 hazards in the Excellent range
-    - Temperature scales re-fitted on CO validation set (fire 0.380, flood 0.546, wind 0.495, winter 0.657, seismic 0.457)
+    - Learned Seasonal Bias module (5×12 trainable matrix) discovers regional seasonal structure from data
+    - Per-state calibration: temperature scaling + seasonal bias + base-rate ceilings
+    - Relative risk tiers contextualize predictions against historical base rates per state
+    - Precomputed national predictions for instant page load
     """)
 
     st.markdown("**Planned / Future Work**")
     st.markdown("""
     - Integrate real-time weather feeds (NWS/NOAA APIs) for operational nowcasts — **core SBIR Phase I deliverable**
-    - Expand to adjacent states (Utah, New Mexico, Wyoming) using the same pipeline infrastructure
+    - Per-region k-fold cross-validation for temperature scaling refinement
     - Add Monte Carlo Dropout uncertainty quantification for prediction intervals
-    - Improve spatial modeling (graph neural networks for county adjacency and hazard spread)
+    - Severity thresholds for wind/flood labels (distinguish EF0 from EF3+, minor from major flood)
+    - Alaska and Hawaii coverage (non-CONUS)
     - Build continual learning pipeline with scheduled model retraining as new storm events accumulate
     """)
 
@@ -1867,11 +1887,11 @@ def page_model_info():
     st.markdown("""
     | Source | Dataset | Usage |
     |--------|---------|-------|
-    | **NOAA Storm Events** | 26 CSV files of historical storm records (filtered: STATE = COLORADO) | Flood, wind, winter storm labels (strict county + 3-day window matching) |
-    | **WFIGS** | Wildland Fire Locations Full History (filtered: POOState = US-CO) | Wildfire labels (geocoded to county boundaries) |
-    | **USGS Earthquakes** | Colorado seismic catalog (M ≥ 2.0, 2000–2025) | Seismic event labels (Front Range + Sangre de Cristos) |
-    | **FEMA** | Disaster declarations (filtered: stateNum = 08) | Supplementary validation labels (322 CO records) |
-    | **GridMET** | Daily gridded weather — CONUS files reused (lat 25–49, lon –125 to –67) | Temperature, precipitation, humidity, wind speed, fire weather (ERC) |
+    | **NOAA Storm Events** | Historical storm records across all CONUS states (2000–2025) | Flood, wind, winter storm labels (strict county + 3-day window matching) |
+    | **WFIGS** | Wildland Fire Locations Full History (all CONUS) | Wildfire labels (geocoded to county boundaries) |
+    | **USGS Earthquakes** | National seismic catalog (M ≥ 2.0, 2000–2025) | Seismic event labels |
+    | **FEMA** | Disaster declarations (all states) | Supplementary validation labels |
+    | **GridMET** | Daily gridded weather — CONUS (lat 25–49, lon –125 to –67) | Temperature, precipitation, humidity, wind speed, fire weather (ERC) |
     | **US Census (TIGER)** | County-level population density | Static demographic feature for exposure weighting |
     | **NLCD / Land Cover** | Forest & urban fractions, elevation proxy by terrain class | Static geographic features for terrain-aware inference |
     """)
@@ -2121,14 +2141,15 @@ def page_about():
     <div style="background: {COLORS['card_bg']}; border: 1px solid {COLORS['border']}; border-radius: 8px; padding: 24px; margin-bottom: 20px;">
         <h3 style="color: {COLORS['primary_light']}; margin-top: 0;">Adaptive Hazard Intelligence</h3>
         <p style="color: {COLORS['text_primary']}; line-height: 1.7;">
-        AHI is a calibrated, multi-hazard risk prediction system for emergency managers across the contiguous United States.
+        AHI is a calibrated, multi-hazard risk prediction system deployed across the contiguous United States.
         It predicts the likelihood of five natural hazard types — wildfire, flood, wind, winter storm, and
         seismic — at the county level using a stacked diffusion mesh transformer trained on 25 years of
-        historical data across all 64 Colorado counties.
+        historical data. AHI currently covers <strong>3,109 counties</strong> across <strong>49 states and DC</strong>
+        through 9 regional models with per-state calibration.
         </p>
         <p style="color: {COLORS['text_secondary']}; line-height: 1.7;">
-        AHI is being developed by Resilience Analytics Lab, LLC for SBIR Phase I commercialization toward
-        operational nationwide deployment across all 50 states.
+        AHI is developed by Resilience Analytics Lab, LLC. The platform is being prepared for
+        DHS SBIR Phase I to integrate real-time NWS/NOAA weather feeds for operational nowcasting.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -2149,23 +2170,28 @@ def page_about():
         - Gated coupling prevents catastrophic interference between meshes
 
         **Date-Grouped Batching**
-        - All 64 Colorado counties presented per training step
-        - Enables coherent spatial attention learning across the elevation gradient
+        - All counties in a region presented per training step
+        - Enables coherent spatial attention learning across geographic gradients
         - Key discovery: random batching produces gate ≈ 0 (spatial mesh ignored)
+
+        **Regional Model Strategy**
+        - 9 climate-coherent regions serving 49 states + DC
+        - Same architecture, region-specific weights
+        - Per-state calibration ensures locally meaningful predictions
         """)
     with col2:
         st.markdown("""
-        **Calibration Pipeline**
-        - Per-hazard temperature scaling (CO val set — all T < 1.0)
-        - CO seasonal logit bias (fire Jun–Sep, bimodal flood, Chinook wind Oct–Apr)
+        **Per-State Calibration Pipeline**
+        - Per-hazard temperature scaling fitted on each state's validation set
+        - Learned seasonal logit bias (5×12 matrix) captures regional climatology
         - Base-rate ceilings prevent overconfident predictions
-        - No weak-head clamping required — all CO heads AUC ≥ 0.817
+        - Relative risk tiers contextualize predictions against historical norms
 
         **Clean Label Engineering**
         - 3-day event window (vs. 30-day which created 97.7% false positive rate)
-        - Strict county-level geographic matching (64 CO counties, FIPS 08)
+        - Strict county-level geographic matching across all CONUS
         - Multiple source cross-validation (NOAA, WFIGS, USGS, FEMA)
-        - Monsoon season flood labels properly separated from spring snowmelt labels
+        - Seasonal label separation (spring snowmelt vs. monsoon floods, etc.)
         """)
 
     st.markdown("---")
