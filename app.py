@@ -127,7 +127,7 @@ COLORS = {
     'seismic': '#e67e22',
 }
 
-# Unified 5-tier sequential risk palette
+# Unified 5-tier sequential risk palette (absolute — used for national overview)
 RISK_TIERS = [
     (0.00, 0.10, '#2d5a3a', 'Low',      '< 10%',   'Baseline conditions — routine monitoring'),
     (0.10, 0.20, '#6b9e7a', 'Elevated', '10–20%',  'Above baseline — increased awareness recommended'),
@@ -147,6 +147,87 @@ def risk_level(prob):
         if lo <= prob < hi:
             return level, interp
     return RISK_TIERS[-1][3], RISK_TIERS[-1][5]
+
+
+# ---------------------------------------------------------------------------
+# Relative risk tiers — contextualised against state historical base rates
+# ---------------------------------------------------------------------------
+# Instead of fixed thresholds, tiers are based on ratio of predicted
+# probability to the state's historical base rate for that hazard+month.
+# This prevents "normal weather" (e.g. 63% wind in Alabama May) from
+# showing as "Severe" while still flagging genuine anomalies.
+
+RELATIVE_TIER_DEFS = [
+    # (max_ratio, color, label, description)
+    (0.50, '#2d5a3a', 'Low',      'Well below historical norm — routine monitoring'),
+    (1.00, '#6b9e7a', 'Normal',   'Near historical baseline — standard operations'),
+    (1.50, '#f59e0b', 'Elevated', 'Above historical norm — increased awareness'),
+    (2.00, '#f97316', 'High',     'Significantly above baseline — review preparedness'),
+    (99.0, '#dc2626', 'Severe',   'Far exceeds historical norm — activate response'),
+]
+
+
+def _load_base_rates(state_code: str) -> dict:
+    """Load historical monthly base rates from state's seasonal_bias.json."""
+    p = Path(f'states/{state_code}/seasonal_bias.json')
+    if not p.exists():
+        return {}
+    try:
+        with open(p) as f:
+            doc = json.load(f)
+        return doc.get('base_rates', {})
+    except Exception:
+        return {}
+
+
+@st.cache_data(show_spinner=False)
+def get_base_rate(state_code: str, hazard: str, month: int) -> float:
+    """Return historical base rate for a hazard in a given state-month."""
+    rates = _load_base_rates(state_code)
+    return rates.get(hazard, {}).get(str(month), 0.0)
+
+
+def risk_level_relative(prob: float, base_rate: float):
+    """Assign risk tier relative to historical base rate.
+
+    Returns (label, color, description, ratio_str).
+    """
+    if base_rate < 0.005:
+        # Very rare hazard — use absolute tiers (any signal is notable)
+        level, interp = risk_level(prob)
+        color = risk_color(prob)
+        return level, color, interp, ''
+
+    ratio = prob / base_rate
+    for max_r, color, label, desc in RELATIVE_TIER_DEFS:
+        if ratio <= max_r:
+            if ratio >= 1.0:
+                ratio_str = f"{(ratio - 1) * 100:.0f}% above historical"
+            else:
+                ratio_str = f"{(1 - ratio) * 100:.0f}% below historical"
+            return label, color, desc, ratio_str
+
+    # Fallback (ratio > 99)
+    t = RELATIVE_TIER_DEFS[-1]
+    return t[2], t[1], t[3], f"{(ratio - 1) * 100:.0f}% above historical"
+
+
+def compute_relative_tiers(df, state_code: str, month: int):
+    """Compute tier counts for a state DataFrame using relative thresholds.
+
+    For each county, the dominant hazard's probability is compared against
+    that hazard's historical base rate for the state+month.
+    """
+    counts = {'Severe': 0, 'High': 0, 'Elevated': 0, 'Normal': 0, 'Low': 0}
+    base_rates = _load_base_rates(state_code)
+
+    for _, row in df.iterrows():
+        max_h = row.get('max_hazard', 'wind')
+        max_p = row.get('max_p', 0.0)
+        br = base_rates.get(max_h, {}).get(str(month), 0.0)
+        level, _, _, _ = risk_level_relative(max_p, br)
+        counts[level] = counts.get(level, 0) + 1
+    return counts
 
 HAZARD_NAMES = {
     'fire': 'Fire', 'flood': 'Flood', 'wind': 'Wind',
@@ -1285,11 +1366,20 @@ def page_state_overview():
     # ---- Statewide situational awareness hero ----
     # Aggregate: mean and max risk per hazard across all counties
     st.markdown("### Situational Awareness")
+    month = target_date.month
     mean_risks = {h: df[f'{h}_p'].mean() for h in hazards}
     primary_hazard = max(mean_risks, key=mean_risks.get)
     primary_mean = mean_risks[primary_hazard]
-    level, interp = risk_level(primary_mean)
+    primary_br = get_base_rate(sel_state, primary_hazard, month)
+    level, rel_color, interp, ratio_str = risk_level_relative(primary_mean, primary_br)
     color = COLORS.get(primary_hazard, COLORS['primary_light'])
+
+    context_line = f"Mean risk: <strong style='color: {rel_color};'>{level}</strong>"
+    if ratio_str:
+        context_line += f" · {ratio_str}"
+    context_line += f" · {(df['max_hazard'] == primary_hazard).sum()} of {len(df)} counties led by this hazard"
+    if primary_br >= 0.005:
+        context_line += f" · Historical avg: {primary_br*100:.1f}%"
 
     st.markdown(f"""
     <div class="primary-risk-card" style="--accent-color: {color};">
@@ -1298,8 +1388,7 @@ def page_state_overview():
             <div>
                 <div class="headline">{HAZARD_NAMES.get(primary_hazard, primary_hazard.title())}</div>
                 <div style="color: {COLORS['text_tertiary']}; font-size: 0.95em;">
-                    Mean risk: <strong style="color: {color};">{level}</strong> ·
-                    {(df['max_hazard'] == primary_hazard).sum()} of {len(df)} counties led by this hazard
+                    {context_line}
                 </div>
             </div>
             <div class="percent">{primary_mean*100:.1f}%</div>
@@ -1308,35 +1397,34 @@ def page_state_overview():
     </div>
     """, unsafe_allow_html=True)
 
-    # Hazard summary cards (mean across state)
+    # Hazard summary cards (mean across state, with historical context)
     sorted_hazards = sorted(mean_risks.items(), key=lambda x: x[1], reverse=True)
     cols = st.columns(5)
     for i, (col, (hazard, mean_p)) in enumerate(zip(cols, sorted_hazards)):
         rank_label = "#1 Primary" if i == 0 else f"#{i+1}"
         hcolor = COLORS.get(hazard, COLORS['primary'])
+        br = get_base_rate(sel_state, hazard, month)
+        _, _, _, h_ratio_str = risk_level_relative(mean_p, br)
+        context = h_ratio_str if h_ratio_str else "state mean"
         with col:
             st.markdown(f"""
             <div class="hazard-card">
                 <div style="color: {COLORS['text_tertiary']}; font-size: 0.7em; letter-spacing: 0.1em; text-transform: uppercase;">{rank_label}</div>
                 <div class="label" style="color: {hcolor};">{HAZARD_NAMES.get(hazard, hazard.title())}</div>
                 <div class="value">{mean_p*100:.1f}%</div>
-                <div style="color: {COLORS['text_tertiary']}; font-size: 0.75em;">state mean</div>
+                <div style="color: {COLORS['text_tertiary']}; font-size: 0.75em;">{context}</div>
             </div>
             """, unsafe_allow_html=True)
 
-    # Risk tier distribution
+    # Risk tier distribution (relative to historical base rates)
     st.markdown("---")
-    severe   = int((df['max_p'] >= 0.50).sum())
-    high     = int(((df['max_p'] >= 0.35) & (df['max_p'] < 0.50)).sum())
-    moderate = int(((df['max_p'] >= 0.20) & (df['max_p'] < 0.35)).sum())
-    elevated = int(((df['max_p'] >= 0.10) & (df['max_p'] < 0.20)).sum())
-    low      = int((df['max_p'] < 0.10).sum())
+    rel_tiers = compute_relative_tiers(df, sel_state, month)
     tier_cols = st.columns(5)
-    tier_cols[0].metric("Severe (>50%)",     severe)
-    tier_cols[1].metric("High (35–50%)",     high)
-    tier_cols[2].metric("Moderate (20–35%)", moderate)
-    tier_cols[3].metric("Elevated (10–20%)", elevated)
-    tier_cols[4].metric("Low (<10%)",        low)
+    tier_cols[0].metric("Severe",   rel_tiers.get('Severe', 0))
+    tier_cols[1].metric("High",     rel_tiers.get('High', 0))
+    tier_cols[2].metric("Elevated", rel_tiers.get('Elevated', 0))
+    tier_cols[3].metric("Normal",   rel_tiers.get('Normal', 0))
+    tier_cols[4].metric("Low",      rel_tiers.get('Low', 0))
 
     # ---- County table ----
     st.markdown("---")
