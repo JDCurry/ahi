@@ -1016,11 +1016,30 @@ def render_interpretation_guide(forecast_days):
 # MAP: Plotly choropleth
 # =============================================================================
 
-def render_statewide_choropleth(df, hazard_key, hazard_label):
-    """Statewide risk map using plotly choropleth."""
-    geojson_data = load_geojson(ctx.state_code)
+def _auto_zoom_from_coords(county_coords):
+    """Compute Mapbox zoom + center from county coordinate dict."""
+    coords = list(county_coords.values()) if county_coords else [(39.0, -105.5)]
+    lats = [c[0] for c in coords]
+    lons = [c[1] for c in coords]
+    center = {'lat': sum(lats) / len(lats), 'lon': sum(lons) / len(lons)}
+    max_range = max(max(lats) - min(lats), max(lons) - min(lons), 0.1)
+    if max_range > 15:   zoom = 3.5
+    elif max_range > 10: zoom = 4.0
+    elif max_range > 6:  zoom = 5.0
+    elif max_range > 3:  zoom = 5.8
+    elif max_range > 1.5: zoom = 6.5
+    elif max_range > 0.5: zoom = 7.5
+    else:                zoom = 8.5
+    return center, zoom
+
+
+def render_statewide_choropleth(df, hazard_key, hazard_label,
+                                 state_code, county_coords,
+                                 map_style='Dark'):
+    """Statewide risk map using Choroplethmapbox (same style as national tab)."""
+    geojson_data = load_geojson(state_code)
     if geojson_data is None:
-        st.info("GeoJSON not found — place co_counties.geojson in data/ to enable map.")
+        st.info(f"GeoJSON not found for {state_code}. County map unavailable.")
         return
 
     geojson_norm = _normalize_geojson_names(geojson_data)
@@ -1030,7 +1049,9 @@ def render_statewide_choropleth(df, hazard_key, hazard_label):
     plot_df['county_norm'] = plot_df['county'].str.replace(' County', '').str.strip()
     plot_df['pct'] = plot_df[col_name] * 100
 
-    fig = go.Figure(go.Choropleth(
+    style = _NATIONAL_TILE_STYLES.get(map_style, _NATIONAL_TILE_STYLES['Dark'])
+
+    fig = go.Figure(go.Choroplethmapbox(
         geojson=geojson_norm,
         locations=plot_df['county_norm'],
         z=plot_df['pct'],
@@ -1043,56 +1064,40 @@ def render_statewide_choropleth(df, hazard_key, hazard_label):
             [0.50, '#dc2626'], [1.00, '#dc2626'],
         ],
         zmin=0, zmax=100,
-        marker_line_color=COLORS['border'],
-        marker_line_width=0.8,
+        marker_line_width=0.6,
+        marker_line_color=style['border'],
+        marker_opacity=style['opacity'],
         colorbar=dict(
-            title=f"{hazard_label}<br>Risk (%)",
-            thickness=12, len=0.6, x=1.02, xanchor='left',
+            title_text=f"{hazard_label} Risk (%)",
+            title_font_color=COLORS['text_secondary'],
             tickfont=dict(color=COLORS['text_secondary'], size=10),
-            title_font=dict(color=COLORS['text_secondary'], size=11),
+            bgcolor=COLORS['card_bg'],
+            thickness=12, len=0.6,
         ),
         hovertemplate="<b>%{location} County</b><br>" + hazard_label + ": %{z:.1f}%<extra></extra>",
     ))
 
-    # Auto-fit bounding box from county coordinates (no longer CO-only)
-    _coords = list(ctx.county_coords.values()) if ctx.county_coords else [(39, -105.5)]
-    _lats = [c[0] for c in _coords]
-    _lons = [c[1] for c in _coords]
-    _lat_pad = max(0.5, (max(_lats) - min(_lats)) * 0.1)
-    _lon_pad = max(0.5, (max(_lons) - min(_lons)) * 0.1)
-    fig.update_geos(
-        visible=False,
-        bgcolor=COLORS['card_bg'],
-        projection_type='mercator',
-        lonaxis_range=[min(_lons) - _lon_pad, max(_lons) + _lon_pad],
-        lataxis_range=[min(_lats) - _lat_pad, max(_lats) + _lat_pad],
-    )
+    center, zoom = _auto_zoom_from_coords(county_coords)
     fig.update_layout(
+        mapbox_style=style['mapbox_style'],
+        mapbox_layers=style['mapbox_layers'],
+        mapbox_zoom=zoom,
+        mapbox_center=center,
         paper_bgcolor=COLORS['card_bg'],
-        plot_bgcolor=COLORS['card_bg'],
         margin=dict(l=0, r=0, t=10, b=10),
         height=540,
-        font=dict(color=COLORS['text_secondary'], family='Inter'),
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    st.markdown(f"""
-    <div style="display: flex; gap: 16px; justify-content: center; margin-top: 4px; flex-wrap: wrap; font-size: 0.9em;">
-        <span style="color: #2d5a3a;">&#9632; Low (&lt;10%)</span>
-        <span style="color: #6b9e7a;">&#9632; Elevated (10–20%)</span>
-        <span style="color: #f59e0b;">&#9632; Moderate (20–35%)</span>
-        <span style="color: #f97316;">&#9632; High (35–50%)</span>
-        <span style="color: #dc2626;">&#9632; Severe (&gt;50%)</span>
-    </div>
-    """, unsafe_allow_html=True)
 
-
-def render_county_spotlight_map(selected_county, risks, target_date):
-    """State map with all 64 CO counties; selected county highlighted."""
-    geojson_data = load_geojson(ctx.state_code)
+def render_county_spotlight_map(selected_county, risks, target_date,
+                                 state_code, county_coords):
+    """State map with selected county highlighted, all others dimmed.
+    Uses Choroplethmapbox for consistent styling with national/state tabs."""
+    geojson_data = load_geojson(state_code)
     geojson_norm = _normalize_geojson_names(geojson_data)
     if geojson_norm is None:
-        st.info("GeoJSON not available — place co_counties.geojson in data/ to enable map.")
+        st.info(f"GeoJSON not available for {state_code}.")
         return
 
     selected_norm = selected_county.replace(' County', '').strip()
@@ -1128,7 +1133,9 @@ def render_county_spotlight_map(selected_county, risks, target_date):
     ]
 
     background_names = [n for n in all_names if n != selected_norm]
-    fig = go.Figure(go.Choropleth(
+
+    # Background counties (dimmed)
+    fig = go.Figure(go.Choroplethmapbox(
         geojson=geojson_norm,
         locations=background_names,
         z=[0] * len(background_names),
@@ -1137,11 +1144,13 @@ def render_county_spotlight_map(selected_county, risks, target_date):
         zmin=0, zmax=100,
         showscale=False,
         marker_line_color='#4a5568',
-        marker_line_width=1,
+        marker_line_width=0.5,
+        marker_opacity=0.5,
         hovertemplate="<b>%{location} County</b><extra></extra>",
     ))
 
-    fig.add_trace(go.Choropleth(
+    # Selected county (highlighted)
+    fig.add_trace(go.Choroplethmapbox(
         geojson=geojson_norm,
         locations=[selected_norm],
         z=[sel_prob],
@@ -1149,24 +1158,20 @@ def render_county_spotlight_map(selected_county, risks, target_date):
         colorscale=risk_colorscale,
         zmin=0, zmax=100,
         showscale=False,
-        marker_line_color='#e6edf3',
-        marker_line_width=2.5,
+        marker_line_color='#fbbf24',
+        marker_line_width=2,
+        marker_opacity=0.9,
         hovertemplate=f"<b>{selected_norm} County</b><br>{hazard_choice}: %{{z:.1f}}%<extra></extra>",
     ))
 
-    fig.update_geos(
-        visible=False,
-        bgcolor=COLORS['card_bg'],
-        projection_type='mercator',
-        lonaxis_range=[-109.5, -101.8],
-        lataxis_range=[36.8, 41.2],
-    )
+    center, zoom = _auto_zoom_from_coords(county_coords)
     fig.update_layout(
+        mapbox_style='carto-darkmatter',
+        mapbox_zoom=zoom,
+        mapbox_center=center,
         paper_bgcolor=COLORS['card_bg'],
-        plot_bgcolor=COLORS['card_bg'],
         margin=dict(l=0, r=0, t=10, b=10),
         height=400,
-        font=dict(color=COLORS['text_secondary'], family='Inter'),
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -1290,7 +1295,8 @@ def page_quick_predict():
             render_risk_summary(last['risks'], county=last.get('county', ''))
             st.markdown("---")
             with st.expander("County Spotlight Map", expanded=False):
-                render_county_spotlight_map(selected_county, last['risks'], last.get('date'))
+                render_county_spotlight_map(selected_county, last['risks'], last.get('date'),
+                                             state_code=cr_state, county_coords=cr_ctx.county_coords)
             if 'audit' in last:
                 render_decision_audit(last['audit'])
             render_interpretation_guide(last.get('horizon', days))
@@ -1455,19 +1461,28 @@ def page_state_overview():
         mime="text/csv"
     )
 
-    # ---- State choropleth ----
+    # ---- State choropleth (Choroplethmapbox — same style as national tab) ----
     st.markdown("---")
-    hazard_choice = st.selectbox(
-        "Select hazard to display on map",
-        ['Fire', 'Flood', 'Wind', 'Winter', 'Seismic'], index=0,
-        key='state_overview_hazard_map',
+    mc1, mc2 = st.columns([2, 1])
+    with mc1:
+        hazard_choice = st.selectbox(
+            "Hazard layer",
+            ['Fire', 'Flood', 'Wind', 'Winter', 'Seismic'], index=0,
+            key='state_overview_hazard_map',
+        )
+    with mc2:
+        state_map_style = st.selectbox(
+            "Map style",
+            options=list(_NATIONAL_TILE_STYLES.keys()),
+            index=0,
+            key='state_map_style',
+        )
+    render_statewide_choropleth(
+        df, hazard_choice.lower(), hazard_choice,
+        state_code=sel_state,
+        county_coords=state_ctx.county_coords,
+        map_style=state_map_style,
     )
-    # Temporarily swap ctx for the selected state so render_statewide_choropleth works
-    geojson_data = load_geojson(sel_state)
-    if geojson_data is not None:
-        render_statewide_choropleth(df, hazard_choice.lower(), hazard_choice)
-    else:
-        st.info(f"GeoJSON not found for {sel_state}. County map unavailable.")
 
 
 # =============================================================================
@@ -1535,7 +1550,9 @@ def page_statewide():
         "Select hazard to display on map",
         ['Fire', 'Flood', 'Wind', 'Winter', 'Seismic'], index=0
     )
-    render_statewide_choropleth(df, hazard_choice.lower(), hazard_choice)
+    render_statewide_choropleth(df, hazard_choice.lower(), hazard_choice,
+                                state_code=ctx.state_code,
+                                county_coords=ctx.county_coords)
 
 
 # =============================================================================
