@@ -1978,10 +1978,23 @@ def render_national_choropleth(df: pd.DataFrame, geojson: dict, hazard: str,
     return fig
 
 
+def _render_hazard_bar(label, pct, color, max_pct=70):
+    """Single horizontal hazard bar for the executive detail panel."""
+    bar_w = min(pct / max_pct * 100, 100)
+    return (
+        f"<div style='display:flex; align-items:center; gap:8px; margin:6px 0;'>"
+        f"<div style='width:90px; color:{COLORS['text_secondary']}; font-size:0.9em;'>{label}</div>"
+        f"<div style='flex:1; background:{COLORS['border']}; border-radius:3px; height:14px; overflow:hidden;'>"
+        f"<div style='width:{bar_w}%; height:100%; background:{color}; border-radius:3px;'></div></div>"
+        f"<div style='width:50px; text-align:right; color:{COLORS['text_primary']}; "
+        f"font-size:0.9em; font-weight:600;'>{pct:.1f}%</div></div>"
+    )
+
+
 def page_national():
-    st.markdown("### National Overview")
-    st.caption("All 3,109 CONUS counties · Click any county to see hazard "
-                "breakdown below.")
+    st.markdown("### Adaptive Hazard Intelligence — National")
+    st.caption("3,109 CONUS counties · Click anywhere on the map to drill into "
+               "county detail without leaving the page.")
 
     geojson = load_national_geojson()
     if geojson is None:
@@ -1992,11 +2005,11 @@ def page_national():
         )
         return
 
-    # ---- Top controls (hazard layer + map style only) ----
     now = datetime.now().date()
     cur_month = now.month
     month_label = now.strftime('%B %Y')
 
+    # ---- Top controls ----
     c1, c2 = st.columns([1.5, 1.5])
     with c1:
         hazard = st.selectbox(
@@ -2015,9 +2028,7 @@ def page_national():
             key='national_map_style',
         )
 
-    # ---- Predictions (loaded from precomputed CSV — instant) ----
     df = predict_all_national(cur_month)
-
     if df is None or len(df) == 0:
         st.error("No precomputed predictions found for this month. "
                  "Run `python scripts/precompute_national.py` to generate them.")
@@ -2027,11 +2038,127 @@ def page_national():
                f"Predictions calibrated from historical patterns for {now.strftime('%B')}. "
                f"Drill into the **State** tab for county-level detail.")
 
-    # ---- Map ----
-    fig = render_national_choropleth(df, geojson, hazard, map_style=map_style)
-    sel = st.plotly_chart(fig, use_container_width=True,
-                           on_select="rerun", selection_mode='points',
-                           key='national_map')
+    # ---- Extract selection BEFORE rendering columns ----
+    sel_id = None
+    if 'national_map' in st.session_state:
+        sel = st.session_state.get('national_map')
+        if sel and isinstance(sel, dict) and 'selection' in sel:
+            pts = sel['selection'].get('points', [])
+            if pts:
+                sel_id = pts[0].get('location')
+
+    # ---- Executive layout: map (left) + detail panel (right) ----
+    map_col, detail_col = st.columns([3, 2])
+
+    with map_col:
+        fig = render_national_choropleth(df, geojson, hazard, map_style=map_style,
+                                          height=560)
+        st.plotly_chart(fig, use_container_width=True,
+                        on_select="rerun", selection_mode='points',
+                        key='national_map')
+
+    with detail_col:
+        # Re-check selection after map render (on_select triggers rerun)
+        if sel_id is None and 'national_map' in st.session_state:
+            sel = st.session_state.get('national_map')
+            if sel and isinstance(sel, dict) and 'selection' in sel:
+                pts = sel['selection'].get('points', [])
+                if pts:
+                    sel_id = pts[0].get('location')
+
+        if sel_id:
+            match = df[df['state'] + '|' + df['county_id'] == sel_id]
+            if len(match) > 0:
+                row = match.iloc[0]
+                primary = row['max_hazard']
+                primary_pct = row['max_p'] * 100
+                level, _ = risk_level(row['max_p'])
+                pcolor = COLORS.get(primary, COLORS['primary_light'])
+
+                st.markdown(
+                    f"<h2 style='margin:0 0 4px 0; color:{COLORS['text_primary']};'>"
+                    f"{row['county'].title()}, {row['state']}</h2>",
+                    unsafe_allow_html=True)
+                st.markdown(
+                    f"<div style='color:{COLORS['text_secondary']}; margin-bottom:16px;'>"
+                    f"Primary: <strong style='color:{pcolor};'>"
+                    f"{HAZARD_NAMES.get(primary, primary.title())}</strong> · "
+                    f"{primary_pct:.1f}% · {level}</div>",
+                    unsafe_allow_html=True)
+
+                st.markdown(f"<hr style='border-color:{COLORS['border']}; margin:8px 0;'>",
+                            unsafe_allow_html=True)
+
+                # Horizontal hazard bars
+                bars_html = ""
+                for h in ['fire', 'flood', 'wind', 'winter', 'seismic']:
+                    p = row[f'{h}_p'] * 100
+                    bars_html += _render_hazard_bar(
+                        HAZARD_NAMES[h], p, COLORS[h])
+                st.markdown(bars_html, unsafe_allow_html=True)
+
+                st.markdown(f"<hr style='border-color:{COLORS['border']}; margin:12px 0;'>",
+                            unsafe_allow_html=True)
+
+                # Weather drivers from parquet (if available in session cache)
+                weather_key = f'_weather_{row["state"]}_{row["county"]}'
+                if weather_key not in st.session_state:
+                    try:
+                        hdf = load_hazard_data(row['state'])
+                        if hdf is not None:
+                            county_upper = row['county'].upper().strip()
+                            cmask = (hdf['county'].str.upper()
+                                     .str.replace(' COUNTY', '', regex=False)
+                                     .str.strip() == county_upper)
+                            crows = hdf[cmask]
+                            if len(crows) > 0 and 'month' in crows.columns:
+                                sm = crows[crows['month'] == cur_month]
+                                wx = sm.iloc[0] if len(sm) > 0 else crows.iloc[0]
+                                st.session_state[weather_key] = {
+                                    'erc':  float(wx.get('erc', 0)),
+                                    'vs':   float(wx.get('vs', 0)),
+                                    'rmin': float(wx.get('rmin', 0)),
+                                    'pr':   float(wx.get('pr', 0)),
+                                    'tmmx': float(wx.get('tmmx', 0)),
+                                    'tmmn': float(wx.get('tmmn', 0)),
+                                    'vpd':  float(wx.get('vpd', 0)),
+                                }
+                            else:
+                                st.session_state[weather_key] = None
+                        else:
+                            st.session_state[weather_key] = None
+                    except Exception:
+                        st.session_state[weather_key] = None
+
+                wx = st.session_state.get(weather_key)
+                if wx:
+                    st.markdown(
+                        f"<div style='color:{COLORS['text_tertiary']}; font-size:0.8em; "
+                        f"margin-bottom:8px;'><strong>Weather drivers (sample for this month):</strong></div>",
+                        unsafe_allow_html=True)
+                    w1, w2, w3, w4 = st.columns(4)
+                    w1.metric("ERC", f"{wx['erc']:.0f}", help="Energy release (fire weather)")
+                    w2.metric("Wind Speed", f"{wx['vs']:.1f} m/s")
+                    w3.metric("Min RH", f"{wx['rmin']:.1f} %")
+                    w4.metric("Precip", f"{wx['pr']:.1f} mm")
+                    w5, w6, w7, _ = st.columns(4)
+                    w5.metric("Max Temp", f"{wx['tmmx']:.1f} °C")
+                    w6.metric("Min Temp", f"{wx['tmmn']:.1f} °C")
+                    w7.metric("VPD", f"{wx['vpd']:.1f} kPa")
+
+                st.caption(
+                    f"Click the **State** tab and pick **{row['state']}** to "
+                    f"drill into county-level audit reports and hazard guidance.")
+            else:
+                st.info(f"County not found in predictions.")
+        else:
+            st.markdown(
+                f"<div style='display:flex; align-items:center; justify-content:center; "
+                f"height:400px; color:{COLORS['text_tertiary']}; "
+                f"border:1px dashed {COLORS['border']}; border-radius:8px; "
+                f"text-align:center; padding:24px;'>"
+                f"<div>Click any county on the map<br>to see hazard breakdown</div></div>",
+                unsafe_allow_html=True)
 
     # ---- National stats footer ----
     severe   = int((df['max_p'] >= 0.50).sum())
@@ -2045,81 +2172,6 @@ def page_national():
     cols[2].metric("Moderate (20–35%)", moderate)
     cols[3].metric("Elevated (10–20%)", elevated)
     cols[4].metric("Low (<10%)",        low)
-
-    st.markdown("---")
-
-    # ---- Selected county detail (populates on click) ----
-    sel_id = None
-    if sel and 'selection' in sel and sel['selection'].get('points'):
-        pt = sel['selection']['points'][0]
-        sel_id = pt.get('location')
-
-    if sel_id:
-        match = df[df['state'] + '|' + df['county_id'] == sel_id]
-        if len(match) > 0:
-            row = match.iloc[0]
-            primary = row['max_hazard']
-            primary_pct = row['max_p'] * 100
-            level, _ = risk_level(row['max_p'])
-
-            st.markdown(f"### {row['county'].title()} County, {row['state']}")
-            st.markdown(
-                f"<span style='color:{COLORS['text_secondary']};'>"
-                f"Primary hazard: <strong style='color:"
-                f"{COLORS.get(primary, COLORS['primary_light'])};'>"
-                f"{HAZARD_NAMES.get(primary, primary.title())}</strong> · "
-                f"{primary_pct:.1f}% · {level}</span>",
-                unsafe_allow_html=True,
-            )
-            # 5 hazard cards in a row
-            hcols = st.columns(5)
-            for i, h in enumerate(['fire', 'flood', 'wind', 'winter', 'seismic']):
-                p = row[f'{h}_p'] * 100
-                with hcols[i]:
-                    st.markdown(
-                        f"<div style='background:{COLORS['card_bg']}; padding:12px 8px; "
-                        f"border-radius:6px; border-left:3px solid {COLORS[h]};'>"
-                        f"<div style='color:{COLORS['text_tertiary']}; font-size:0.7em; "
-                        f"text-transform:uppercase; letter-spacing:0.05em;'>"
-                        f"{HAZARD_NAMES[h]}</div>"
-                        f"<div style='color:{COLORS['text_primary']}; font-size:1.5em; "
-                        f"font-weight:600; margin-top:4px;'>{p:.1f}%</div></div>",
-                        unsafe_allow_html=True,
-                    )
-            st.caption(
-                "Click the **State** tab in the sidebar (top of page) and pick "
-                f"**{row['state']}** to drill into county-level audit reports, "
-                "weather drivers, and hazard guidance."
-            )
-        else:
-            st.info(f"County {sel_id} clicked but not in prediction set.")
-    else:
-        st.markdown(
-            f"<div style='text-align:center; color:{COLORS['text_tertiary']}; "
-            f"padding:24px; border:1px dashed {COLORS['border']}; "
-            f"border-radius:6px;'>Click any county on the map above to see "
-            f"hazard breakdown.</div>",
-            unsafe_allow_html=True,
-        )
-
-    st.markdown("---")
-    st.markdown(f"### Top 25 Counties — "
-                 f"{HAZARD_NAMES.get(hazard, 'Max risk') if hazard != 'max' else 'Max risk'}")
-    col_p = f'{hazard}_p' if hazard != 'max' else 'max_p'
-    top = df.nlargest(25, col_p).copy()
-    for h in ['fire', 'flood', 'wind', 'winter', 'seismic']:
-        top[HAZARD_NAMES[h]] = (top[f'{h}_p'] * 100).round(1)
-    show = top[['state', 'county'] + [HAZARD_NAMES[h] for h in
-               ['fire', 'flood', 'wind', 'winter', 'seismic']]]
-    show = show.rename(columns={'state': 'State', 'county': 'County'})
-    st.dataframe(
-        show, use_container_width=True, hide_index=True,
-        column_config={
-            HAZARD_NAMES[h]: st.column_config.NumberColumn(
-                HAZARD_NAMES[h], format="%.1f%%")
-            for h in ['fire', 'flood', 'wind', 'winter', 'seismic']
-        },
-    )
 
 
 # =============================================================================
