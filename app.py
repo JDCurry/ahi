@@ -1978,17 +1978,64 @@ def render_national_choropleth(df: pd.DataFrame, geojson: dict, hazard: str,
     return fig
 
 
-def _render_hazard_bar(label, pct, color, max_pct=70):
-    """Single horizontal hazard bar for the executive detail panel."""
-    bar_w = min(pct / max_pct * 100, 100)
-    return (
-        f"<div style='display:flex; align-items:center; gap:8px; margin:6px 0;'>"
-        f"<div style='width:90px; color:{COLORS['text_secondary']}; font-size:0.9em;'>{label}</div>"
-        f"<div style='flex:1; background:{COLORS['border']}; border-radius:3px; height:14px; overflow:hidden;'>"
-        f"<div style='width:{bar_w}%; height:100%; background:{color}; border-radius:3px;'></div></div>"
-        f"<div style='width:50px; text-align:right; color:{COLORS['text_primary']}; "
-        f"font-size:0.9em; font-weight:600;'>{pct:.1f}%</div></div>"
-    )
+def _render_hazard_bars_vertical(row):
+    """Vertical hazard bars matching the executive mockup layout."""
+    html = ""
+    for h in ['fire', 'flood', 'wind', 'winter', 'seismic']:
+        p = row[f'{h}_p'] * 100
+        bar_pct = min(p / 50.0, 1.0) * 100
+        html += (
+            f"<div style='margin-bottom:10px;'>"
+            f"<div style='display:flex; justify-content:space-between; "
+            f"color:{COLORS['text_primary']}; font-size:0.95em;'>"
+            f"<span>{HAZARD_NAMES[h]}</span>"
+            f"<span style='font-weight:600;'>{p:.1f}%</span>"
+            f"</div>"
+            f"<div style='height:6px; background:{COLORS['border']}; "
+            f"border-radius:3px; overflow:hidden; margin-top:4px;'>"
+            f"<div style='width:{bar_pct}%; height:100%; "
+            f"background:{COLORS[h]};'></div></div></div>"
+        )
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def _render_weather_drivers(wx_data):
+    """Weather driver cards matching the executive mockup layout.
+    GridMET units: tmmx/tmmn in Kelvin, rmin in %, vs in m/s, pr in mm,
+    erc dimensionless, vpd in kPa."""
+    def _k_to_c(v):
+        return v - 273.15 if v is not None and v > 100 else v
+
+    drivers = [
+        ('ERC',        wx_data.get('erc'),  '(energy release)'),
+        ('Wind Speed', wx_data.get('vs'),   'm/s'),
+        ('Min RH',     wx_data.get('rmin'), '%'),
+        ('Precip',     wx_data.get('pr'),   'mm'),
+        ('Max Temp',   _k_to_c(wx_data.get('tmmx')), '°C'),
+        ('Min Temp',   _k_to_c(wx_data.get('tmmn')), '°C'),
+        ('VPD',        wx_data.get('vpd'),  'kPa'),
+    ]
+    drivers = [(l, v, u) for l, v, u in drivers if v is not None]
+    if not drivers:
+        return
+
+    st.markdown(
+        f"<div style='color:{COLORS['text_secondary']}; font-size:0.85em; "
+        f"margin-top:8px;'>**Weather drivers (sample for this month):**</div>",
+        unsafe_allow_html=True)
+    cols = st.columns(min(len(drivers), 4))
+    for i, (label, val, unit) in enumerate(drivers):
+        with cols[i % len(cols)]:
+            st.markdown(
+                f"<div style='background:{COLORS['card_bg']}; padding:8px 10px; "
+                f"border-radius:4px; margin-bottom:6px;'>"
+                f"<div style='color:{COLORS['text_tertiary']}; font-size:0.7em; "
+                f"text-transform:uppercase;'>{label}</div>"
+                f"<div style='color:{COLORS['text_primary']}; font-size:1.05em; "
+                f"font-weight:500;'>{val:.1f}<span style='color:"
+                f"{COLORS['text_tertiary']}; font-size:0.75em;'> {unit}</span></div>"
+                f"</div>",
+                unsafe_allow_html=True)
 
 
 def page_national():
@@ -2086,21 +2133,12 @@ def page_national():
                     f"{primary_pct:.1f}% · {level}</div>",
                     unsafe_allow_html=True)
 
-                st.markdown(f"<hr style='border-color:{COLORS['border']}; margin:8px 0;'>",
-                            unsafe_allow_html=True)
+                st.markdown("---")
 
-                # Horizontal hazard bars
-                bars_html = ""
-                for h in ['fire', 'flood', 'wind', 'winter', 'seismic']:
-                    p = row[f'{h}_p'] * 100
-                    bars_html += _render_hazard_bar(
-                        HAZARD_NAMES[h], p, COLORS[h])
-                st.markdown(bars_html, unsafe_allow_html=True)
+                # Hazard bars (vertical layout from mockup)
+                _render_hazard_bars_vertical(row)
 
-                st.markdown(f"<hr style='border-color:{COLORS['border']}; margin:12px 0;'>",
-                            unsafe_allow_html=True)
-
-                # Weather drivers from parquet (if available in session cache)
+                # Weather drivers from parquet (if available)
                 weather_key = f'_weather_{row["state"]}_{row["county"]}'
                 if weather_key not in st.session_state:
                     try:
@@ -2132,19 +2170,7 @@ def page_national():
 
                 wx = st.session_state.get(weather_key)
                 if wx:
-                    st.markdown(
-                        f"<div style='color:{COLORS['text_tertiary']}; font-size:0.8em; "
-                        f"margin-bottom:8px;'><strong>Weather drivers (sample for this month):</strong></div>",
-                        unsafe_allow_html=True)
-                    w1, w2, w3, w4 = st.columns(4)
-                    w1.metric("ERC", f"{wx['erc']:.0f}", help="Energy release (fire weather)")
-                    w2.metric("Wind Speed", f"{wx['vs']:.1f} m/s")
-                    w3.metric("Min RH", f"{wx['rmin']:.1f} %")
-                    w4.metric("Precip", f"{wx['pr']:.1f} mm")
-                    w5, w6, w7, _ = st.columns(4)
-                    w5.metric("Max Temp", f"{wx['tmmx']:.1f} °C")
-                    w6.metric("Min Temp", f"{wx['tmmn']:.1f} °C")
-                    w7.metric("VPD", f"{wx['vpd']:.1f} kPa")
+                    _render_weather_drivers(wx)
 
                 st.caption(
                     f"Click the **State** tab and pick **{row['state']}** to "
