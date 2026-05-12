@@ -234,6 +234,13 @@ HAZARD_NAMES = {
     'winter': 'Winter Storm', 'seismic': 'Seismic'
 }
 
+# Hazards shown in the dashboard UI. Seismic is kept in the model but hidden
+# from the dashboard until real-time seismic feeds (USGS ShakeAlert) are
+# integrated.  The inference pipeline still produces seismic predictions —
+# they are simply excluded from display, tier counts, and primary-hazard
+# ranking so practitioners see only actionable intelligence.
+DISPLAY_HAZARDS = ['fire', 'flood', 'wind', 'winter']
+
 # HAZARD_GUIDANCE, COUNTY_UTILITY, _AUDIT_FACTORS, MODEL_VERSION, DATA_VERSION
 # all sourced from ctx (StateContext loaded at top of file).
 
@@ -855,11 +862,10 @@ def predict_all_national(month: int):
     csv_path = Path(f'data/national_predictions_month{month:02d}.csv')
     if csv_path.exists():
         df = pd.read_csv(csv_path)
-        # Ensure max columns exist
-        p_cols = [f'{h}_p' for h in ['fire', 'flood', 'wind', 'winter', 'seismic']]
-        if 'max_p' not in df.columns:
-            df['max_p'] = df[p_cols].max(axis=1)
-            df['max_hazard'] = df[p_cols].idxmax(axis=1).str.replace('_p', '')
+        # Recompute max from DISPLAY_HAZARDS only (excludes seismic)
+        p_cols = [f'{h}_p' for h in DISPLAY_HAZARDS]
+        df['max_p'] = df[p_cols].max(axis=1)
+        df['max_hazard'] = df[p_cols].idxmax(axis=1).str.replace('_p', '')
         print(f"[NATIONAL] Loaded precomputed month {month}: "
               f"{len(df)} counties from {csv_path}")
         return df
@@ -913,7 +919,7 @@ def _predict_all_national_live(month: int):
     if not rows:
         return None
     df = pd.DataFrame(rows)
-    p_cols = [f'{h}_p' for h in ['fire', 'flood', 'wind', 'winter', 'seismic']]
+    p_cols = [f'{h}_p' for h in DISPLAY_HAZARDS]
     df['max_p'] = df[p_cols].max(axis=1)
     df['max_hazard'] = df[p_cols].idxmax(axis=1).str.replace('_p', '')
     return df
@@ -925,7 +931,8 @@ def _predict_all_national_live(month: int):
 
 def render_primary_risk_callout(risks):
     """Hero card highlighting the top-ranked hazard."""
-    sorted_risks = sorted(risks.items(), key=lambda x: x[1], reverse=True)
+    display_risks = {h: v for h, v in risks.items() if h in DISPLAY_HAZARDS}
+    sorted_risks = sorted(display_risks.items(), key=lambda x: x[1], reverse=True)
     top_hazard, top_prob = sorted_risks[0]
     level, interp = risk_level(top_prob)
     color = COLORS.get(top_hazard, COLORS['primary_light'])
@@ -984,7 +991,7 @@ def render_risk_summary(risks, county=''):
     st.markdown(
         f"""<p style="color: {COLORS['text_tertiary']}; font-size: 0.75em;
         font-style: italic; margin-top: 8px;">
-        Guidance reflects hazard-tier operational doctrine. Fire, flood, and seismic
+        Guidance reflects hazard-tier operational doctrine. Fire, flood, and wind
         county-specific resource integration (local fire districts, flood authorities,
         critical facility registry) is a Phase I Aim 3 deliverable developed in
         partnership with pilot sites.
@@ -1113,8 +1120,7 @@ def render_county_spotlight_map(selected_county, risks, target_date,
     selected_display = _county_display_name(selected_county.replace(' County', '').strip())
 
     ordered_hazards = sorted(
-        [('Fire', 'fire'), ('Flood', 'flood'), ('Wind', 'wind'),
-         ('Winter', 'winter'), ('Seismic', 'seismic')],
+        [(HAZARD_NAMES[h], h) for h in DISPLAY_HAZARDS],
         key=lambda kv: risks.get(kv[1], 0.0),
         reverse=True
     )
@@ -1369,7 +1375,7 @@ def page_state_overview():
                 return
     df = st.session_state[cache_key]
 
-    hazards = ['fire', 'flood', 'wind', 'winter', 'seismic']
+    hazards = DISPLAY_HAZARDS
     df['max_p'] = df[[f'{h}_p' for h in hazards]].max(axis=1)
     df['max_hazard'] = df[[f'{h}_p' for h in hazards]].idxmax(axis=1).str.replace('_p', '')
 
@@ -1409,7 +1415,7 @@ def page_state_overview():
 
     # Hazard summary cards (mean across state, with historical context)
     sorted_hazards = sorted(mean_risks.items(), key=lambda x: x[1], reverse=True)
-    cols = st.columns(5)
+    cols = st.columns(len(sorted_hazards))
     for i, (col, (hazard, mean_p)) in enumerate(zip(cols, sorted_hazards)):
         rank_label = "#1 Primary" if i == 0 else f"#{i+1}"
         hcolor = COLORS.get(hazard, COLORS['primary'])
@@ -1466,7 +1472,7 @@ def page_state_overview():
     with mc1:
         hazard_choice = st.selectbox(
             "Hazard layer",
-            ['Fire', 'Flood', 'Wind', 'Winter', 'Seismic'], index=0,
+            [HAZARD_NAMES[h] for h in DISPLAY_HAZARDS], index=0,
             key='state_overview_hazard_map',
         )
     with mc2:
@@ -1517,7 +1523,7 @@ def page_statewide():
         return
 
     df = st.session_state['statewide']
-    hazards = ['fire', 'flood', 'wind', 'winter', 'seismic']
+    hazards = DISPLAY_HAZARDS
 
     # Keep as floats (0–100 range) so column-header click sorts numerically.
     # st.column_config.NumberColumn handles the "%" suffix at render time.
@@ -1547,7 +1553,7 @@ def page_statewide():
 
     hazard_choice = st.selectbox(
         "Select hazard to display on map",
-        ['Fire', 'Flood', 'Wind', 'Winter', 'Seismic'], index=0
+        [HAZARD_NAMES[h] for h in DISPLAY_HAZARDS], index=0
     )
     render_statewide_choropleth(df, hazard_choice.lower(), hazard_choice,
                                 state_code=ctx.state_code,
@@ -1585,7 +1591,7 @@ def page_risk_assessment():
         return
 
     df = st.session_state['statewide'].copy()
-    hazards = ['fire', 'flood', 'wind', 'winter', 'seismic']
+    hazards = DISPLAY_HAZARDS
 
     df['max_p'] = df[[f'{h}_p' for h in hazards]].max(axis=1)
     df['max_hazard'] = df[[f'{h}_p' for h in hazards]].idxmax(axis=1).str.replace('_p', '').map(HAZARD_NAMES)
@@ -1697,7 +1703,7 @@ def page_model_info():
     ### What is AHI v2.5?
 
     **AHI v2.5** is the Adaptive Hazard Intelligence model powering this dashboard. It predicts the
-    likelihood of five natural hazard types — wildfire, flood, wind, winter storm, and seismic — at the
+    likelihood of four natural hazard types — wildfire, flood, wind, and winter storm — at the
     county level across the contiguous United States.
 
     **The core problem it solves:** Weather sequences (temperature, wind, precipitation) evolve on a
@@ -1774,19 +1780,18 @@ def page_model_info():
     co_data = [
         {"Hazard": "Winter",  "AUC": 0.963, "Quality": "Excellent", "Notes": "Best performer — strong elevation-driven seasonal signal."},
         {"Hazard": "Flood",   "AUC": 0.891, "Quality": "Excellent", "Notes": "Bimodal seasonal pattern (snowmelt + monsoon) well-captured."},
-        {"Hazard": "Seismic", "AUC": 0.887, "Quality": "Excellent", "Notes": "Front Range induced seismicity spatially concentrated."},
         {"Hazard": "Fire",    "AUC": 0.857, "Quality": "Excellent", "Notes": "Western Slope + foothills fire patterns learned well."},
         {"Hazard": "Wind",    "AUC": 0.817, "Quality": "Excellent", "Notes": "Chinook corridor captured; diffuse plains wind harder to localize."},
     ]
     st.dataframe(pd.DataFrame(co_data), use_container_width=True, hide_index=True)
 
-    hazards_co   = ["Winter", "Flood", "Seismic", "Fire", "Wind"]
-    aucs_co      = [0.963, 0.891, 0.887, 0.857, 0.817]
-    bar_colors   = [COLORS['winter'], COLORS['flood'], COLORS['seismic'], COLORS['fire'], COLORS['wind']]
+    hazards_co   = ["Winter", "Flood", "Fire", "Wind"]
+    aucs_co      = [0.963, 0.891, 0.857, 0.817]
+    bar_colors   = [COLORS['winter'], COLORS['flood'], COLORS['fire'], COLORS['wind']]
 
     # WA reference performance
-    hazards_wa   = ["Winter", "Fire", "Wind", "Flood", "Seismic"]
-    aucs_wa      = [0.908, 0.851, 0.837, 0.830, 0.718]
+    hazards_wa   = ["Winter", "Fire", "Wind", "Flood"]
+    aucs_wa      = [0.908, 0.851, 0.837, 0.830]
 
     fig_perf = go.Figure()
     fig_perf.add_trace(go.Bar(x=hazards_co, y=aucs_co, marker_color=bar_colors,
@@ -1811,8 +1816,8 @@ def page_model_info():
     st.plotly_chart(fig_perf, use_container_width=True)
 
     mc1, mc2 = st.columns(2)
-    mc1.success("**Colorado Mean AUC: 0.883** — All 5 hazards Excellent (AUC > 0.8)")
-    mc2.info("**Washington Mean AUC: 0.829** — 4 of 5 hazards Excellent")
+    mc1.success("**Colorado Mean AUC: 0.882** — All 4 hazards Excellent (AUC > 0.8)")
+    mc2.info("**Washington Mean AUC: 0.857** — All 4 hazards Excellent")
 
     # ---- Calibration ----
     st.markdown("---")
@@ -1857,7 +1862,7 @@ def page_model_info():
     |--------|---------|-------|
     | **NOAA Storm Events** | Historical storm records across all CONUS states (2000–2025) | Flood, wind, winter storm labels (strict county + 3-day window matching) |
     | **WFIGS** | Wildland Fire Locations Full History (all CONUS) | Wildfire labels (geocoded to county boundaries) |
-    | **USGS Earthquakes** | National seismic catalog (M ≥ 2.0, 2000–2025) | Seismic event labels |
+    | **USGS Earthquakes** | National seismic catalog (M ≥ 2.0, 2000–2025) | Seismic event labels (model trained; dashboard display coming soon) |
     | **FEMA** | Disaster declarations (all states) | Supplementary validation labels |
     | **GridMET** | Daily gridded weather — CONUS (lat 25–49, lon –125 to –67) | Temperature, precipitation, humidity, wind speed, fire weather (ERC) |
     | **US Census (TIGER)** | County-level population density | Static demographic feature for exposure weighting |
@@ -1963,7 +1968,7 @@ def render_national_choropleth(df: pd.DataFrame, geojson: dict, hazard: str,
 def _render_hazard_bars_vertical(row):
     """Vertical hazard bars matching the executive mockup layout."""
     html = ""
-    for h in ['fire', 'flood', 'wind', 'winter', 'seismic']:
+    for h in DISPLAY_HAZARDS:
         p = row[f'{h}_p'] * 100
         bar_pct = min(p / 50.0, 1.0) * 100
         html += (
@@ -2042,7 +2047,7 @@ def page_national():
     with c1:
         hazard = st.selectbox(
             "Hazard layer",
-            options=['max', 'fire', 'flood', 'wind', 'winter', 'seismic'],
+            options=['max'] + DISPLAY_HAZARDS,
             index=0,
             format_func=lambda h: ('Max risk (any hazard)' if h == 'max'
                                      else HAZARD_NAMES.get(h, h.title())),
@@ -2194,8 +2199,8 @@ def page_about():
         <h3 style="color: {COLORS['primary_light']}; margin-top: 0;">Adaptive Hazard Intelligence</h3>
         <p style="color: {COLORS['text_primary']}; line-height: 1.7;">
         AHI is a calibrated, multi-hazard risk prediction system deployed across the contiguous United States.
-        It predicts the likelihood of five natural hazard types — wildfire, flood, wind, winter storm, and
-        seismic — at the county level using a proprietary deep learning architecture trained on 25 years of
+        It predicts the likelihood of four natural hazard types — wildfire, flood, wind, and winter storm
+        — at the county level using a proprietary deep learning architecture trained on 25 years of
         historical data. AHI currently covers <strong>3,109 counties</strong> across <strong>48 states and DC</strong>
         through 9 regional models with per-state calibration.
         </p>
