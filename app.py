@@ -2003,16 +2003,16 @@ def _render_weather_drivers(wx_data):
     """Weather driver cards matching the executive mockup layout.
     GridMET units: tmmx/tmmn in Kelvin, rmin in %, vs in m/s, pr in mm,
     erc dimensionless, vpd in kPa."""
-    def _k_to_c(v):
-        return v - 273.15 if v is not None and v > 100 else v
+    def _k_to_f(v):
+        return (v - 273.15) * 9.0 / 5.0 + 32.0 if v is not None and v > 100 else v
 
     drivers = [
         ('ERC',        wx_data.get('erc'),  '(energy release)'),
         ('Wind Speed', wx_data.get('vs'),   'm/s'),
         ('Min RH',     wx_data.get('rmin'), '%'),
         ('Precip',     wx_data.get('pr'),   'mm'),
-        ('Max Temp',   _k_to_c(wx_data.get('tmmx')), '°C'),
-        ('Min Temp',   _k_to_c(wx_data.get('tmmn')), '°C'),
+        ('Max Temp',   _k_to_f(wx_data.get('tmmx')), '°F'),
+        ('Min Temp',   _k_to_f(wx_data.get('tmmn')), '°F'),
         ('VPD',        wx_data.get('vpd'),  'kPa'),
     ]
     drivers = [(l, v, u) for l, v, u in drivers if v is not None]
