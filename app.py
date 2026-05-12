@@ -719,17 +719,22 @@ def load_geojson(state_code: str):
 
 def _normalize_geojson_names(geojson):
     """Add a normalized 'NAME_NORM' property for consistent lookup.
-    Uses UPPER-CASE so matching is case-insensitive (fixes DC, etc.)."""
+
+    Uses NAMELSAD (e.g. "Fairfax County", "Alexandria city") when available
+    so Virginia independent cities and Louisiana parishes match correctly.
+    Falls back to NAME. Strips " County" and upper-cases for case-insensitive
+    matching. This means:
+      - "Fairfax County" → "FAIRFAX"      (matches prediction "Fairfax")
+      - "Alexandria city" → "ALEXANDRIA CITY" (matches prediction "Alexandria City")
+      - "Acadia Parish"  → "ACADIA PARISH"   (matches prediction "Acadia Parish")
+    """
     if geojson is None:
         return None
     out = json.loads(json.dumps(geojson))
     for feat in out.get('features', []):
         props = feat.get('properties', {})
-        name = None
-        for f in ['NAME', 'name', 'COUNTY', 'county_name']:
-            if f in props:
-                name = props[f]
-                break
+        # Prefer NAMELSAD (includes designation), fall back to NAME
+        name = props.get('NAMELSAD') or props.get('NAME') or props.get('name')
         if name:
             props['NAME_NORM'] = name.replace(' County', '').strip().upper()
     return out
