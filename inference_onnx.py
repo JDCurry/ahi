@@ -63,7 +63,7 @@ def _load_state_calibration(state_code: str) -> Dict:
     # Temperature scales
     t_path = state_dir / 'temperature_scales.json'
     if t_path.exists():
-        with open(t_path) as f:
+        with open(t_path, encoding="utf-8-sig") as f:
             t_doc = json.load(f)
         temperatures = t_doc.get('temperatures', t_doc)
         temperatures = {h: float(temperatures[h]) for h in HAZARD_TYPES if h in temperatures}
@@ -75,7 +75,7 @@ def _load_state_calibration(state_code: str) -> Dict:
     sb_path = state_dir / 'seasonal_bias.json'
     biases = {h: {m: 0.0 for m in range(1, 13)} for h in HAZARD_TYPES}
     if sb_path.exists():
-        with open(sb_path) as f:
+        with open(sb_path, encoding="utf-8-sig") as f:
             sb_doc = json.load(f)
         for h, monthly in sb_doc.get('biases', {}).items():
             if h in HAZARD_TYPES:
@@ -88,7 +88,7 @@ def _load_state_calibration(state_code: str) -> Dict:
     base_ceiling = {h: 1.0 for h in HAZARD_TYPES}
     seasonal_ceiling = {}
     if bc_path.exists():
-        with open(bc_path) as f:
+        with open(bc_path, encoding="utf-8-sig") as f:
             bc_doc = json.load(f)
         for h, v in bc_doc.get('base_rate_ceiling', {}).items():
             if h in HAZARD_TYPES:
@@ -126,7 +126,7 @@ def _load_county_bias(state_code: str) -> Optional[Dict]:
 
     cb_path = ROOT / 'states' / state_code / 'county_seasonal_bias.json'
     if cb_path.exists():
-        with open(cb_path) as f:
+        with open(cb_path, encoding="utf-8-sig") as f:
             data = json.load(f)
         _COUNTY_BIAS_CACHE[state_code] = data
         print(f"[CALIBRATION] Loaded {state_code} county-level biases "
