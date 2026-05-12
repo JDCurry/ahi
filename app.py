@@ -1961,10 +1961,7 @@ def render_national_choropleth(df: pd.DataFrame, geojson: dict, hazard: str,
         hovertemplate=('<b>%{customdata[1]} County, %{customdata[0]}</b><br>' +
                         f'{HAZARD_NAMES.get(hazard, hazard.title())}: ' +
                         '%{z:.1f}%<extra></extra>'),
-        colorbar=dict(title_text='Risk %',
-                       title_font_color=COLORS['text_secondary'],
-                       tickfont=dict(color=COLORS['text_secondary']),
-                       bgcolor=COLORS['card_bg']),
+        showscale=False,  # colorbar commented out — felt out of place in executive layout
     ))
     fig.update_layout(
         mapbox_style=style['mapbox_style'],
@@ -2039,7 +2036,6 @@ def _render_weather_drivers(wx_data):
 
 
 def page_national():
-    st.markdown("### Adaptive Hazard Intelligence — National")
     st.caption("3,109 CONUS counties · Click anywhere on the map to drill into "
                "county detail without leaving the page.")
 
