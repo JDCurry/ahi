@@ -1,69 +1,55 @@
 {
   "state": "UT",
-  "description": "base_rate_ceiling: hard per-hazard max probability. seasonal_ceiling: month-specific override for strongly seasonal hazards. inference_onnx._get_ceiling() uses seasonal_ceiling[h][m] if present, else base_rate_ceiling[h].",
+  "description": "base_rate_ceiling: hard per-hazard max probability. seasonal_ceiling: month-specific override for strongly seasonal hazards. Recomputed from severity-weighted county base rates.",
   "base_rate_ceiling": {
     "fire": 0.7,
     "flood": 0.7,
     "wind": 0.7,
-    "winter": 0.05,
-    "seismic": 0.25
+    "winter": 0.7,
+    "seismic": 0.7
   },
   "seasonal_ceiling": {
     "fire": {
-      "1": 0.3,
-      "2": 0.35,
-      "3": 0.7,
-      "4": 0.7,
+      "1": 0.05,
+      "2": 0.05,
+      "3": 0.15,
+      "4": 0.25,
+      "5": 0.3,
+      "6": 0.7,
+      "7": 0.7,
+      "8": 0.7,
+      "9": 0.7,
+      "10": 0.15,
+      "11": 0.1,
+      "12": 0.05
+    },
+    "wind": {
+      "1": 0.05,
+      "2": 0.05,
+      "3": 0.1,
+      "4": 0.15,
       "5": 0.7,
       "6": 0.7,
       "7": 0.7,
       "8": 0.7,
       "9": 0.7,
-      "10": 0.7,
-      "11": 0.7,
-      "12": 0.3
-    },
-    "wind": {
-      "1": 0.05,
-      "2": 0.05,
-      "3": 0.05,
-      "4": 0.2,
-      "5": 0.65,
-      "6": 0.7,
-      "7": 0.7,
-      "8": 0.7,
-      "9": 0.55,
-      "10": 0.15,
+      "10": 0.2,
       "11": 0.05,
-      "12": 0.05
-    },
-    "winter": {
-      "1": 0.1,
-      "2": 0.1,
-      "3": 0.1,
-      "4": 0.1,
-      "5": 0.1,
-      "6": 0.1,
-      "7": 0.1,
-      "8": 0.1,
-      "9": 0.1,
-      "10": 0.1,
-      "11": 0.1,
       "12": 0.1
     },
-    "seismic": {
-      "1": 0.25,
-      "2": 0.25,
-      "3": 0.25,
-      "4": 0.25,
-      "5": 0.25,
-      "6": 0.25,
-      "7": 0.25,
-      "8": 0.25,
-      "9": 0.25,
-      "10": 0.25,
-      "11": 0.25,
-      "12": 0.25
+    "winter": {
+      "1": 0.7,
+      "2": 0.7,
+      "3": 0.7,
+      "4": 0.7,
+      "5": 0.3,
+      "6": 0.05,
+      "7": 0.05,
+      "8": 0.05,
+      "9": 0.15,
+      "10": 0.55,
+      "11": 0.7,
+      "12": 0.7
     }
   }
 }

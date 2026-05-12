@@ -41,6 +41,7 @@ STATIC_FEATURE_COLS = [
 # Per-state calibration cache: {state_code: {temperatures, biases, ceilings}}
 # ---------------------------------------------------------------------------
 _STATE_CALIBRATION_CACHE: Dict[str, Dict] = {}
+_COUNTY_BIAS_CACHE:       Dict[str, Dict] = {}   # state_code -> county_seasonal_bias.json
 _REGIONAL_ONNX_CACHE:     Dict[str, object] = {}   # region -> ort.InferenceSession
 _COUNTY_MAP: Dict[str, int] = {}
 _STATE_MAP:  Dict[str, int] = {}
@@ -118,15 +119,71 @@ def _get_ceiling(state_code: str, hazard: str, month: int) -> float:
     return cal['base_ceiling'].get(hazard, 1.0)
 
 
+def _load_county_bias(state_code: str) -> Optional[Dict]:
+    """Load county-level seasonal biases if available."""
+    if state_code in _COUNTY_BIAS_CACHE:
+        return _COUNTY_BIAS_CACHE[state_code]
+
+    cb_path = ROOT / 'states' / state_code / 'county_seasonal_bias.json'
+    if cb_path.exists():
+        with open(cb_path) as f:
+            data = json.load(f)
+        _COUNTY_BIAS_CACHE[state_code] = data
+        print(f"[CALIBRATION] Loaded {state_code} county-level biases "
+              f"({data.get('n_counties', '?')} counties)")
+        return data
+    else:
+        _COUNTY_BIAS_CACHE[state_code] = None
+        return None
+
+
+def _get_county_bias(state_code: str, hazard: str, month: int,
+                      county_name: Optional[str] = None) -> float:
+    """Get seasonal bias, preferring county-level over state-level.
+
+    Lookup order:
+      1. county_seasonal_bias.json[hazard][county][month]  (exact match)
+      2. county_seasonal_bias.json[hazard][county][month]  (case-insensitive)
+      3. seasonal_bias.json[hazard][month]                 (state fallback)
+    """
+    if county_name:
+        cb = _load_county_bias(state_code)
+        if cb and 'biases' in cb:
+            hazard_biases = cb['biases'].get(hazard, {})
+            m_str = str(month)
+
+            # Exact match
+            if county_name in hazard_biases:
+                county_data = hazard_biases[county_name]
+                if m_str in county_data:
+                    return float(county_data[m_str])
+
+            # Case-insensitive fallback
+            county_upper = county_name.upper().replace(' COUNTY', '').strip()
+            for stored_name, monthly in hazard_biases.items():
+                if stored_name.upper().replace(' COUNTY', '').strip() == county_upper:
+                    if m_str in monthly:
+                        return float(monthly[m_str])
+
+    # Fall back to state-level bias
+    cal = _load_state_calibration(state_code)
+    return cal['biases'].get(hazard, {}).get(month, 0.0)
+
+
 def _apply_calibration(state_code: str, raw_logit: float,
-                        hazard: str, month: int) -> float:
-    """Apply state-specific calibration to a single raw logit."""
+                        hazard: str, month: int,
+                        county_name: Optional[str] = None) -> float:
+    """Apply calibration to a single raw logit.
+
+    Uses county-level bias when available (county_seasonal_bias.json),
+    otherwise falls back to statewide bias (seasonal_bias.json).
+    """
     cal = _load_state_calibration(state_code)
 
     T = max(cal['temperatures'].get(hazard, 1.0), 0.01)
     scaled = raw_logit / T
 
-    bias = cal['biases'].get(hazard, {}).get(month, 0.0)
+    bias = _get_county_bias(state_code, hazard, month, county_name)
     scaled += bias
 
     prob = 1.0 / (1.0 + math.exp(-scaled))
@@ -335,7 +392,8 @@ def predict_county_risks_simple(
                                       region_ids, state_ids, nlcd_ids)
         if logits is None:
             return _generate_fallback_risks(county_name)
-        return {h: _apply_calibration(state_code, logits[h], h, month)
+        return {h: _apply_calibration(state_code, logits[h], h, month,
+                                       county_name=county_name)
                 for h in HAZARD_TYPES}
     except Exception as e:
         print(f"[INFERENCE] {state_code}: error predicting for {county_name}: {e}")

@@ -1,55 +1,55 @@
 {
   "state": "AL",
-  "description": "base_rate_ceiling: hard per-hazard max probability. seasonal_ceiling: month-specific override for strongly seasonal hazards. inference_onnx._get_ceiling() uses seasonal_ceiling[h][m] if present, else base_rate_ceiling[h].",
+  "description": "base_rate_ceiling: hard per-hazard max probability. seasonal_ceiling: month-specific override for strongly seasonal hazards. Recomputed from severity-weighted county base rates.",
   "base_rate_ceiling": {
     "fire": 0.35,
-    "flood": 0.5,
+    "flood": 0.7,
     "wind": 0.7,
-    "winter": 0.05,
-    "seismic": 0.1
+    "winter": 0.65,
+    "seismic": 0.7
   },
   "seasonal_ceiling": {
     "fire": {
-      "1": 0.1,
-      "2": 0.3,
+      "1": 0.05,
+      "2": 0.2,
       "3": 0.35,
       "4": 0.25,
       "5": 0.1,
       "6": 0.05,
-      "7": 0.05,
+      "7": 0.2,
       "8": 0.05,
-      "9": 0.1,
-      "10": 0.2,
-      "11": 0.2,
+      "9": 0.2,
+      "10": 0.1,
+      "11": 0.25,
       "12": 0.1
     },
     "wind": {
-      "1": 0.7,
-      "2": 0.7,
-      "3": 0.7,
+      "1": 0.3,
+      "2": 0.45,
+      "3": 0.45,
       "4": 0.7,
       "5": 0.7,
       "6": 0.7,
       "7": 0.7,
       "8": 0.7,
-      "9": 0.7,
-      "10": 0.45,
-      "11": 0.45,
-      "12": 0.7
+      "9": 0.2,
+      "10": 0.2,
+      "11": 0.3,
+      "12": 0.35
     },
     "winter": {
-      "1": 0.1,
-      "2": 0.1,
-      "3": 0.05,
+      "1": 0.65,
+      "2": 0.45,
+      "3": 0.15,
       "4": 0.05,
-      "5": 0.05,
+      "5": 0.1,
       "6": 0.05,
       "7": 0.05,
       "8": 0.05,
-      "9": 0.05,
-      "10": 0.05,
+      "9": 0.1,
+      "10": 0.15,
       "11": 0.05,
-      "12": 0.05
+      "12": 0.15
     }
   }
 }
