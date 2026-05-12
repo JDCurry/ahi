@@ -69,8 +69,8 @@ if not _DEPLOYED:
     st.error("No states are marked `deployed: true` in states/registry.yaml.")
     st.stop()
 
-# Default to CO if available, else first deployed state
-_DEFAULT_STATE = 'CO' if 'CO' in _DEPLOYED else _DEPLOYED[0]
+# Default to first state alphabetically by name
+_DEFAULT_STATE = sorted(_DEPLOYED, key=lambda c: _REGISTRY[c]['name'])[0]
 
 with st.sidebar:
     st.markdown("### State")
@@ -718,7 +718,8 @@ def load_geojson(state_code: str):
 
 
 def _normalize_geojson_names(geojson):
-    """Add a normalized 'NAME_NORM' property for consistent lookup."""
+    """Add a normalized 'NAME_NORM' property for consistent lookup.
+    Uses UPPER-CASE so matching is case-insensitive (fixes DC, etc.)."""
     if geojson is None:
         return None
     out = json.loads(json.dumps(geojson))
@@ -730,7 +731,7 @@ def _normalize_geojson_names(geojson):
                 name = props[f]
                 break
         if name:
-            props['NAME_NORM'] = name.replace(' County', '').strip()
+            props['NAME_NORM'] = name.replace(' County', '').strip().upper()
     return out
 
 
@@ -1022,14 +1023,15 @@ def _auto_zoom_from_coords(county_coords):
     lats = [c[0] for c in coords]
     lons = [c[1] for c in coords]
     center = {'lat': sum(lats) / len(lats), 'lon': sum(lons) / len(lons)}
-    max_range = max(max(lats) - min(lats), max(lons) - min(lons), 0.1)
-    if max_range > 15:   zoom = 3.5
-    elif max_range > 10: zoom = 4.0
-    elif max_range > 6:  zoom = 5.0
-    elif max_range > 3:  zoom = 5.8
+    max_range = max(max(lats) - min(lats), max(lons) - min(lons), 0.01)
+    if max_range > 15:    zoom = 3.5
+    elif max_range > 10:  zoom = 4.0
+    elif max_range > 6:   zoom = 5.0
+    elif max_range > 3:   zoom = 5.8
     elif max_range > 1.5: zoom = 6.5
     elif max_range > 0.5: zoom = 7.5
-    else:                zoom = 8.5
+    elif max_range > 0.1: zoom = 8.5
+    else:                 zoom = 10.5   # very small areas (DC, single county)
     return center, zoom
 
 
@@ -1046,7 +1048,8 @@ def render_statewide_choropleth(df, hazard_key, hazard_label,
     col_name = f"{hazard_key}_p"
 
     plot_df = df.copy()
-    plot_df['county_norm'] = plot_df['county'].str.replace(' County', '').str.strip()
+    plot_df['county_norm'] = plot_df['county'].str.replace(' County', '').str.strip().str.upper()
+    plot_df['_display'] = plot_df['county'].apply(_county_display_name)
     plot_df['pct'] = plot_df[col_name] * 100
 
     style = _NATIONAL_TILE_STYLES.get(map_style, _NATIONAL_TILE_STYLES['Dark'])
@@ -1074,7 +1077,8 @@ def render_statewide_choropleth(df, hazard_key, hazard_label,
             bgcolor=COLORS['card_bg'],
             thickness=12, len=0.6,
         ),
-        hovertemplate="<b>%{location} County</b><br>" + hazard_label + ": %{z:.1f}%<extra></extra>",
+        customdata=plot_df[['_display']].values,
+        hovertemplate="<b>%{customdata[0]}</b><br>" + hazard_label + ": %{z:.1f}%<extra></extra>",
     ))
 
     center, zoom = _auto_zoom_from_coords(county_coords)
@@ -1100,7 +1104,8 @@ def render_county_spotlight_map(selected_county, risks, target_date,
         st.info(f"GeoJSON not available for {state_code}.")
         return
 
-    selected_norm = selected_county.replace(' County', '').strip()
+    selected_norm = selected_county.replace(' County', '').strip().upper()
+    selected_display = _county_display_name(selected_county.replace(' County', '').strip())
 
     ordered_hazards = sorted(
         [('Fire', 'fire'), ('Flood', 'flood'), ('Wind', 'wind'),
@@ -1146,7 +1151,7 @@ def render_county_spotlight_map(selected_county, risks, target_date,
         marker_line_color='#4a5568',
         marker_line_width=0.5,
         marker_opacity=0.5,
-        hovertemplate="<b>%{location} County</b><extra></extra>",
+        hovertemplate="<b>%{location}</b><extra></extra>",
     ))
 
     # Selected county (highlighted)
@@ -1161,7 +1166,7 @@ def render_county_spotlight_map(selected_county, risks, target_date,
         marker_line_color='#fbbf24',
         marker_line_width=2,
         marker_opacity=0.9,
-        hovertemplate=f"<b>{selected_norm} County</b><br>{hazard_choice}: %{{z:.1f}}%<extra></extra>",
+        hovertemplate=f"<b>{selected_display}</b><br>{hazard_choice}: %{{z:.1f}}%<extra></extra>",
     ))
 
     center, zoom = _auto_zoom_from_coords(county_coords)
@@ -1200,10 +1205,7 @@ def page_quick_predict():
         )
     cr_ctx = _load_state_context(cr_state)
     with col_county:
-        default_idx = 0
-        if cr_state == 'CO' and 'El Paso' in cr_ctx.counties:
-            default_idx = cr_ctx.counties.index('El Paso')
-        selected_county = st.selectbox("Select County", cr_ctx.counties, index=default_idx)
+        selected_county = st.selectbox("Select County", cr_ctx.counties, index=0)
     with col_hz:
         forecast_horizon = st.selectbox("Forecast Window",
                                          options=[14, 30], index=0,
@@ -1233,7 +1235,7 @@ def page_quick_predict():
         <div style="display: flex; gap: 32px; flex-wrap: wrap;">
             <div>
                 <div style="color: {COLORS['text_tertiary']}; font-size: 0.85em;">Location</div>
-                <div style="color: {COLORS['text_primary']}; font-size: 1.1em; font-weight: 600;">{selected_county} County, {cr_ctx.state_name}</div>
+                <div style="color: {COLORS['text_primary']}; font-size: 1.1em; font-weight: 600;">{_county_display_name(selected_county)}, {cr_ctx.state_name}</div>
             </div>
             <div>
                 <div style="color: {COLORS['text_tertiary']}; font-size: 0.85em;">Forecast Date</div>
@@ -1933,6 +1935,14 @@ _NATIONAL_TILE_STYLES = {
 }
 
 
+def _county_display_name(name: str) -> str:
+    """Return full display name: 'King' → 'King County', but 'Iberia Parish' stays as-is."""
+    for suffix in (' Parish', ' City', ' Borough', ' Census Area', ' Municipality'):
+        if name.endswith(suffix):
+            return name
+    return f'{name} County'
+
+
 def render_national_choropleth(df: pd.DataFrame, geojson: dict, hazard: str,
                                 map_style: str = 'Dark', height: int = 620):
     """Plotly choropleth of CONUS counties colored by selected hazard."""
@@ -1940,6 +1950,7 @@ def render_national_choropleth(df: pd.DataFrame, geojson: dict, hazard: str,
     df = df.copy()
     df['_id'] = df['state'] + '|' + df['county_id']
     df['pct'] = df[col] * 100
+    df['_display'] = df['county'].apply(_county_display_name)
 
     style = _NATIONAL_TILE_STYLES.get(map_style, _NATIONAL_TILE_STYLES['Dark'])
 
@@ -1957,8 +1968,8 @@ def render_national_choropleth(df: pd.DataFrame, geojson: dict, hazard: str,
         marker_line_width=0.4,
         marker_line_color=style['border'],
         marker_opacity=style['opacity'],
-        customdata=df[['state', 'county']].values,
-        hovertemplate=('<b>%{customdata[1]} County, %{customdata[0]}</b><br>' +
+        customdata=df[['state', '_display']].values,
+        hovertemplate=('<b>%{customdata[1]}, %{customdata[0]}</b><br>' +
                         f'{HAZARD_NAMES.get(hazard, hazard.title())}: ' +
                         '%{z:.1f}%<extra></extra>'),
         showscale=False,  # colorbar commented out — felt out of place in executive layout
@@ -2118,9 +2129,10 @@ def page_national():
                 level, _ = risk_level(row['max_p'])
                 pcolor = COLORS.get(primary, COLORS['primary_light'])
 
+                display_name = _county_display_name(row['county'].title())
                 st.markdown(
                     f"<h2 style='margin:0 0 4px 0; color:{COLORS['text_primary']};'>"
-                    f"{row['county'].title()}, {row['state']}</h2>",
+                    f"{display_name}, {row['state']}</h2>",
                     unsafe_allow_html=True)
                 st.markdown(
                     f"<div style='color:{COLORS['text_secondary']}; margin-bottom:16px;'>"
