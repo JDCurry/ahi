@@ -1119,19 +1119,19 @@ def render_county_spotlight_map(selected_county, risks, target_date,
     selected_norm = selected_county.replace(' County', '').strip().upper()
     selected_display = _county_display_name(selected_county.replace(' County', '').strip())
 
-    ordered_hazards = sorted(
-        [(HAZARD_NAMES[h], h) for h in DISPLAY_HAZARDS],
-        key=lambda kv: risks.get(kv[1], 0.0),
+    ordered_hazard_keys = sorted(
+        DISPLAY_HAZARDS,
+        key=lambda h: risks.get(h, 0.0),
         reverse=True
     )
-    hazard_options = [label for label, _ in ordered_hazards]
 
     hazard_choice = st.selectbox(
         "Overlay hazard (ranked by this county's risk)",
-        hazard_options,
+        ordered_hazard_keys,
+        format_func=lambda h: HAZARD_NAMES.get(h, h.title()),
         key='county_hazard_select'
     )
-    hkey = hazard_choice.lower()
+    hkey = hazard_choice
     sel_prob = risks.get(hkey, 0.0) * 100
 
     all_names = []
@@ -1472,7 +1472,8 @@ def page_state_overview():
     with mc1:
         hazard_choice = st.selectbox(
             "Hazard layer",
-            [HAZARD_NAMES[h] for h in DISPLAY_HAZARDS], index=0,
+            DISPLAY_HAZARDS, index=0,
+            format_func=lambda h: HAZARD_NAMES.get(h, h.title()),
             key='state_overview_hazard_map',
         )
     with mc2:
@@ -1483,7 +1484,7 @@ def page_state_overview():
             key='state_map_style',
         )
     render_statewide_choropleth(
-        df, hazard_choice.lower(), hazard_choice,
+        df, hazard_choice, HAZARD_NAMES.get(hazard_choice, hazard_choice.title()),
         state_code=sel_state,
         county_coords=state_ctx.county_coords,
         map_style=state_map_style,
@@ -1553,9 +1554,10 @@ def page_statewide():
 
     hazard_choice = st.selectbox(
         "Select hazard to display on map",
-        [HAZARD_NAMES[h] for h in DISPLAY_HAZARDS], index=0
+        DISPLAY_HAZARDS, index=0,
+        format_func=lambda h: HAZARD_NAMES.get(h, h.title()),
     )
-    render_statewide_choropleth(df, hazard_choice.lower(), hazard_choice,
+    render_statewide_choropleth(df, hazard_choice, HAZARD_NAMES.get(hazard_choice, hazard_choice.title()),
                                 state_code=ctx.state_code,
                                 county_coords=ctx.county_coords)
 
