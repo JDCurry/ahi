@@ -3,7 +3,7 @@ AHI — Adaptive Hazard Intelligence Platform
 Multi-state demonstration dashboard.
 Resilience Analytics Lab, LLC
 
-AHI v2.5 — stacked mesh transformer with regional model architecture.
+AHI v2.5 — multi-hazard risk prediction with regional model architecture.
 State-aware: select state from sidebar; UI content + calibration loaded
 from states/<XX>/config.yaml and states/registry.yaml.
 """
@@ -1267,7 +1267,7 @@ def page_quick_predict():
             return
         status.info("Extracting county features…")
         hazard_df = load_hazard_data(cr_state)
-        status.info("Running temporal + spatial mesh inference…")
+        status.info("Running model inference…")
         risks, err = None, None
         try:
             from inference_onnx import predict_county_risks_simple as _predict
@@ -1702,18 +1702,12 @@ def page_model_info():
 
     **The core problem it solves:** Weather sequences (temperature, wind, precipitation) evolve on a
     fast timescale (days), while spatial correlations (fire spread, downstream flooding, storm tracks)
-    operate on a slow timescale (weeks/seasons). A single attention stack cannot efficiently extract both.
+    operate on a slow timescale (weeks/seasons). AHI uses a proprietary multi-mesh architecture to
+    decompose these timescales and learn hazard-specific patterns from 25 years of historical data.
 
-    **How it works (stacked mesh architecture):**
-    1. **Temporal Mesh** — 3-layer transformer with **heat kernel diffusion attention** learns per-hazard memory horizons (fire needs ~3 months of context, flood needs ~1 week)
-    2. **Spatial Mesh** — 2-layer transformer with **standard softmax attention** + county adjacency masking captures cross-county correlations (wildfire spread, downstream flooding, storm tracks)
-    3. **Gated Coupling** — A learned gate blends temporal and spatial representations, starting near-zero and growing as the spatial signal proves useful during training
-    4. **MMA Bias Field** — Multi-Modal Attention routes different feature types (weather, geography, land cover) through type-aware attention biases
-
-    **v2.5 improvement:** Replaces hardcoded seasonal penalty functions with a **Learned Seasonal Bias** module
-    — a trainable 5×12 parameter matrix (one weight per hazard per month) that the model optimizes during training.
-    This allows the model to independently discover regional seasonal structure without manual per-state configuration,
-    enabling scalable deployment across all CONUS states.
+    **v2.5** introduces a learned seasonal bias module that allows the model to independently discover
+    regional seasonal structure from data, enabling scalable deployment across all CONUS states without
+    manual per-state configuration.
     """)
 
     st.markdown("---")
@@ -1721,7 +1715,7 @@ def page_model_info():
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Model", "AHI v2.5")
     col2.metric("Parameters", "~1.3M per region")
-    col3.metric("Attention", "Heat Kernel + Softmax")
+    col3.metric("Architecture", "Proprietary")
     col4.metric("Status", "Online")
 
     col5, col6, col7, col8 = st.columns(4)
@@ -1732,12 +1726,11 @@ def page_model_info():
 
     # ---- Regional Model Overview ----
     st.markdown("---")
-    st.markdown("### Regional Model Architecture")
+    st.markdown("### Regional Model Deployment")
     st.markdown("""
-    AHI deploys **9 regional ONNX models**, each trained on states with similar climate, geography, and
+    AHI deploys **9 regional models**, each trained on states with similar climate, geography, and
     hazard profiles. Every state within a region shares the same model weights but receives
-    **per-state calibration** (temperature scaling + seasonal bias + base-rate ceilings) to match
-    local historical hazard frequencies.
+    **per-state calibration** to match local historical hazard frequencies.
     """)
 
     _region_info = {
@@ -1761,46 +1754,29 @@ def page_model_info():
         })
     st.dataframe(pd.DataFrame(region_rows), use_container_width=True, hide_index=True)
 
-    st.markdown("### Architecture")
+    st.markdown("### Model Capabilities")
     st.markdown("""
-    | Component | Details | What it does |
-    |-----------|---------|--------------|
-    | **Multi-Modal Embedding** | MLP, 128 dim, 50 static + 14×20 temporal | Encodes weather, geography, land cover into a unified representation |
-    | **Temporal Mesh** | 3-layer transformer, **heat kernel diffusion**, 4 heads | Learns per-hazard memory horizons — fire needs ~3mo, flood ~1wk |
-    | **Spatial Mesh** | 2-layer transformer, **standard softmax**, 4 heads | Captures cross-county correlations using k=5 nearest-neighbor adjacency |
-    | **Gated Coupling** | `temporal + gate * proj(spatial)`, gate init 0.01 | Blends spatial signal into temporal — gate frozen for 3 warmup epochs |
-    | **MMA Bias Field** | 3-channel low-rank (rank=8) attention bias | Routes heterogeneous feature types through type-aware attention |
-    | **Per-Hazard LoRA** | Low-rank adaptation (rank 16) per hazard, per layer | Hazard-specific fine-tuning without duplicating the full model |
-    | **Cross-Hazard Interaction** | Physics-informed 5×5 mixing matrix | Models dependencies between correlated hazards |
-    | **Prediction Heads** | 5 independent heads (128 → 64 → 32 → 1) | Calibrated logistic predictors per hazard type |
-    """)
-
-    st.markdown("### Training Configuration")
-    st.markdown("""
-    | Setting | Value | Purpose |
-    |---------|-------|---------|
-    | **Loss Function** | Focal loss (γ=2.0, α=0.75) | Down-weights easy negatives to handle severe class imbalance |
-    | **Seasonal Bias** | Learned 5×12 parameter matrix (v2.5) | Replaces hardcoded penalties; model learns regional seasonal structure from data |
-    | **Batching** | Date-grouped (all counties in region per batch) | Ensures spatial mesh sees coherent county snapshots |
-    | **Coupling Warmup** | Gate frozen at 0.01 for 3 epochs | Prevents spatial noise from disrupting early training |
-    | **Optimizer** | AdamW (lr=1e-4, weight_decay=0.05) | Aggressive regularization for small dataset |
-    | **Scheduler** | OneCycleLR with 10% warmup | Gradual warm-up prevents early-training instability |
-    | **Early Stopping** | Patience=7 on val AUC | Spatial mesh needs time to learn geographic gradients |
-    | **Train/Val/Test Split** | Temporal: 80/10/10 by date | Prevents temporal leakage — model never sees future data |
+    | Capability | Description |
+    |-----------|-------------|
+    | **Multi-modal input** | Ingests weather, geography, and land cover features into a unified representation |
+    | **Temporal learning** | Learns hazard-specific memory horizons from historical sequences |
+    | **Spatial awareness** | Captures cross-county correlations (fire spread, downstream flooding, storm tracks) |
+    | **Hazard specialization** | Per-hazard adaptation without duplicating the full model |
+    | **Cross-hazard modeling** | Models physical dependencies between correlated hazard types |
+    | **Calibrated output** | Per-hazard prediction heads with post-hoc calibration per state |
     """)
 
     # ---- Reference Performance: Colorado ----
     st.markdown("---")
     st.markdown("### Reference Performance — Colorado (Held-out Test Set)")
-    st.caption("Colorado serves as the primary benchmark: 64 counties with a clear elevation gradient "
-               "that gives the spatial mesh a strong geographic signal.")
+    st.caption("Colorado serves as the primary benchmark: 64 counties with a clear elevation gradient.")
 
     co_data = [
-        {"Hazard": "Winter",  "AUC": 0.963, "Quality": "Excellent", "Notes": "Best performer. Clear elevation gradient gives spatial mesh strong signal."},
+        {"Hazard": "Winter",  "AUC": 0.963, "Quality": "Excellent", "Notes": "Best performer — strong elevation-driven seasonal signal."},
         {"Hazard": "Flood",   "AUC": 0.891, "Quality": "Excellent", "Notes": "Bimodal seasonal pattern (snowmelt + monsoon) well-captured."},
-        {"Hazard": "Seismic", "AUC": 0.887, "Quality": "Excellent", "Notes": "Front Range induced seismicity spatially tight → strong spatial signal."},
-        {"Hazard": "Fire",    "AUC": 0.857, "Quality": "Excellent", "Notes": "Western Slope + foothills WUI fire patterns learned well."},
-        {"Hazard": "Wind",    "AUC": 0.817, "Quality": "Excellent", "Notes": "Chinook corridor captured; high-plains diffuse wind harder to localize."},
+        {"Hazard": "Seismic", "AUC": 0.887, "Quality": "Excellent", "Notes": "Front Range induced seismicity spatially concentrated."},
+        {"Hazard": "Fire",    "AUC": 0.857, "Quality": "Excellent", "Notes": "Western Slope + foothills fire patterns learned well."},
+        {"Hazard": "Wind",    "AUC": 0.817, "Quality": "Excellent", "Notes": "Chinook corridor captured; diffuse plains wind harder to localize."},
     ]
     st.dataframe(pd.DataFrame(co_data), use_container_width=True, hide_index=True)
 
@@ -1844,18 +1820,14 @@ def page_model_info():
     st.markdown("""
     **Calibration** means predicted probabilities match real-world frequencies. If the model says 10% fire risk,
     fires should occur roughly 10% of the time in those conditions. AHI v2.5 uses a **per-state calibration
-    pipeline** with three stages:
+    pipeline** to ensure locally meaningful predictions:
 
-    1. **Temperature scaling** — Per-hazard T values fitted by NLL optimization on each state's validation set.
-       Lower T sharpens predictions (more confident), higher T softens them. All T values < 1.0 indicate
-       the raw model is already well-calibrated.
-    2. **Seasonal logit bias** — Learned 5×12 parameter matrix adjusts predictions based on regional
-       climatology (e.g., fire season Jun–Sep in the West, hurricane season Jun–Nov in the Southeast).
-    3. **Base-rate ceilings** — Caps predictions at historical plausibility limits to prevent overconfident
-       outputs in counties with sparse hazard history.
+    - **Temperature scaling** — Per-hazard confidence adjustment fitted on each state's validation set
+    - **Seasonal bias** — Regional climatology adjustments (fire season, hurricane season, etc.)
+    - **Severity-weighted base rates** — County-level rates weighted by event magnitude (wind speed, fire acreage, winter event type)
+    - **Base-rate ceilings** — Caps predictions at historical plausibility limits
 
-    Each state receives its own calibration parameters stored in `states/<XX>/calibration.json` and
-    `states/<XX>/seasonal_bias.json`, ensuring predictions are locally meaningful.
+    Each state receives its own calibration parameters, ensuring predictions are locally meaningful.
     """)
 
     st.markdown("---")
@@ -1863,22 +1835,19 @@ def page_model_info():
 
     st.markdown("**Current (AHI v2.5 — CONUS Deployment)**")
     st.markdown("""
-    - 9 regional ONNX models serving 48 states + DC (3,109 counties)
-    - Stacked mesh architecture: temporal mesh (heat kernel) + spatial mesh (softmax + adjacency) + gated coupling
-    - Learned Seasonal Bias module (5×12 trainable matrix) discovers regional seasonal structure from data
-    - Per-state calibration: temperature scaling + seasonal bias + base-rate ceilings
+    - 9 regional models serving 48 states + DC (3,109 counties)
+    - Proprietary multi-mesh architecture with per-state calibration
+    - Severity-weighted calibration for fire (acreage), wind (gust speed), and winter (event type)
     - Relative risk tiers contextualize predictions against historical base rates per state
     - Precomputed national predictions for instant page load
     """)
 
     st.markdown("**Planned / Future Work**")
     st.markdown("""
-    - Integrate real-time weather feeds (NWS/NOAA APIs) for operational nowcasts — **core SBIR Phase I deliverable**
-    - Per-region k-fold cross-validation for temperature scaling refinement
-    - Add Monte Carlo Dropout uncertainty quantification for prediction intervals
-    - Severity thresholds for wind/flood labels (distinguish EF0 from EF3+, minor from major flood)
+    - Integrate real-time weather feeds (NWS/NOAA APIs) for operational nowcasts
+    - Uncertainty quantification for prediction intervals
     - Alaska and Hawaii coverage (non-CONUS)
-    - Build continual learning pipeline with scheduled model retraining as new storm events accumulate
+    - Continual learning pipeline with scheduled model retraining
     """)
 
     st.markdown("---")
@@ -2226,7 +2195,7 @@ def page_about():
         <p style="color: {COLORS['text_primary']}; line-height: 1.7;">
         AHI is a calibrated, multi-hazard risk prediction system deployed across the contiguous United States.
         It predicts the likelihood of five natural hazard types — wildfire, flood, wind, winter storm, and
-        seismic — at the county level using a stacked diffusion mesh transformer trained on 25 years of
+        seismic — at the county level using a proprietary deep learning architecture trained on 25 years of
         historical data. AHI currently covers <strong>3,109 counties</strong> across <strong>48 states and DC</strong>
         through 9 regional models with per-state calibration.
         </p>
@@ -2243,38 +2212,31 @@ def page_about():
     - Curry, J.D. (2026). *Simplicial Computation: Topology as Control in Heterogeneous Attention.* SSRN 6037977.
     """)
 
-    st.markdown("### Key Innovations")
+    st.markdown("### Key Capabilities")
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("""
-        **Stacked Mesh Architecture**
-        - Separates fast temporal dynamics from slow spatial correlations
-        - Resolves timescale incompatibility (τ*-incompatibility) proven in Simplicial Computation paper
-        - Gated coupling prevents catastrophic interference between meshes
-
-        **Date-Grouped Batching**
-        - All counties in a region presented per training step
-        - Enables coherent spatial attention learning across geographic gradients
-        - Key discovery: random batching produces gate ≈ 0 (spatial mesh ignored)
+        **Multi-Hazard Prediction**
+        - Five hazard types from a single unified architecture
+        - 25 years of historical training data (2000–2025)
+        - Severity-weighted calibration reflects actual event impact
 
         **Regional Model Strategy**
         - 9 climate-coherent regions serving 48 states + DC
-        - Same architecture, region-specific weights
-        - Per-state calibration ensures locally meaningful predictions
+        - Region-specific weights with per-state calibration
+        - Locally meaningful predictions for every county
         """)
     with col2:
         st.markdown("""
-        **Per-State Calibration Pipeline**
-        - Per-hazard temperature scaling fitted on each state's validation set
-        - Learned seasonal logit bias (5×12 matrix) captures regional climatology
-        - Base-rate ceilings prevent overconfident predictions
-        - Relative risk tiers contextualize predictions against historical norms
+        **Per-State Calibration**
+        - Per-hazard confidence adjustment for each state
+        - Severity-weighted base rates (wind speed, fire acreage, winter event type)
+        - Historical plausibility ceilings prevent overconfident predictions
 
         **Clean Label Engineering**
-        - 3-day event window (vs. 30-day which created 97.7% false positive rate)
         - Strict county-level geographic matching across all CONUS
         - Multiple source cross-validation (NOAA, WFIGS, USGS, FEMA)
-        - Seasonal label separation (spring snowmelt vs. monsoon floods, etc.)
+        - Severity normalization: routine events weighted differently than catastrophic ones
         """)
 
     st.markdown("---")
