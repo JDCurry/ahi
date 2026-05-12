@@ -273,7 +273,9 @@ def generate_audit_report(county: str, forecast_date_str: str,
     except Exception:
         month, season, date_display, month_name = 4, 'spring', forecast_date_str, 'April'
 
-    ranked = sorted(risks.items(), key=lambda x: x[1], reverse=True)
+    # Filter to display hazards only (excludes seismic for now)
+    display_risks = {h: risks[h] for h in DISPLAY_HAZARDS if h in risks}
+    ranked = sorted(display_risks.items(), key=lambda x: x[1], reverse=True)
     primary_key, primary_score = ranked[0]
     second_key,  second_score  = ranked[1] if len(ranked) > 1 else ('', 0.0)
     margin = primary_score - second_score
@@ -312,16 +314,9 @@ def generate_audit_report(county: str, forecast_date_str: str,
         f"Historical {month_name} patterns for {primary_name.lower()} risk in {ctx.state_name} informed this prediction.",
     )
 
-    if primary_key == 'seismic':
-        factors = [
-            {"factor": "Geographic risk baseline",
-             "explanation": seasonal_text},
-            {"factor": "Model limitation",
-             "explanation": "AHI cannot predict individual earthquake events. "
-                            "The seismic value is a calibrated long-run background risk reflecting "
-                            "Front Range fault proximity and induced seismicity history. "
-                            "Cross-reference USGS hazard maps for authoritative seismic exposure data."},
-        ]
+    # NOTE: seismic branch removed — seismic is excluded from DISPLAY_HAZARDS
+    if False:  # was: primary_key == 'seismic'
+        factors = []
     else:
         factors = [
             {"factor": "Seasonal pattern",
@@ -803,7 +798,6 @@ def predict_single_county(county_name, target_date):
 
 
 def predict_all_counties(target_date, progress_callback=None):
-    hazards = ['fire', 'flood', 'wind', 'winter', 'seismic']
     rows = []
     for i, county in enumerate(COUNTIES):
         if progress_callback:
@@ -811,7 +805,7 @@ def predict_all_counties(target_date, progress_callback=None):
         risks, err = predict_single_county(county, target_date)
         if risks:
             row = {'county': county, 'date': str(target_date)}
-            for h in hazards:
+            for h in DISPLAY_HAZARDS:
                 row[f'{h}_p'] = risks.get(h, 0.0)
             rows.append(row)
     return pd.DataFrame(rows) if rows else None
@@ -856,7 +850,7 @@ def predict_all_national(month: int):
 
     Falls back to live inference if no precomputed file exists (slow).
     Returns DataFrame with columns:
-        state, county, county_id, fire_p, flood_p, wind_p, winter_p, seismic_p,
+        state, county, county_id, fire_p, flood_p, wind_p, winter_p,
         max_p, max_hazard
     """
     csv_path = Path(f'data/national_predictions_month{month:02d}.csv')
@@ -954,8 +948,9 @@ def render_primary_risk_callout(risks):
 
 def render_hazard_cards(risks):
     """Ranked hazard probability cards."""
-    sorted_hazards = sorted(risks.items(), key=lambda x: x[1], reverse=True)
-    cols = st.columns(5)
+    display_risks = {h: risks[h] for h in DISPLAY_HAZARDS if h in risks}
+    sorted_hazards = sorted(display_risks.items(), key=lambda x: x[1], reverse=True)
+    cols = st.columns(len(sorted_hazards))
     for i, (col, (hazard, prob)) in enumerate(zip(cols, sorted_hazards)):
         pct = f"{prob * 100:.1f}%"
         color = COLORS.get(hazard, COLORS['primary'])
@@ -971,7 +966,8 @@ def render_hazard_cards(risks):
 
 
 def render_risk_summary(risks, county=''):
-    sorted_risks = sorted(risks.items(), key=lambda x: x[1], reverse=True)
+    display_risks = {h: risks[h] for h in DISPLAY_HAZARDS if h in risks}
+    sorted_risks = sorted(display_risks.items(), key=lambda x: x[1], reverse=True)
     st.markdown("#### Top Hazards — Recommended Actions")
     for hazard, prob in sorted_risks[:3]:
         level, interpretation = risk_level(prob)
@@ -1365,7 +1361,7 @@ def page_state_overview():
                     continue
                 if risks:
                     row = {'county': county, 'date': str(target_date)}
-                    for h in ['fire', 'flood', 'wind', 'winter', 'seismic']:
+                    for h in DISPLAY_HAZARDS:
                         row[f'{h}_p'] = risks.get(h, 0.0)
                     rows.append(row)
             if rows:
@@ -1747,7 +1743,7 @@ def page_model_info():
         'mountain_west':   {'states': ['AZ', 'ID', 'MT', 'NM', 'NV', 'UT', 'WY'], 'desc': 'Arid/semi-arid fire, monsoon, mountain winter storms'},
         'northeast':       {'states': ['CT', 'DC', 'DE', 'MA', 'MD', 'ME', 'NH', 'NJ', 'NY', 'PA', 'RI', 'VA', 'VT'], 'desc': "Nor'easters, coastal flooding, ice storms"},
         'northern_plains': {'states': ['IA', 'MN', 'MO', 'ND', 'SD', 'WI'], 'desc': 'Blizzards, prairie fire, spring flooding'},
-        'pacific':         {'states': ['CA'], 'desc': 'Wildfire, atmospheric rivers, seismic (San Andreas + Cascadia)'},
+        'pacific':         {'states': ['CA'], 'desc': 'Wildfire, atmospheric rivers, coastal flooding'},
         'pnw':             {'states': ['OR', 'WA'], 'desc': 'Atmospheric rivers, Cascadia subduction, PNW wildfire'},
         'southeast_gulf':  {'states': ['AL', 'AR', 'FL', 'GA', 'LA', 'MS', 'NC', 'SC'], 'desc': 'Hurricanes, Gulf moisture, severe convective storms'},
         'southern_plains': {'states': ['KS', 'NE', 'OK', 'TX'], 'desc': 'Tornado alley, prairie fire, flash flooding'},
