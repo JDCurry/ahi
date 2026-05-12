@@ -2,11 +2,18 @@
 
 **Resilience Analytics Lab, LLC**
 
+[![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-ahi.run-4caf7d?style=flat-square)](https://ahi.run)
+[![License: MIT](https://img.shields.io/badge/License-MIT-gray?style=flat-square)](LICENSE)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776ab?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![Deployed on Render](https://img.shields.io/badge/Deployed%20on-Render-46e3b7?style=flat-square)](https://render.com)
+
+[![AHI Dashboard](assets/dashboard.png)](https://ahi.run)
+
 ---
 
 ## Overview
 
-AHI is a calibrated, multi-hazard risk prediction system deployed across the contiguous United States. It produces daily risk probabilities for five hazard types — wildfire, flood, wind, winter storm, and seismic — at the county level using a proprietary deep learning architecture trained on 25 years of historical weather, climate, and hazard event data.
+AHI is a calibrated, multi-hazard risk prediction system deployed across the contiguous United States. It produces daily risk probabilities for four hazard types — wildfire, flood, wind, and winter storm — at the county level using a proprietary deep learning architecture trained on 25 years of historical weather, climate, and hazard event data.
 
 The system supports emergency management decision-making at the county and regional level, providing actionable risk tiers, audit-ready outputs, and a structured decision support interface.
 
@@ -30,7 +37,6 @@ The system supports emergency management decision-making at the county and regio
 |---|---|
 | NOAA GridMET | Daily weather (temperature, humidity, wind, precipitation, fire weather), 2000–2025 |
 | WFIGS Wildland Fire Locations | Historical wildfire records, all CONUS states |
-| USGS Earthquake Catalog | Seismic events, national catalog (M ≥ 2.0) |
 | NOAA Storm Events Database | Flood, wind, winter storm records |
 | FEMA Disaster Declarations | County-level disaster records |
 
