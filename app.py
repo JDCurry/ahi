@@ -173,7 +173,7 @@ def _load_base_rates(state_code: str) -> dict:
     if not p.exists():
         return {}
     try:
-        with open(p) as f:
+        with open(p, encoding='utf-8-sig') as f:
             doc = json.load(f)
         return doc.get('base_rates', {})
     except Exception:
@@ -717,7 +717,7 @@ def load_geojson(state_code: str):
     """Load the active state's county GeoJSON (states/<XX>/counties.geojson)."""
     path = Path(f'states/{state_code}/counties.geojson')
     if path.exists():
-        with open(path) as f:
+        with open(path, encoding='utf-8-sig') as f:
             return json.load(f)
     return None
 
@@ -837,7 +837,7 @@ def load_national_geojson():
     p = Path('data/national_counties.geojson')
     if not p.exists():
         return None
-    with open(p) as f:
+    with open(p, encoding='utf-8-sig') as f:
         return json.load(f)
 
 
