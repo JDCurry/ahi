@@ -215,6 +215,8 @@ def _get_onnx_session(region: str):
             opts = ort.SessionOptions()
             opts.inter_op_num_threads = 1
             opts.intra_op_num_threads = 1
+            opts.enable_cpu_mem_arena = False   # reduce retained memory on Render
+            opts.enable_mem_pattern = False
             session = ort.InferenceSession(
                 str(p), sess_options=opts, providers=['CPUExecutionProvider']
             )

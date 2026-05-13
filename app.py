@@ -697,7 +697,7 @@ def load_v2_model(region: str):
     return None, None, False
 
 
-@st.cache_data
+@st.cache_data(ttl=3600, max_entries=5, show_spinner=False)
 def load_hazard_data(state_code: str):
     """Load the active state's inference parquet (states/<XX>/inference_data.parquet)."""
     path = Path(f'states/{state_code}/inference_data.parquet')
@@ -705,11 +705,14 @@ def load_hazard_data(state_code: str):
         df = pd.read_parquet(path)
         if 'date' in df.columns:
             df['date'] = pd.to_datetime(df['date'])
+        # Downcast float64 → float32 to save ~50% RAM per DataFrame
+        for col in df.select_dtypes(include=['float64']).columns:
+            df[col] = df[col].astype('float32')
         return df
     return None
 
 
-@st.cache_data
+@st.cache_data(ttl=3600, max_entries=5, show_spinner=False)
 def load_geojson(state_code: str):
     """Load the active state's county GeoJSON (states/<XX>/counties.geojson)."""
     path = Path(f'states/{state_code}/counties.geojson')
@@ -844,7 +847,7 @@ def load_national_geojson():
 # One CSV per month: data/national_predictions_month05.csv, etc.
 # ---------------------------------------------------------------------------
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(ttl=3600, max_entries=3, show_spinner=False)
 def predict_all_national(month: int):
     """Load precomputed national predictions for a given month.
 
@@ -1342,8 +1345,9 @@ def page_state_overview():
                f"Use the **County Risk Assessment** tab for specific date forecasts.")
 
     # ---- Run predictions for all counties ----
-    cache_key = f'state_overview_{sel_state}'
-    if cache_key not in st.session_state:
+    # Keep only one state overview at a time to limit memory
+    cache_key = 'state_overview_df'
+    if st.session_state.get('state_overview_state') != sel_state:
         with st.spinner(f"Running predictions for {len(state_ctx.counties)} "
                          f"{state_ctx.state_name} counties…"):
             hazard_df = load_hazard_data(sel_state)
@@ -1366,6 +1370,7 @@ def page_state_overview():
                     rows.append(row)
             if rows:
                 st.session_state[cache_key] = pd.DataFrame(rows)
+                st.session_state['state_overview_state'] = sel_state
             else:
                 st.error("No predictions generated.")
                 return
@@ -1415,16 +1420,12 @@ def page_state_overview():
     for i, (col, (hazard, mean_p)) in enumerate(zip(cols, sorted_hazards)):
         rank_label = "#1 Primary" if i == 0 else f"#{i+1}"
         hcolor = COLORS.get(hazard, COLORS['primary'])
-        br = get_base_rate(sel_state, hazard, month)
-        _, _, _, h_ratio_str = risk_level_relative(mean_p, br)
-        context = h_ratio_str if h_ratio_str else "state mean"
         with col:
             st.markdown(f"""
             <div class="hazard-card">
                 <div style="color: {COLORS['text_tertiary']}; font-size: 0.7em; letter-spacing: 0.1em; text-transform: uppercase;">{rank_label}</div>
                 <div class="label" style="color: {hcolor};">{HAZARD_NAMES.get(hazard, hazard.title())}</div>
                 <div class="value">{mean_p*100:.1f}%</div>
-                <div style="color: {COLORS['text_tertiary']}; font-size: 0.75em;">{context}</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1968,7 +1969,7 @@ def _render_hazard_bars_vertical(row):
     html = ""
     for h in DISPLAY_HAZARDS:
         p = row[f'{h}_p'] * 100
-        bar_pct = min(p / 50.0, 1.0) * 100
+        bar_pct = min(p, 100.0)
         html += (
             f"<div style='margin-bottom:10px;'>"
             f"<div style='display:flex; justify-content:space-between; "
