@@ -968,13 +968,48 @@ def render_hazard_cards(risks):
             """, unsafe_allow_html=True)
 
 
+_DEFAULT_GUIDANCE = {
+    'fire': {
+        'Low':      'Routine wildfire awareness. Confirm defensible-space compliance and evacuation route familiarity.',
+        'Elevated': 'Monitor local fire-weather forecasts (Red Flag warnings). Review pre-attack plans and water-supply accessibility.',
+        'Moderate': 'Increase readiness posture. Coordinate with local fire districts on mutual-aid availability and staging.',
+        'High':     'Pre-position suppression resources. Issue community preparedness advisories and confirm evacuation notification systems.',
+        'Severe':   'Activate wildfire response operations. Coordinate with state forestry and federal partners on suppression and evacuation.',
+    },
+    'flood': {
+        'Low':      'Routine flood awareness. Confirm storm-drain maintenance and floodplain status.',
+        'Elevated': 'Monitor NWS river gauges and flash-flood watches. Review flood-response plans and sandbag inventory.',
+        'Moderate': 'Increase monitoring of upstream conditions. Pre-stage flood barriers and coordinate with public works.',
+        'High':     'Pre-position flood-response assets. Issue public advisories for low-lying areas and confirm shelter availability.',
+        'Severe':   'Activate flood-response operations. Coordinate evacuations for flood-prone zones and request mutual-aid support.',
+    },
+    'wind': {
+        'Low':      'Routine severe-weather awareness. Confirm tree-trimming schedules and backup power availability.',
+        'Elevated': 'Monitor severe-weather outlooks. Review debris-management plans and utility coordination contacts.',
+        'Moderate': 'Increase readiness for wind-related impacts. Coordinate with utility providers on outage-response priorities.',
+        'High':     'Pre-position damage-assessment teams. Issue public advisories on securing loose objects and shelter-in-place procedures.',
+        'Severe':   'Activate severe-wind response operations. Coordinate with utilities on restoration priorities and mutual-aid deployment.',
+    },
+    'winter': {
+        'Low':      'Routine winter-weather awareness. Confirm road-treatment supplies and cold-weather shelter capacity.',
+        'Elevated': 'Monitor winter-storm watches. Review snow-removal priorities and coordinate with transportation agencies.',
+        'Moderate': 'Increase readiness for winter impacts. Pre-stage road-treatment materials and confirm warming-center availability.',
+        'High':     'Pre-position winter-response resources. Issue travel advisories and coordinate with utilities on outage preparedness.',
+        'Severe':   'Activate winter-storm response operations. Coordinate road closures, warming shelters, and utility restoration.',
+    },
+}
+
+
 def render_risk_summary(risks, county=''):
     display_risks = {h: risks[h] for h in DISPLAY_HAZARDS if h in risks}
     sorted_risks = sorted(display_risks.items(), key=lambda x: x[1], reverse=True)
     st.markdown("#### Top Hazards — Recommended Actions")
     for hazard, prob in sorted_risks[:3]:
         level, interpretation = risk_level(prob)
+        # Use state-specific guidance if available, otherwise generic defaults
         guidance = HAZARD_GUIDANCE.get(hazard, {}).get(level, '')
+        if not guidance:
+            guidance = _DEFAULT_GUIDANCE.get(hazard, {}).get(level, '')
         # Append county utility contact for wind/winter at Elevated tier and above
         if hazard in ('wind', 'winter') and level != 'Low' and county:
             utility = COUNTY_UTILITY.get(county, 'contact local utility provider')
@@ -1176,7 +1211,7 @@ def render_county_spotlight_map(selected_county, risks, target_date,
         marker_line_color='#fbbf24',
         marker_line_width=2,
         marker_opacity=0.9,
-        hovertemplate=f"<b>{selected_display}</b><br>{hazard_choice}: %{{z:.1f}}%<extra></extra>",
+        hovertemplate=f"<b>{selected_display}</b><br>{HAZARD_NAMES.get(hazard_choice, hazard_choice.title())}: %{{z:.1f}}%<extra></extra>",
     ))
 
     center, zoom = _auto_zoom_from_coords(county_coords)
