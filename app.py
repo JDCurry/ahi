@@ -100,10 +100,6 @@ HAZARD_GUIDANCE  = ctx.hazard_guidance
 MODEL_VERSION    = ctx.model_version
 DATA_VERSION     = ctx.data_version
 
-def _nws_label() -> str:
-    codes = ctx.nws_office_codes()
-    return ', '.join(codes) if codes else 'your local NWS offices'
-
 # County coordinates, COUNTIES list, and utility map all come from ctx (above).
 
 # =============================================================================
@@ -245,16 +241,8 @@ HAZARD_NAMES = {
 # ranking so practitioners see only actionable intelligence.
 DISPLAY_HAZARDS = ['fire', 'flood', 'wind', 'winter']
 
-# HAZARD_GUIDANCE, COUNTY_UTILITY, _AUDIT_FACTORS, MODEL_VERSION, DATA_VERSION
+# HAZARD_GUIDANCE, COUNTY_UTILITY, MODEL_VERSION, DATA_VERSION
 # all sourced from ctx (StateContext loaded at top of file).
-
-# Build _AUDIT_FACTORS in the (hazard, season) tuple-keyed form the legacy
-# code below expects, from ctx.audit_factors (which is hazard -> season -> str).
-_AUDIT_FACTORS = {
-    (h, season): text
-    for h, by_season in ctx.audit_factors.items()
-    for season, text in by_season.items()
-}
 
 _MONTH_TO_SEASON = {
     12: 'winter', 1: 'winter',  2: 'winter',
@@ -384,7 +372,7 @@ def generate_audit_report(county: str, forecast_date_str: str,
     }
 
 
-def render_decision_audit(audit: dict):
+def render_decision_audit(audit: dict, state_ctx=None):
     """Render the audit record as a collapsible UI section with JSON export."""
     import json as _json
     primary = audit['primary_hazard']
@@ -477,7 +465,7 @@ def render_decision_audit(audit: dict):
              border-left:3px solid {COLORS['primary']};">
           <span style="color:{COLORS['text_secondary']}; font-size:0.84em;">
             <strong style="color:{COLORS['primary_light']};">Operational caveat:</strong>
-            Use this output alongside current NWS watches/warnings ({_nws_label()}),
+            Use this output alongside current NWS watches/warnings ({', '.join((state_ctx or ctx).nws_office_codes()) or 'your local NWS offices'}),
             local observations, and agency-specific thresholds. It does not replace official
             forecasts or on-the-ground situational awareness.
           </span>
@@ -1044,14 +1032,16 @@ def render_risk_summary(risks, county=''):
     )
 
 
-def render_interpretation_guide(forecast_days):
+def render_interpretation_guide(forecast_days, state_ctx=None):
     """Expandable guide using the actual forecast horizon."""
+    sctx = state_ctx or ctx
+    nws = ', '.join(sctx.nws_office_codes()) or 'your local NWS offices'
     with st.expander("How to interpret these numbers", expanded=False):
         st.markdown(f"""
         **What the percentages mean:**
         - These are **calibrated risk probabilities for a single point-in-time**: conditions on the forecast date ({forecast_days} days from today), not an average across the window
         - Changing the forecast date changes the target date for inference — different dates have different seasonal weights, so a 7-day and 14-day run can produce different rankings if the window crosses a seasonal transition
-        - Probabilities are based on **25 years of historical patterns** (2000–2025) across all {len(COUNTIES)} {ctx.state_name} counties
+        - Probabilities are based on **25 years of historical patterns** (2000–2025) across all {len(sctx.counties)} {sctx.state_name} counties
         - A county with few historical events can still show elevated risk if current seasonal/geographic conditions match patterns that preceded events elsewhere
 
         **Risk thresholds:**
@@ -1065,7 +1055,7 @@ def render_interpretation_guide(forecast_days):
 
         **Important:** AHI uses historical pattern detection, not live weather feeds.
         Predictions reflect seasonal and geographic baselines — always cross-reference with
-        current NWS watches/warnings ({_nws_label()}) for operational decisions.
+        current NWS watches/warnings ({nws}) for operational decisions.
         """)
 
 
@@ -1356,8 +1346,8 @@ def page_quick_predict():
                 render_county_spotlight_map(selected_county, last['risks'], last.get('date'),
                                              state_code=cr_state, county_coords=cr_ctx.county_coords)
             if 'audit' in last:
-                render_decision_audit(last['audit'])
-            render_interpretation_guide(last.get('horizon', days))
+                render_decision_audit(last['audit'], state_ctx=cr_ctx)
+            render_interpretation_guide(last.get('horizon', days), state_ctx=cr_ctx)
 
 
 # =============================================================================
