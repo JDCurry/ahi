@@ -1477,18 +1477,29 @@ def page_state_overview():
     # ---- County table ----
     st.markdown("---")
     st.markdown("### All Counties")
+    base_rates = _load_base_rates(sel_state)
     display = df.copy()
     for h in hazards:
         display[HAZARD_NAMES[h]] = (display[f'{h}_p'] * 100).round(1)
-    show = display[['county'] + [HAZARD_NAMES[h] for h in hazards]].rename(
+
+    def _county_status(row):
+        max_h = row.get('max_hazard', 'wind')
+        max_p = row.get('max_p', 0.0)
+        br = base_rates.get(max_h, {}).get(str(month), 0.0)
+        level, _, _, _ = risk_level_relative(max_p, br)
+        return level
+
+    display['Status'] = display.apply(_county_status, axis=1)
+    show = display[['county', 'Status'] + [HAZARD_NAMES[h] for h in hazards]].rename(
         columns={'county': 'County'})
+    col_config = {
+        HAZARD_NAMES[h]: st.column_config.NumberColumn(
+            HAZARD_NAMES[h], format="%.1f%%")
+        for h in hazards
+    }
     st.dataframe(
         show, use_container_width=True, hide_index=True,
-        column_config={
-            HAZARD_NAMES[h]: st.column_config.NumberColumn(
-                HAZARD_NAMES[h], format="%.1f%%")
-            for h in hazards
-        },
+        column_config=col_config,
     )
 
     csv = df.to_csv(index=False)
@@ -1521,6 +1532,23 @@ def page_state_overview():
         county_coords=state_ctx.county_coords,
         map_style=state_map_style,
     )
+
+    map_hazard_br = get_base_rate(sel_state, hazard_choice, month)
+    map_hazard_name = HAZARD_NAMES.get(hazard_choice, hazard_choice.title())
+    if map_hazard_br >= 0.005:
+        st.caption(
+            f"Map colors show absolute risk. {state_ctx.state_name} historically "
+            f"averages **{map_hazard_br*100:.1f}%** {map_hazard_name.lower()} risk "
+            f"in month {month} — counties near that baseline are operating normally. "
+            f"Risk tiers above compare each county to this baseline, not to the "
+            f"absolute scale."
+        )
+    else:
+        st.caption(
+            f"Map colors show absolute risk. {map_hazard_name} has a very low "
+            f"historical base rate in {state_ctx.state_name}, so absolute and "
+            f"relative tiers align closely."
+        )
 
 
 # =============================================================================
