@@ -100,6 +100,10 @@ HAZARD_GUIDANCE  = ctx.hazard_guidance
 MODEL_VERSION    = ctx.model_version
 DATA_VERSION     = ctx.data_version
 
+def _nws_label() -> str:
+    codes = ctx.nws_office_codes()
+    return ', '.join(codes) if codes else 'your local NWS offices'
+
 # County coordinates, COUNTIES list, and utility map all come from ctx (above).
 
 # =============================================================================
@@ -261,8 +265,10 @@ _MONTH_TO_SEASON = {
 
 
 def generate_audit_report(county: str, forecast_date_str: str,
-                          risks: dict, horizon_days: int) -> dict:
+                          risks: dict, horizon_days: int,
+                          state_ctx=None) -> dict:
     """Build a structured audit record for a single county prediction."""
+    sctx = state_ctx or ctx
     from datetime import datetime as _dt
     try:
         fdate = _dt.fromisoformat(forecast_date_str)
@@ -272,6 +278,16 @@ def generate_audit_report(county: str, forecast_date_str: str,
         month_name = fdate.strftime('%B')
     except Exception:
         month, season, date_display, month_name = 4, 'spring', forecast_date_str, 'April'
+
+    # Build audit factors from the correct state context
+    audit_factors = {
+        (h, s): text
+        for h, by_season in sctx.audit_factors.items()
+        for s, text in by_season.items()
+    }
+
+    nws_codes = sctx.nws_office_codes()
+    nws_label = ', '.join(nws_codes) if nws_codes else 'your local NWS offices'
 
     # Filter to display hazards only (excludes seismic for now)
     display_risks = {h: risks[h] for h in DISPLAY_HAZARDS if h in risks}
@@ -309,33 +325,27 @@ def generate_audit_report(county: str, forecast_date_str: str,
             f"{primary_name} is the clear primary hazard, leading by {_pp(margin)}."
         )
 
-    seasonal_text = _AUDIT_FACTORS.get(
-        (primary_key, season),
-        f"Historical {month_name} patterns for {primary_name.lower()} risk in {ctx.state_name} informed this prediction.",
-    )
+    seasonal_text = audit_factors.get((primary_key, season), '') or \
+        f"Historical {month_name} patterns for {primary_name.lower()} risk in {sctx.state_name} informed this prediction."
 
-    # NOTE: seismic branch removed — seismic is excluded from DISPLAY_HAZARDS
-    if False:  # was: primary_key == 'seismic'
-        factors = []
-    else:
-        factors = [
-            {"factor": "Seasonal pattern",
-             "explanation": seasonal_text},
-            {"factor": "Geographic context",
-             "explanation": f"{county} County's location, elevation, and land-cover profile "
-                            f"contribute to its baseline {primary_name.lower()} risk relative to "
-                            f"other {ctx.state_name} counties. These static features are baked into the model's learned weights."},
-            {"factor": "Regional spatial signal",
-             "explanation": "Neighboring county patterns are incorporated via the spatial attention "
-                            "mesh. Cross-county phenomena — fire spread, downstream flooding, storm tracks "
-                            "across the Front Range — influence the regional ranking even for the focal county."},
-        ]
+    factors = [
+        {"factor": "Seasonal pattern",
+         "explanation": seasonal_text},
+        {"factor": "Geographic context",
+         "explanation": f"{county} County's location, elevation, and land-cover profile "
+                        f"contribute to its baseline {primary_name.lower()} risk relative to "
+                        f"other {sctx.state_name} counties. These static features are baked into the model's learned weights."},
+        {"factor": "Regional spatial signal",
+         "explanation": "Neighboring county patterns are incorporated via the spatial attention "
+                        "mesh. Cross-county phenomena — fire spread, downstream flooding, storm tracks "
+                        "across the region — influence the regional ranking even for the focal county."},
+    ]
 
     limitations = [
-        f"AHI uses historical pattern detection ({DATA_VERSION.split(',')[1].strip() if ',' in DATA_VERSION else '2000–2025'}), "
+        f"AHI uses historical pattern detection ({sctx.data_version.split(',')[1].strip() if ',' in sctx.data_version else '2000–2025'}), "
         "not live weather feeds. Results reflect seasonal and geographic baselines.",
         "This output is a decision-support tool, not an official forecast. Cross-reference with "
-        "current NWS watches/warnings (BOU, PUB, GJT, GLD) and local situational awareness before operational action.",
+        f"current NWS watches/warnings ({nws_label}) and local situational awareness before operational action.",
         f"Risk probability is a calibrated point-in-time estimate for {date_display} — "
         f"not a cumulative probability across {horizon_days} days.",
     ]
@@ -351,8 +361,8 @@ def generate_audit_report(county: str, forecast_date_str: str,
     generated_ts = _dt2.utcnow().strftime('%Y-%m-%d %H:%M UTC')
 
     return {
-        "model_version":    MODEL_VERSION,
-        "data_version":     DATA_VERSION,
+        "model_version":    sctx.model_version,
+        "data_version":     sctx.data_version,
         "forecast_type":    "Point-in-time calibrated risk estimate",
         "generated":        generated_ts,
         "county":           county,
@@ -467,7 +477,7 @@ def render_decision_audit(audit: dict):
              border-left:3px solid {COLORS['primary']};">
           <span style="color:{COLORS['text_secondary']}; font-size:0.84em;">
             <strong style="color:{COLORS['primary_light']};">Operational caveat:</strong>
-            Use this output alongside current NWS watches/warnings (BOU, PUB, GJT, GLD),
+            Use this output alongside current NWS watches/warnings ({_nws_label()}),
             local observations, and agency-specific thresholds. It does not replace official
             forecasts or on-the-ground situational awareness.
           </span>
@@ -1055,7 +1065,7 @@ def render_interpretation_guide(forecast_days):
 
         **Important:** AHI uses historical pattern detection, not live weather feeds.
         Predictions reflect seasonal and geographic baselines — always cross-reference with
-        current NWS watches/warnings (BOU, PUB, GJT, GLD) for operational decisions.
+        current NWS watches/warnings ({_nws_label()}) for operational decisions.
         """)
 
 
@@ -1322,7 +1332,8 @@ def page_quick_predict():
             time.sleep(0.15)
             status.empty()
             audit = generate_audit_report(
-                selected_county, str(target_date), risks, days
+                selected_county, str(target_date), risks, days,
+                state_ctx=cr_ctx,
             )
             st.session_state['last_prediction'] = {
                 'county':  selected_county,
