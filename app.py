@@ -2285,7 +2285,7 @@ def page_about():
     with col1:
         st.markdown("""
         **Multi-Hazard Prediction**
-        - Five hazard types from a single unified architecture
+        - Four hazard types from a single unified architecture
         - 25 years of historical training data (2000–2025)
         - Severity-weighted calibration reflects actual event impact
 
