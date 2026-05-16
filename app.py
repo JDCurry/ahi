@@ -1070,14 +1070,14 @@ def _auto_zoom_from_coords(county_coords):
     lons = [c[1] for c in coords]
     center = {'lat': sum(lats) / len(lats), 'lon': sum(lons) / len(lons)}
     max_range = max(max(lats) - min(lats), max(lons) - min(lons), 0.01)
-    if max_range > 15:    zoom = 3.5
-    elif max_range > 10:  zoom = 4.0
-    elif max_range > 6:   zoom = 5.0
-    elif max_range > 3:   zoom = 5.8
-    elif max_range > 1.5: zoom = 6.5
-    elif max_range > 0.5: zoom = 7.5
-    elif max_range > 0.1: zoom = 8.5
-    else:                 zoom = 10.5   # very small areas (DC, single county)
+    if max_range > 15:    zoom = 3.0
+    elif max_range > 10:  zoom = 3.5
+    elif max_range > 6:   zoom = 4.5
+    elif max_range > 3:   zoom = 5.2
+    elif max_range > 1.5: zoom = 5.8
+    elif max_range > 0.5: zoom = 6.8
+    elif max_range > 0.1: zoom = 7.8
+    else:                 zoom = 10.5
     return center, zoom
 
 
@@ -1514,9 +1514,10 @@ def page_state_overview():
     st.markdown("---")
     mc1, mc2 = st.columns([2, 1])
     with mc1:
+        default_idx = DISPLAY_HAZARDS.index(primary_hazard) if primary_hazard in DISPLAY_HAZARDS else 0
         hazard_choice = st.selectbox(
             "Hazard layer",
-            DISPLAY_HAZARDS, index=0,
+            DISPLAY_HAZARDS, index=default_idx,
             format_func=lambda h: HAZARD_NAMES.get(h, h.title()),
             key='state_overview_hazard_map',
         )

@@ -94,7 +94,7 @@ class StateContext:
                 f"No config.yaml at {cfg_path}. "
                 f"Run scripts/onboard_state.py to bootstrap state {state_code}."
             )
-        with open(cfg_path) as f:
+        with open(cfg_path, encoding='utf-8', errors='replace') as f:
             cfg = yaml.safe_load(f) or {}
 
         ctx = cls(
