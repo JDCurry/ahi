@@ -1813,10 +1813,11 @@ def page_model_info():
         'southeast_gulf':  {'states': ['AL', 'AR', 'FL', 'GA', 'LA', 'MS', 'NC', 'SC'], 'desc': 'Hurricanes, Gulf moisture, severe convective storms'},
         'southern_plains': {'states': ['KS', 'NE', 'OK', 'TX'], 'desc': 'Tornado alley, prairie fire, flash flooding'},
     }
+    _region_display = {'pnw': 'PNW', 'dc': 'DC'}
     region_rows = []
     for region, info in _region_info.items():
         region_rows.append({
-            'Region': region.replace('_', ' ').title(),
+            'Region': _region_display.get(region, region.replace('_', ' ').title()),
             'States': len(info['states']),
             'Coverage': ', '.join(info['states']),
             'Hazard Profile': info['desc'],
