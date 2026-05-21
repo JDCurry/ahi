@@ -1792,7 +1792,57 @@ def page_model_info():
     col5.metric("Regional Models", "9")
     col6.metric("States + DC", "48 + DC")
     col7.metric("CONUS Counties", "3,109")
-    col8.metric("Reference AUC (CO)", "0.883")
+    col8.metric("Deployed National AUC", "0.742")
+
+    # ---- Honest National Performance ----
+    st.markdown("---")
+    st.markdown("### National Validation Performance (49-state Held-out)")
+    st.caption(
+        "Evaluated on a 998,555-row temporal held-out split of the 5M-row national dataset "
+        "(1,874 counties, 49 states). These are the AUCs of the model actually serving this dashboard."
+    )
+
+    national_data = [
+        {"Hazard": "Wind",   "AUC": 0.796, "Quality": "Good",       "Notes": "Largest gain from per-hazard fine-tune (+0.052 vs base)."},
+        {"Hazard": "Fire",   "AUC": 0.771, "Quality": "Good",       "Notes": "Modest improvement; eastern-US gap remains a known failure mode."},
+        {"Hazard": "Flood",  "AUC": 0.728, "Quality": "Acceptable", "Notes": "Coastal/riverine flood diversity limits unified-model AUC."},
+        {"Hazard": "Winter", "AUC": 0.672, "Quality": "Limited",    "Notes": "Severely imbalanced labels (0.9% rate); per-region heads needed."},
+    ]
+    st.dataframe(pd.DataFrame(national_data), use_container_width=True, hide_index=True)
+
+    nat_hazards = ["Wind", "Fire", "Flood", "Winter"]
+    nat_aucs    = [0.796, 0.771, 0.728, 0.672]
+    nat_colors  = [COLORS['wind'], COLORS['fire'], COLORS['flood'], COLORS['winter']]
+
+    fig_nat = go.Figure()
+    fig_nat.add_trace(go.Bar(x=nat_hazards, y=nat_aucs, marker_color=nat_colors,
+                              text=[f"{a:.3f}" for a in nat_aucs], textposition='outside',
+                              name="National (49-state)"))
+    fig_nat.add_hline(y=0.8, line_dash="dash", line_color="#6b9e7a", annotation_text="Good (0.8)")
+    fig_nat.add_hline(y=0.7, line_dash="dot",  line_color="#a3a3a3", annotation_text="Acceptable (0.7)")
+    fig_nat.add_hline(y=0.5, line_dash="dash", line_color="#dc2626", annotation_text="Random (0.5)")
+    fig_nat.update_layout(
+        title="AHI v2.5 — National AUC by Hazard (deployed model)",
+        paper_bgcolor=COLORS['card_bg'],
+        plot_bgcolor=COLORS['card_bg'],
+        font=dict(color=COLORS['text_secondary'], family='Inter'),
+        showlegend=False,
+        xaxis=dict(gridcolor=COLORS['border']),
+        yaxis=dict(title="AUC-ROC", range=[0, 1], gridcolor=COLORS['border']),
+        height=380,
+        margin=dict(l=40, r=20, t=60, b=40),
+    )
+    st.plotly_chart(fig_nat, use_container_width=True)
+
+    nc1, nc2 = st.columns(2)
+    nc1.info("**Deployed Mean AUC: 0.742** — averaged over fire, flood, wind, winter (49-state national).")
+    nc2.warning(
+        "These national numbers are lower than the Colorado/Washington reference benchmarks below "
+        "because the unified backbone is forced to generalize across 1,874 counties of widely "
+        "different climate regimes. Single-state models can memorize local seasonality; the national "
+        "model trades that for portability. Per-region prediction heads are on the roadmap to "
+        "recover state-level accuracy without losing coverage."
+    )
 
     # ---- Regional Model Overview ----
     st.markdown("---")
@@ -1839,8 +1889,13 @@ def page_model_info():
 
     # ---- Reference Performance: Colorado ----
     st.markdown("---")
-    st.markdown("### Reference Performance — Colorado (Held-out Test Set)")
-    st.caption("Colorado serves as the primary benchmark: 64 counties with a clear elevation gradient.")
+    st.markdown("### Reference Performance — Single-State Benchmarks")
+    st.caption(
+        "Single-state models trained on Colorado (64 counties) and Washington (39 counties) demonstrate "
+        "what unified architectures can achieve when the parameter budget targets one region's climate "
+        "regime. They are NOT the deployed model — they are upper-bound benchmarks. The deployed "
+        "national model (see above) trades per-state accuracy for full CONUS coverage."
+    )
 
     co_data = [
         {"Hazard": "Winter",  "AUC": 0.963, "Quality": "Excellent", "Notes": "Best performer — strong elevation-driven seasonal signal."},
@@ -1907,6 +1962,7 @@ def page_model_info():
     st.markdown("""
     - 9 regional models serving 48 states + DC (3,109 counties)
     - Proprietary multi-mesh architecture with per-state calibration
+    - National retrain + per-hazard LoRA fine-tunes on 5M-row 49-state dataset (May 2026)
     - Severity-weighted calibration for fire (acreage), wind (gust speed), and winter (event type)
     - Relative risk tiers contextualize predictions against historical base rates per state
     - Precomputed national predictions for instant page load
@@ -1914,6 +1970,11 @@ def page_model_info():
 
     st.markdown("**Planned / Future Work**")
     st.markdown("""
+    - **Per-region prediction heads** — unify the backbone but specialize the top of the model per
+      climate region to recover state-level AUCs without sacrificing CONUS coverage (winter AUC 0.67
+      is the binding constraint today)
+    - **Larger backbone** — current 1.3M-param shared model is bandwidth-limited for cross-regime
+      generalization; scaling experiments planned
     - Integrate real-time weather feeds (NWS/NOAA APIs) for operational nowcasts
     - Uncertainty quantification for prediction intervals
     - Alaska and Hawaii coverage (non-CONUS)

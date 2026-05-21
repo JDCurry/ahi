@@ -1,10 +1,9 @@
-﻿{
-    "temperatures":  {
-                         "fire":  0.37868356704711914,
-                         "flood":  0.31211352348327637,
-                         "wind":  0.4892488121986389,
-                         "winter":  1,
-                         "seismic":  0.2614502012729645
-                     },
-    "_proxy":  "NY (val set had zero positive labels for CT)"
+{
+    "temperatures": {
+        "fire": 0.37868356704711914,
+        "flood": 0.31211352348327637,
+        "wind": 0.4892488121986389,
+        "winter": 1.0,
+        "seismic": 1.0
+    }
 }
