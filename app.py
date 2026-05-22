@@ -1870,7 +1870,7 @@ def page_model_info():
         if v >= 0.65: return 'background-color: #4a3a17; color: #e5d39a'
         return 'background-color: #3d1f1f; color: #d9a5a5'
 
-    styled = region_aucs.style.applymap(_auc_color, subset=['Fire','Flood','Wind','Winter']).format({
+    styled = region_aucs.style.map(_auc_color, subset=['Fire','Flood','Wind','Winter']).format({
         'Fire':'{:.3f}', 'Flood':'{:.3f}', 'Wind':'{:.3f}', 'Winter':'{:.3f}'
     })
     st.dataframe(styled, use_container_width=True, hide_index=True)
