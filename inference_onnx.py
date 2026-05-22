@@ -37,6 +37,22 @@ STATIC_FEATURE_COLS = [
     'elevation', 'forest_fraction', 'urban_fraction', 'pop_density'
 ]
 
+# Round 2: climate-region routing for the per-region prediction heads.
+# Each state maps to a region ID 0-8 (canonical order). The ONNX model
+# uses this index to gather the correct per-region head per row.
+STATE_TO_REGION_ID = {
+    'CO': 0,
+    'IL': 1, 'IN': 1, 'KY': 1, 'MI': 1, 'OH': 1, 'TN': 1, 'WV': 1,
+    'AZ': 2, 'ID': 2, 'MT': 2, 'NM': 2, 'NV': 2, 'UT': 2, 'WY': 2,
+    'CT': 3, 'DC': 3, 'DE': 3, 'MA': 3, 'MD': 3, 'ME': 3,
+    'NH': 3, 'NJ': 3, 'NY': 3, 'PA': 3, 'RI': 3, 'VA': 3, 'VT': 3,
+    'IA': 4, 'MN': 4, 'MO': 4, 'ND': 4, 'SD': 4, 'WI': 4,
+    'CA': 5,
+    'OR': 6, 'WA': 6,
+    'AL': 7, 'AR': 7, 'FL': 7, 'GA': 7, 'LA': 7, 'MS': 7, 'NC': 7, 'SC': 7,
+    'KS': 8, 'NE': 8, 'OK': 8, 'TX': 8,
+}
+
 # ---------------------------------------------------------------------------
 # Per-state calibration cache: {state_code: {temperatures, biases, ceilings}}
 # ---------------------------------------------------------------------------
@@ -245,7 +261,9 @@ def model_available(region: str) -> bool:
 
 def _run_onnx_inference(region: str, static_cont: np.ndarray, temporal: np.ndarray,
                         region_ids: np.ndarray, state_ids: np.ndarray,
-                        nlcd_ids: np.ndarray) -> Optional[Dict[str, float]]:
+                        nlcd_ids: np.ndarray,
+                        climate_region_ids: Optional[np.ndarray] = None,
+                        state_code: Optional[str] = None) -> Optional[Dict[str, float]]:
     session = _get_onnx_session(region)
     if session is None:
         return None
@@ -256,6 +274,14 @@ def _run_onnx_inference(region: str, static_cont: np.ndarray, temporal: np.ndarr
         'state_ids':   state_ids.astype(np.int64),
         'nlcd_ids':    nlcd_ids.astype(np.int64),
     }
+    # Round 2 ONNX has a sixth input. Pass it if the model expects it.
+    input_names = {i.name for i in session.get_inputs()}
+    if 'climate_region_ids' in input_names:
+        if climate_region_ids is None:
+            # Fallback: derive from state_code (single-row inference)
+            crid = STATE_TO_REGION_ID.get(state_code, 0) if state_code else 0
+            climate_region_ids = np.array([crid] * static_cont.shape[0], dtype=np.int64)
+        feeds['climate_region_ids'] = climate_region_ids.astype(np.int64)
     outputs = session.run(None, feeds)
     return {h: float(outputs[i].flatten()[0]) for i, h in enumerate(HAZARD_TYPES)}
 
@@ -391,7 +417,8 @@ def predict_county_risks_simple(
             build_tensors_from_county_data(county_row, actual_county, target_date,
                                             default_state=state_code)
         logits = _run_onnx_inference(region, static_cont, temporal,
-                                      region_ids, state_ids, nlcd_ids)
+                                      region_ids, state_ids, nlcd_ids,
+                                      state_code=state_code)
         if logits is None:
             return _generate_fallback_risks(county_name)
         return {h: _apply_calibration(state_code, logits[h], h, month,
@@ -439,6 +466,11 @@ def predict_from_ahi_v2(
         'state_ids':   state_ids.astype(np.int64),
         'nlcd_ids':    nlcd_ids.astype(np.int64),
     }
+    # Round 2 ONNX has climate_region_ids — derived from state_code (one per row)
+    input_names = {i.name for i in session.get_inputs()}
+    if 'climate_region_ids' in input_names:
+        crid = STATE_TO_REGION_ID.get(state_code, 0)
+        feeds['climate_region_ids'] = np.array([crid] * batch_size, dtype=np.int64)
     outputs = session.run(None, feeds)
 
     if batch_size == 1:

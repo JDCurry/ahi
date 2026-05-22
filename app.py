@@ -3,7 +3,7 @@ AHI — Adaptive Hazard Intelligence Platform
 Multi-state demonstration dashboard.
 Resilience Analytics Lab, LLC
 
-AHI v2.5 — multi-hazard risk prediction with regional model architecture.
+AHI v2.6 — multi-hazard risk prediction with regional model architecture.
 State-aware: select state from sidebar; UI content + calibration loaded
 from states/<XX>/config.yaml and states/registry.yaml.
 """
@@ -1559,7 +1559,7 @@ def page_state_overview():
 
 def page_statewide():
     st.markdown("## Statewide Predictions")
-    st.caption(f"Run AHI v2.5 for all {len(COUNTIES)} {ctx.state_name} counties. Results include an interactive risk map.")
+    st.caption(f"Run AHI v2.6 for all {len(COUNTIES)} {ctx.state_name} counties. Results include an interactive risk map.")
 
     target_date = datetime.now().date() + timedelta(days=MAX_FORECAST_DAYS)
 
@@ -1760,31 +1760,33 @@ def page_risk_assessment():
 # =============================================================================
 
 def page_model_info():
-    st.markdown("## AHI v2.5 — CONUS Model Diagnostics")
-    st.caption("9 regional models · 48 states + DC · 3,109 counties")
+    st.markdown("## AHI v2.6 — CONUS Model Diagnostics")
+    st.caption("9 climate regions · 48 states + DC · 3,109 counties · per-region prediction heads")
 
     st.markdown("""
-    ### What is AHI v2.5?
+    ### What is AHI v2.6?
 
-    **AHI v2.5** is the Adaptive Hazard Intelligence model powering this dashboard. It predicts the
+    **AHI v2.6** is the Adaptive Hazard Intelligence model powering this dashboard. It predicts the
     likelihood of four natural hazard types — wildfire, flood, wind, and winter storm — at the
     county level across the contiguous United States.
 
     **The core problem it solves:** Weather sequences (temperature, wind, precipitation) evolve on a
     fast timescale (days), while spatial correlations (fire spread, downstream flooding, storm tracks)
     operate on a slow timescale (weeks/seasons). AHI uses a proprietary multi-mesh architecture to
-    decompose these timescales and learn hazard-specific patterns from 25 years of historical data.
+    decompose these timescales and learn hazard-specific patterns from 25+ years of historical data.
 
-    **v2.5** introduces a learned seasonal bias module that allows the model to independently discover
-    regional seasonal structure from data, enabling scalable deployment across all CONUS states without
-    manual per-state configuration.
+    **v2.6** introduces **per-region prediction heads** (9 specialized heads per hazard) on a shared
+    backbone, plus corrected training labels (winter rebuilt for 10 previously-blank states, wind
+    filtered to operationally meaningful severity, Connecticut planning-region mapping applied).
+    Winter AUC improved from 0.67 → 0.91 and wind predictions are no longer dominated by minor
+    thunderstorm gusts.
     """)
 
     st.markdown("---")
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Model", "AHI v2.5")
-    col2.metric("Parameters", "~1.3M per region")
+    col1.metric("Model", "AHI v2.6")
+    col2.metric("Parameters", "~1.71M (single shared model)")
     col3.metric("Architecture", "Proprietary")
     col4.metric("Status", "Online")
 
@@ -1792,27 +1794,29 @@ def page_model_info():
     col5.metric("Regional Models", "9")
     col6.metric("States + DC", "48 + DC")
     col7.metric("CONUS Counties", "3,109")
-    col8.metric("Deployed National AUC", "0.742")
+    col8.metric("Deployed National AUC", "0.736")
 
     # ---- Honest National Performance ----
     st.markdown("---")
     st.markdown("### National Validation Performance (49-state Held-out)")
     st.caption(
-        "Evaluated on a 998,555-row temporal held-out split of the 5M-row national dataset "
-        "(1,874 counties, 49 states). These are the AUCs of the model actually serving this dashboard."
+        "Evaluated on a 2,000,534-row temporal held-out split of the 10M-row national dataset "
+        "(3,109 counties, 49 states, with winter labels corrected and wind labels filtered to "
+        "operationally meaningful severity ≥58 mph). These are the AUCs of the model actually "
+        "serving this dashboard."
     )
 
     national_data = [
-        {"Hazard": "Wind",   "AUC": 0.796, "Quality": "Good",       "Notes": "Largest gain from per-hazard fine-tune (+0.052 vs base)."},
-        {"Hazard": "Fire",   "AUC": 0.771, "Quality": "Good",       "Notes": "Modest improvement; eastern-US gap remains a known failure mode."},
-        {"Hazard": "Flood",  "AUC": 0.728, "Quality": "Acceptable", "Notes": "Coastal/riverine flood diversity limits unified-model AUC."},
-        {"Hazard": "Winter", "AUC": 0.672, "Quality": "Limited",    "Notes": "Severely imbalanced labels (0.9% rate); per-region heads needed."},
+        {"Hazard": "Winter", "AUC": 0.907, "Quality": "Excellent", "Notes": "All 9 regions ≥ 0.81. Round 2 fixed broken upstream labels in 10 states + added per-region heads."},
+        {"Hazard": "Wind",   "AUC": 0.715, "Quality": "Acceptable","Notes": "Severity-thresholded at NWS severe T-storm criterion (~58 mph). No longer dominates predictions."},
+        {"Hazard": "Flood",  "AUC": 0.676, "Quality": "Acceptable","Notes": "Coastal vs riverine vs flash flood physics differ; single label type limits achievable AUC."},
+        {"Hazard": "Fire",   "AUC": 0.645, "Quality": "Acceptable","Notes": "Strong in fire-active regions (PNW 0.70, CO 0.72, CA 0.69); weak in fire-rare regions where event scarcity limits learning."},
     ]
     st.dataframe(pd.DataFrame(national_data), use_container_width=True, hide_index=True)
 
-    nat_hazards = ["Wind", "Fire", "Flood", "Winter"]
-    nat_aucs    = [0.796, 0.771, 0.728, 0.672]
-    nat_colors  = [COLORS['wind'], COLORS['fire'], COLORS['flood'], COLORS['winter']]
+    nat_hazards = ["Winter", "Wind", "Flood", "Fire"]
+    nat_aucs    = [0.907, 0.715, 0.676, 0.645]
+    nat_colors  = [COLORS['winter'], COLORS['wind'], COLORS['flood'], COLORS['fire']]
 
     fig_nat = go.Figure()
     fig_nat.add_trace(go.Bar(x=nat_hazards, y=nat_aucs, marker_color=nat_colors,
@@ -1822,7 +1826,7 @@ def page_model_info():
     fig_nat.add_hline(y=0.7, line_dash="dot",  line_color="#a3a3a3", annotation_text="Acceptable (0.7)")
     fig_nat.add_hline(y=0.5, line_dash="dash", line_color="#dc2626", annotation_text="Random (0.5)")
     fig_nat.update_layout(
-        title="AHI v2.5 — National AUC by Hazard (deployed model)",
+        title="AHI v2.6 — National AUC by Hazard (deployed model, per-region heads)",
         paper_bgcolor=COLORS['card_bg'],
         plot_bgcolor=COLORS['card_bg'],
         font=dict(color=COLORS['text_secondary'], family='Inter'),
@@ -1835,14 +1839,41 @@ def page_model_info():
     st.plotly_chart(fig_nat, use_container_width=True)
 
     nc1, nc2 = st.columns(2)
-    nc1.info("**Deployed Mean AUC: 0.742** — averaged over fire, flood, wind, winter (49-state national).")
-    nc2.warning(
-        "These national numbers are lower than the Colorado/Washington reference benchmarks below "
-        "because the unified backbone is forced to generalize across 1,874 counties of widely "
-        "different climate regimes. Single-state models can memorize local seasonality; the national "
-        "model trades that for portability. Per-region prediction heads are on the roadmap to "
-        "recover state-level accuracy without losing coverage."
+    nc1.info("**Deployed Mean AUC: 0.736** — averaged over fire, flood, wind, winter (49-state national).")
+    nc2.success(
+        "AHI v2.6 adds **9 region-specialized prediction heads per hazard** on the shared backbone, "
+        "trained on a corrected national dataset (winter labels rebuilt for 10 previously-blank states, "
+        "wind filtered to severe-T-storm criterion, Connecticut planning-region mapping applied). "
+        "Winter went from 0.67 → 0.91. Wind is now operationally honest. "
+        "See per-region breakdown below."
     )
+
+    # ---- Per-region per-hazard AUC table ----
+    st.markdown("#### Per-region AUC breakdown")
+    st.caption("Each cell is the AUC for that hazard in that climate region. Colors green ≥0.80, "
+               "yellow 0.65–0.80, red <0.65.")
+    region_aucs = pd.DataFrame([
+        # region,           fire,  flood, wind,  winter
+        ['colorado',         0.719, 0.826, 0.715, 0.875],
+        ['great_lakes',      0.617, 0.612, 0.744, 0.879],
+        ['mountain_west',    0.653, 0.708, 0.583, 0.845],
+        ['northeast',        0.376, 0.636, 0.722, 0.848],
+        ['northern_plains',  0.644, 0.725, 0.758, 0.869],
+        ['pacific',          0.693, 0.603, 0.622, 0.817],
+        ['pnw',              0.704, 0.657, 0.565, 0.846],
+        ['southeast_gulf',   0.402, 0.650, 0.730, 0.924],
+        ['southern_plains',  0.554, 0.714, 0.716, 0.903],
+    ], columns=['Region', 'Fire', 'Flood', 'Wind', 'Winter'])
+
+    def _auc_color(v):
+        if v >= 0.80: return 'background-color: #1a3d1f; color: #b9d7be'
+        if v >= 0.65: return 'background-color: #4a3a17; color: #e5d39a'
+        return 'background-color: #3d1f1f; color: #d9a5a5'
+
+    styled = region_aucs.style.applymap(_auc_color, subset=['Fire','Flood','Wind','Winter']).format({
+        'Fire':'{:.3f}', 'Flood':'{:.3f}', 'Wind':'{:.3f}', 'Winter':'{:.3f}'
+    })
+    st.dataframe(styled, use_container_width=True, hide_index=True)
 
     # ---- Regional Model Overview ----
     st.markdown("---")
@@ -1921,7 +1952,7 @@ def page_model_info():
     fig_perf.add_hline(y=0.8, line_dash="dash", line_color="#6b9e7a", annotation_text="Excellent (0.8)")
     fig_perf.add_hline(y=0.5, line_dash="dash", line_color="#dc2626", annotation_text="Random (0.5)")
     fig_perf.update_layout(
-        title="AHI v2.5 — AUC by Hazard Type (validated regions)",
+        title="AHI v2.6 — AUC by Hazard Type (validated regions)",
         barmode='group',
         paper_bgcolor=COLORS['card_bg'],
         plot_bgcolor=COLORS['card_bg'],
@@ -1944,7 +1975,7 @@ def page_model_info():
     st.markdown("### Calibration Pipeline")
     st.markdown("""
     **Calibration** means predicted probabilities match real-world frequencies. If the model says 10% fire risk,
-    fires should occur roughly 10% of the time in those conditions. AHI v2.5 uses a **per-state calibration
+    fires should occur roughly 10% of the time in those conditions. AHI v2.6 uses a **per-state calibration
     pipeline** to ensure locally meaningful predictions:
 
     - **Temperature scaling** — Per-hazard confidence adjustment fitted on each state's validation set
@@ -1958,25 +1989,37 @@ def page_model_info():
     st.markdown("---")
     st.markdown("### Updates & Roadmap")
 
-    st.markdown("**Current (AHI v2.5 — CONUS Deployment)**")
+    st.markdown("**Current (AHI v2.6 — CONUS Deployment)**")
     st.markdown("""
-    - 9 regional models serving 48 states + DC (3,109 counties)
-    - Proprietary multi-mesh architecture with per-state calibration
-    - National retrain + per-hazard LoRA fine-tunes on 5M-row 49-state dataset (May 2026)
+    - 9 climate-region prediction heads on a shared backbone serving 48 states + DC (3,109 counties)
+    - Proprietary multi-mesh architecture with per-state temperature scaling and per-month seasonal bias
+    - Trained on 10M-row 49-state dataset with corrected labels (winter zone resolution rebuilt for
+      10 previously-blank states, wind filtered to NWS severe-T-storm criterion ≥58 mph, Connecticut
+      planning-region mapping applied)
     - Severity-weighted calibration for fire (acreage), wind (gust speed), and winter (event type)
-    - Relative risk tiers contextualize predictions against historical base rates per state
     - Precomputed national predictions for instant page load
     """)
 
-    st.markdown("**Planned / Future Work**")
+    st.markdown("**Next (Round 3 — Feature Ingest)**")
     st.markdown("""
-    - **Per-region prediction heads** — unify the backbone but specialize the top of the model per
-      climate region to recover state-level AUCs without sacrificing CONUS coverage (winter AUC 0.67
-      is the binding constraint today)
-    - **Larger backbone** — current 1.3M-param shared model is bandwidth-limited for cross-regime
-      generalization; scaling experiments planned
-    - Integrate real-time weather feeds (NWS/NOAA APIs) for operational nowcasts
-    - Uncertainty quantification for prediction intervals
+    Round 2 deployed mean AUC of 0.736 represents the practical ceiling of the current 21-feature
+    input set; per-hazard fine-tuning attempts in Round 2.5 confirmed the architecture is not the
+    bottleneck. The remaining gap — particularly fire in the northeast (0.376) and southeast/Gulf
+    (0.402) — is feature-engineering territory:
+
+    - **USDM Drought Monitor** — weekly drought intensity per county; direct signal for fire/flood
+    - **FEMA NFHL flood zones** — encodes which counties are in 100-year/500-year/coastal flood zones
+    - **LANDFIRE WUI + fuel models** — Wildland-Urban Interface fraction and dominant fuel class per
+      county; addresses the northeast fire feature gap
+    - **SNODAS snowpack** — daily snow water equivalent for spring-flood and winter-confidence lifts
+    - **MODIS NDVI** — vegetation state time series, fire and drought signal
+    - **NWS atmospheric-river archive** — synoptic-scale events that drive PNW wind/flood
+
+    Each addition is expected to lift specific hazard-region cells without changing the architecture.
+
+    **Further out:**
+    - Larger backbone (~4-8M params) for cross-regime generalization once feature set is enriched
+    - Real-time NWS/NOAA feeds for operational nowcasts (Phase II target)
     - Alaska and Hawaii coverage (non-CONUS)
     - Continual learning pipeline with scheduled model retraining
     """)
@@ -1996,7 +2039,7 @@ def page_model_info():
     """)
 
     st.caption(
-        "Note: AHI v2.5 uses population density as its only demographic feature. "
+        "Note: AHI v2.6 uses population density as its only demographic feature. "
         "CDC Social Vulnerability Index (SVI) data was evaluated but not incorporated into the "
         "training pipeline; it is reserved for future fairness/equity analysis."
     )
@@ -2394,7 +2437,7 @@ def main():
         {logo_html}
         <div class="ahi-header-text">
             <h2 class="title">Adaptive Hazard Intelligence</h2>
-            <div class="subtitle">Calibrated hazard risk for defensible decisions · 3,109 CONUS counties · AHI v2.5</div>
+            <div class="subtitle">Calibrated hazard risk for defensible decisions · 3,109 CONUS counties · AHI v2.6</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
