@@ -1786,7 +1786,7 @@ def page_model_info():
 
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Model", "AHI v3.0")
-    col2.metric("Parameters", "~1.7M (shared backbone + region heads)")
+    col2.metric("Parameters", "~1.7M")
     col3.metric("Architecture", "Proprietary")
     col4.metric("Status", "Online")
 
@@ -1852,16 +1852,16 @@ def page_model_info():
     st.caption("Each cell is the AUC for that hazard in that climate region. Colors green ≥0.80, "
                "yellow 0.65–0.80, red <0.65.")
     region_aucs = pd.DataFrame([
-        # region,           fire,  flood, wind,  winter   (Round 3 post-finetune best epoch)
-        ['colorado',         0.761, 0.831, 0.720, 0.876],
-        ['great_lakes',      0.748, 0.742, 0.763, 0.913],
-        ['mountain_west',    0.760, 0.798, 0.669, 0.864],
-        ['northeast',        0.625, 0.698, 0.789, 0.842],
-        ['northern_plains',  0.820, 0.799, 0.768, 0.907],
-        ['pacific',          0.783, 0.664, 0.654, 0.839],
-        ['pnw',              0.801, 0.661, 0.637, 0.845],
-        ['southeast_gulf',   0.721, 0.728, 0.744, 0.945],
-        ['southern_plains',  0.702, 0.780, 0.727, 0.921],
+        # region,              fire,  flood, wind,  winter   (Round 3 post-finetune best epoch)
+        ['Colorado',           0.761, 0.831, 0.720, 0.876],
+        ['Great Lakes',        0.748, 0.742, 0.763, 0.913],
+        ['Mountain West',      0.760, 0.798, 0.669, 0.864],
+        ['Northeast',          0.625, 0.698, 0.789, 0.842],
+        ['Northern Plains',    0.820, 0.799, 0.768, 0.907],
+        ['Pacific',            0.783, 0.664, 0.654, 0.839],
+        ['PNW',                0.801, 0.661, 0.637, 0.845],
+        ['Southeast Gulf',     0.721, 0.728, 0.744, 0.945],
+        ['Southern Plains',    0.702, 0.780, 0.727, 0.921],
     ], columns=['Region', 'Fire', 'Flood', 'Wind', 'Winter'])
 
     def _auc_color(v):
@@ -2373,8 +2373,6 @@ def page_about():
         through 9 regional models with per-state calibration.
         </p>
         <p style="color: {COLORS['text_secondary']}; line-height: 1.7;">
-        AHI is developed by Resilience Analytics Lab, LLC. The platform is being prepared for
-        DHS SBIR Phase I to integrate real-time NWS/NOAA weather feeds for operational nowcasting.
         </p>
     </div>
     """, unsafe_allow_html=True)

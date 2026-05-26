@@ -9,6 +9,7 @@ Usage:
     python scripts/precompute_national.py
 """
 import pandas as pd
+import unicodedata
 import yaml
 import time
 import sys
@@ -19,6 +20,18 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from inference_onnx import predict_county_risks_simple
+
+
+def _normalize_county_id(state: str, county: str) -> str:
+    """Normalize county name to match geojson _id conventions."""
+    cid = county.upper().replace(' ', '_')
+    # CT planning regions: geojson omits the _PLANNING_REGION suffix
+    if state == 'CT' and cid.endswith('_PLANNING_REGION'):
+        cid = cid.replace('_PLANNING_REGION', '')
+    # Handle unicode (e.g., NM Doña Ana → DONA_ANA)
+    cid = unicodedata.normalize('NFKD', cid)
+    cid = ''.join(c for c in cid if ord(c) < 128)
+    return cid
 
 
 def main():
@@ -64,7 +77,7 @@ def main():
                         rows.append({
                             'state': sc,
                             'county': county,
-                            'county_id': county.upper().replace(' ', '_'),
+                            'county_id': _normalize_county_id(sc, county),
                             'fire_p': round(risks.get('fire', 0.0), 4),
                             'flood_p': round(risks.get('flood', 0.0), 4),
                             'wind_p': round(risks.get('wind', 0.0), 4),
