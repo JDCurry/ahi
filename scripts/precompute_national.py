@@ -34,6 +34,12 @@ def _normalize_county_id(state: str, county: str) -> str:
     return cid
 
 
+def _normalize_display_name(county: str) -> str:
+    """Normalize county display name to safe ASCII for CSV/web rendering."""
+    name = unicodedata.normalize('NFKD', county)
+    return ''.join(c for c in name if ord(c) < 128)
+
+
 def main():
     with open(ROOT / 'states' / 'registry.yaml') as f:
         registry = yaml.safe_load(f)
@@ -76,7 +82,7 @@ def main():
                     if risks:
                         rows.append({
                             'state': sc,
-                            'county': county,
+                            'county': _normalize_display_name(county),
                             'county_id': _normalize_county_id(sc, county),
                             'fire_p': round(risks.get('fire', 0.0), 4),
                             'flood_p': round(risks.get('flood', 0.0), 4),
