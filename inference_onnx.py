@@ -31,10 +31,26 @@ import pandas as pd
 HAZARD_TYPES = ['fire', 'flood', 'wind', 'winter', 'seismic']
 
 STATIC_FEATURE_COLS = [
+    # [0-20] Round 2 originals
     'latitude', 'longitude', 'day_of_year', 'month', 'year',
     'tmmx', 'tmmn', 'rmin', 'rmax', 'vs', 'erc', 'pr', 'vpd',
     'red_flag_active', 'tmmx_3d_mean', 'pr_3d_mean', 'vs_3d_mean',
-    'elevation', 'forest_fraction', 'urban_fraction', 'pop_density'
+    'elevation', 'forest_fraction', 'urban_fraction', 'pop_density',
+    # [21-24] CW3E AR (daily, WA/OR/CA only — zero elsewhere until live pipeline)
+    'ar_ivt_max', 'ar_iwv_max', 'ar_active', 'ar_scale',
+    # [25-29] NFHL flood zones (static, merged into inference parquets)
+    'nfhl_sfha_frac', 'nfhl_v_frac', 'nfhl_x_frac', 'nfhl_sfha_km2', 'nfhl_v_km2',
+    # [30-31] SNODAS snowpack (daily — zero until live pipeline)
+    'snodas_swe_mean', 'snodas_depth_mean',
+    # [32-38] USDM drought (daily — zero until live pipeline)
+    'usdm_intensity', 'usdm_none_frac', 'usdm_d0_frac', 'usdm_d1_frac',
+    'usdm_d2_frac', 'usdm_d3_frac', 'usdm_d4_frac',
+    # [39-43] USGS streamflow (daily — zero until live pipeline)
+    'usgs_log_q_mean', 'usgs_log_q_max', 'usgs_log_gh_mean', 'usgs_log_gh_max',
+    'usgs_n_sites',
+    # [44-49] WUI (static, merged into inference parquets)
+    'wui_frac', 'wui_intermix_frac', 'wui_interface_frac',
+    'wui_veg_frac', 'wui_veg_cover_mean', 'wui_huden_log',
 ]
 
 # Round 2: climate-region routing for the per-region prediction heads.
