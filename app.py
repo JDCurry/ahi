@@ -2242,13 +2242,11 @@ def page_national():
     # ---- Extract selection BEFORE rendering columns ----
     sel_id = None
     _dismissed = st.session_state.pop('_nat_dismiss', False)
+    _map_key = f"national_map_{st.session_state.get('_nat_map_gen', 0)}"
     if _dismissed:
         sel_id = None  # user clicked close — ignore any residual selection
-        # Clear Plotly's internal selection so the choropleth resets visually
-        if 'national_map' in st.session_state:
-            st.session_state['national_map'] = {"selection": {"points": []}}
-    elif 'national_map' in st.session_state:
-        sel = st.session_state.get('national_map')
+    elif _map_key in st.session_state:
+        sel = st.session_state.get(_map_key)
         if sel and isinstance(sel, dict) and 'selection' in sel:
             pts = sel['selection'].get('points', [])
             if pts:
@@ -2262,12 +2260,12 @@ def page_national():
                                           height=560)
         st.plotly_chart(fig, use_container_width=True,
                         on_select="rerun", selection_mode='points',
-                        key='national_map')
+                        key=_map_key)
 
     with detail_col:
         # Re-check selection after map render (on_select triggers rerun)
-        if sel_id is None and not _dismissed and 'national_map' in st.session_state:
-            sel = st.session_state.get('national_map')
+        if sel_id is None and not _dismissed and _map_key in st.session_state:
+            sel = st.session_state.get(_map_key)
             if sel and isinstance(sel, dict) and 'selection' in sel:
                 pts = sel['selection'].get('points', [])
                 if pts:
@@ -2295,6 +2293,7 @@ def page_national():
                     if st.button("✕", key="close_detail",
                                  help="Close county detail"):
                         st.session_state['_nat_dismiss'] = True
+                        st.session_state['_nat_map_gen'] = st.session_state.get('_nat_map_gen', 0) + 1
                         st.rerun()
                 st.markdown(
                     f"<div style='color:{COLORS['text_secondary']}; margin-bottom:16px;'>"
