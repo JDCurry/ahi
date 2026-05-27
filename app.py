@@ -2241,7 +2241,8 @@ def page_national():
 
     # ---- Extract selection BEFORE rendering columns ----
     sel_id = None
-    if st.session_state.pop('_nat_dismiss', False):
+    _dismissed = st.session_state.pop('_nat_dismiss', False)
+    if _dismissed:
         sel_id = None  # user clicked close — ignore any residual selection
     elif 'national_map' in st.session_state:
         sel = st.session_state.get('national_map')
@@ -2262,7 +2263,7 @@ def page_national():
 
     with detail_col:
         # Re-check selection after map render (on_select triggers rerun)
-        if sel_id is None and not st.session_state.get('_nat_dismiss') and 'national_map' in st.session_state:
+        if sel_id is None and not _dismissed and 'national_map' in st.session_state:
             sel = st.session_state.get('national_map')
             if sel and isinstance(sel, dict) and 'selection' in sel:
                 pts = sel['selection'].get('points', [])
