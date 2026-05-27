@@ -2241,7 +2241,9 @@ def page_national():
 
     # ---- Extract selection BEFORE rendering columns ----
     sel_id = None
-    if 'national_map' in st.session_state:
+    if st.session_state.pop('_nat_dismiss', False):
+        sel_id = None  # user clicked close — ignore any residual selection
+    elif 'national_map' in st.session_state:
         sel = st.session_state.get('national_map')
         if sel and isinstance(sel, dict) and 'selection' in sel:
             pts = sel['selection'].get('points', [])
@@ -2260,7 +2262,7 @@ def page_national():
 
     with detail_col:
         # Re-check selection after map render (on_select triggers rerun)
-        if sel_id is None and 'national_map' in st.session_state:
+        if sel_id is None and not st.session_state.get('_nat_dismiss') and 'national_map' in st.session_state:
             sel = st.session_state.get('national_map')
             if sel and isinstance(sel, dict) and 'selection' in sel:
                 pts = sel['selection'].get('points', [])
@@ -2277,10 +2279,19 @@ def page_national():
                 pcolor = COLORS.get(primary, COLORS['primary_light'])
 
                 display_name = _county_display_name(row['county'].title())
-                st.markdown(
-                    f"<h2 style='margin:0 0 4px 0; color:{COLORS['text_primary']};'>"
-                    f"{display_name}, {row['state']}</h2>",
-                    unsafe_allow_html=True)
+
+                # Close button + county header on same row
+                _hdr_col, _close_col = st.columns([5, 1])
+                with _hdr_col:
+                    st.markdown(
+                        f"<h2 style='margin:0 0 4px 0; color:{COLORS['text_primary']};'>"
+                        f"{display_name}, {row['state']}</h2>",
+                        unsafe_allow_html=True)
+                with _close_col:
+                    if st.button("✕", key="close_detail",
+                                 help="Close county detail"):
+                        st.session_state['_nat_dismiss'] = True
+                        st.rerun()
                 st.markdown(
                     f"<div style='color:{COLORS['text_secondary']}; margin-bottom:16px;'>"
                     f"Primary: <strong style='color:{pcolor};'>"
