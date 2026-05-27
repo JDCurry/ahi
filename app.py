@@ -2244,6 +2244,9 @@ def page_national():
     _dismissed = st.session_state.pop('_nat_dismiss', False)
     if _dismissed:
         sel_id = None  # user clicked close — ignore any residual selection
+        # Clear Plotly's internal selection so the choropleth resets visually
+        if 'national_map' in st.session_state:
+            st.session_state['national_map'] = {"selection": {"points": []}}
     elif 'national_map' in st.session_state:
         sel = st.session_state.get('national_map')
         if sel and isinstance(sel, dict) and 'selection' in sel:
