@@ -1977,7 +1977,7 @@ def page_model_info():
     fires should occur roughly 10% of the time in those conditions. AHI v3.5 uses a **per-state calibration
     pipeline** with per-region temperature scales to ensure locally meaningful predictions:
 
-    - **Per-state fire bias** — Additive logit shift fitted per state before temperature scaling, correcting backbone compression for high fire-rate states
+    - **Per-hazard logit bias** — Additive logit shift fitted per state per hazard before temperature scaling, correcting for zero-filled ERA5/MODIS features at inference
     - **Temperature scaling** — Per-hazard confidence adjustment fitted on each state's validation set
     - **Seasonal bias** — Regional climatology adjustments (fire season, hurricane season, etc.)
     - **Severity-weighted base rates** — County-level rates weighted by event magnitude (wind speed, fire acreage, winter event type)
@@ -1995,7 +1995,7 @@ def page_model_info():
     - **50-feature input set** (up from 21 in Round 2) with 6 new data source families
     - Two-phase training: shared backbone (12 epochs, best at epoch 8) then per-region head
       fine-tuning (3–6 epochs per region, ~395K trainable params per region)
-    - Per-state additive fire bias + per-region temperature scaling fitted on 2M-row validation set
+    - Per-state per-hazard logit bias + temperature scaling fitted on 2M-row validation set (zero-filled inference)
     - Severity-weighted calibration for fire (acreage), wind (gust speed), and winter (event type)
     - Precomputed national predictions for instant page load
     """)
@@ -2245,7 +2245,7 @@ def page_national():
         return
 
     st.caption(f"**{month_label}** · {len(df):,} counties · "
-               f"Predictions calibrated from historical patterns for {now.strftime('%B')}. "
+               f"Predictions calibrated from historical patterns for {_month_names[cur_month]}. "
                f"Drill into the **State** tab for county-level detail.")
 
     # ---- Extract selection BEFORE rendering columns ----

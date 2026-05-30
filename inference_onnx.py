@@ -12,10 +12,10 @@ across all states in the same region. State -> region mapping lives in
 states/registry.yaml.
 
 Calibration pipeline (per state):
-  1. (raw_logit + fire_bias) / T # additive bias (fire only) + temperature scaling
-  2. + seasonal_bias[h][m]       # state's seasonal_bias.json
-  3. sigmoid                     # convert to probability
-  4. min(p, ceiling[h][m])       # state's base_rate_ceiling.json
+  1. (raw_logit + hazard_bias) / T  # per-hazard additive bias + temperature scaling
+  2. + seasonal_bias[h][m]          # state's seasonal_bias.json
+  3. sigmoid                        # convert to probability
+  4. min(p, ceiling[h][m])          # state's base_rate_ceiling.json
 
 Author: Joshua D. Curry
 """
@@ -91,15 +91,22 @@ def _load_state_calibration(state_code: str) -> Dict:
 
     state_dir = ROOT / 'states' / state_code
 
-    # Temperature scales + per-state fire bias
+    # Temperature scales + per-hazard logit biases
     t_path = state_dir / 'temperature_scales.json'
-    fire_bias = 0.0
+    hazard_biases = {h: 0.0 for h in HAZARD_TYPES}
     if t_path.exists():
         with open(t_path, encoding="utf-8-sig") as f:
             t_doc = json.load(f)
         temperatures = t_doc.get('temperatures', t_doc)
         temperatures = {h: float(temperatures[h]) for h in HAZARD_TYPES if h in temperatures}
-        fire_bias = float(t_doc.get('fire_bias', 0.0))
+        # Per-hazard biases (new format: "biases" dict)
+        if 'biases' in t_doc:
+            for h, v in t_doc['biases'].items():
+                if h in HAZARD_TYPES:
+                    hazard_biases[h] = float(v)
+        # Legacy: fire_bias field (single-hazard format)
+        elif 'fire_bias' in t_doc:
+            hazard_biases['fire'] = float(t_doc['fire_bias'])
     else:
         print(f"[CALIBRATION] {state_code}: no temperature_scales.json — using T=1.0")
         temperatures = {h: 1.0 for h in HAZARD_TYPES}
@@ -134,13 +141,16 @@ def _load_state_calibration(state_code: str) -> Dict:
 
     cal = {
         'temperatures':     temperatures,
-        'fire_bias':        fire_bias,
+        'hazard_biases':    hazard_biases,
         'biases':           biases,
         'base_ceiling':     base_ceiling,
         'seasonal_ceiling': seasonal_ceiling,
     }
     _STATE_CALIBRATION_CACHE[state_code] = cal
-    bias_str = f", fire_bias={fire_bias:+.3f}" if fire_bias != 0.0 else ""
+    active_biases = {h: v for h, v in hazard_biases.items() if v != 0.0}
+    bias_str = ', '.join(f'{h}_bias={v:+.3f}' for h, v in active_biases.items())
+    if bias_str:
+        bias_str = f", {bias_str}"
     print(f"[CALIBRATION] Loaded {state_code} calibration "
           f"(T fire={temperatures.get('fire', 1.0):.3f}{bias_str})")
     return cal
@@ -211,8 +221,8 @@ def _apply_calibration(state_code: str, raw_logit: float,
     """Apply calibration to a single raw logit.
 
     Calibration pipeline:
-      1. (logit + fire_bias) / T   — per-state additive bias shifts logit
-                                      before temperature scaling (fire only)
+      1. (logit + hazard_bias) / T — per-state additive bias shifts logit
+                                      before temperature scaling (all hazards)
       2. + seasonal_bias           — county-level or state-level monthly bias
       3. sigmoid                   — convert to probability
       4. min(p, ceiling)           — cap at base rate ceiling
@@ -224,11 +234,9 @@ def _apply_calibration(state_code: str, raw_logit: float,
 
     T = max(cal['temperatures'].get(hazard, 1.0), 0.01)
 
-    # Per-state additive fire bias: shifts logit before T-scaling
-    # prob = sigmoid((logit + fire_bias) / T + seasonal_bias)
-    logit = raw_logit
-    if hazard == 'fire':
-        logit += cal.get('fire_bias', 0.0)
+    # Per-state additive bias: shifts logit before T-scaling
+    # prob = sigmoid((logit + bias) / T + seasonal_bias)
+    logit = raw_logit + cal['hazard_biases'].get(hazard, 0.0)
 
     scaled = logit / T
 
