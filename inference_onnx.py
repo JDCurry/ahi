@@ -12,7 +12,7 @@ across all states in the same region. State -> region mapping lives in
 states/registry.yaml.
 
 Calibration pipeline (per state):
-  1. raw_logit / T               # state's temperature_scales.json
+  1. (raw_logit + fire_bias) / T # additive bias (fire only) + temperature scaling
   2. + seasonal_bias[h][m]       # state's seasonal_bias.json
   3. sigmoid                     # convert to probability
   4. min(p, ceiling[h][m])       # state's base_rate_ceiling.json
@@ -31,23 +31,22 @@ import pandas as pd
 HAZARD_TYPES = ['fire', 'flood', 'wind', 'winter', 'seismic']
 
 STATIC_FEATURE_COLS = [
-    # [0-20] Round 2 originals
+    # [0-20] GridMET core (in parquets)
     'latitude', 'longitude', 'day_of_year', 'month', 'year',
     'tmmx', 'tmmn', 'rmin', 'rmax', 'vs', 'erc', 'pr', 'vpd',
     'red_flag_active', 'tmmx_3d_mean', 'pr_3d_mean', 'vs_3d_mean',
     'elevation', 'forest_fraction', 'urban_fraction', 'pop_density',
-    # [21-24] CW3E AR (daily, WA/OR/CA only — zero elsewhere until live pipeline)
-    'ar_ivt_max', 'ar_iwv_max', 'ar_active', 'ar_scale',
+    # [21-24] ERA5 water vapor transport (daily — zero until live pipeline)
+    'era5_ivt_max', 'era5_tcwv_max', 'era5_ivt_mean', 'era5_tcwv_mean',
     # [25-29] NFHL flood zones (static, merged into inference parquets)
     'nfhl_sfha_frac', 'nfhl_v_frac', 'nfhl_x_frac', 'nfhl_sfha_km2', 'nfhl_v_km2',
-    # [30-31] SNODAS snowpack (daily — zero until live pipeline)
-    'snodas_swe_mean', 'snodas_depth_mean',
-    # [32-38] USDM drought (daily — zero until live pipeline)
-    'usdm_intensity', 'usdm_none_frac', 'usdm_d0_frac', 'usdm_d1_frac',
-    'usdm_d2_frac', 'usdm_d3_frac', 'usdm_d4_frac',
-    # [39-43] USGS streamflow (daily — zero until live pipeline)
-    'usgs_log_q_mean', 'usgs_log_q_max', 'usgs_log_gh_mean', 'usgs_log_gh_max',
-    'usgs_n_sites',
+    # [30-31] ERA5 temperature/pressure (daily — zero until live pipeline)
+    'era5_t2m_min', 'era5_msl_min',
+    # [32-35] MODIS vegetation indices (daily — zero until live pipeline)
+    'modis_ndvi', 'modis_evi', 'modis_ndvi_anom', 'modis_evi_anom',
+    # [36-43] ERA5 extended (daily — zero until live pipeline)
+    'era5_tp_sum', 'era5_tp_max', 'era5_msl_mean', 'era5_gust_max',
+    'era5_ws_max', 'era5_t2m_mean', 'era5_t2m_max', 'era5_ws_mean',
     # [44-49] WUI (static, merged into inference parquets)
     'wui_frac', 'wui_intermix_frac', 'wui_interface_frac',
     'wui_veg_frac', 'wui_veg_cover_mean', 'wui_huden_log',
@@ -92,13 +91,15 @@ def _load_state_calibration(state_code: str) -> Dict:
 
     state_dir = ROOT / 'states' / state_code
 
-    # Temperature scales
+    # Temperature scales + per-state fire bias
     t_path = state_dir / 'temperature_scales.json'
+    fire_bias = 0.0
     if t_path.exists():
         with open(t_path, encoding="utf-8-sig") as f:
             t_doc = json.load(f)
         temperatures = t_doc.get('temperatures', t_doc)
         temperatures = {h: float(temperatures[h]) for h in HAZARD_TYPES if h in temperatures}
+        fire_bias = float(t_doc.get('fire_bias', 0.0))
     else:
         print(f"[CALIBRATION] {state_code}: no temperature_scales.json — using T=1.0")
         temperatures = {h: 1.0 for h in HAZARD_TYPES}
@@ -133,13 +134,15 @@ def _load_state_calibration(state_code: str) -> Dict:
 
     cal = {
         'temperatures':     temperatures,
+        'fire_bias':        fire_bias,
         'biases':           biases,
         'base_ceiling':     base_ceiling,
         'seasonal_ceiling': seasonal_ceiling,
     }
     _STATE_CALIBRATION_CACHE[state_code] = cal
+    bias_str = f", fire_bias={fire_bias:+.3f}" if fire_bias != 0.0 else ""
     print(f"[CALIBRATION] Loaded {state_code} calibration "
-          f"(T fire={temperatures.get('fire', 1.0):.3f})")
+          f"(T fire={temperatures.get('fire', 1.0):.3f}{bias_str})")
     return cal
 
 
@@ -207,13 +210,27 @@ def _apply_calibration(state_code: str, raw_logit: float,
                         county_name: Optional[str] = None) -> float:
     """Apply calibration to a single raw logit.
 
+    Calibration pipeline:
+      1. (logit + fire_bias) / T   — per-state additive bias shifts logit
+                                      before temperature scaling (fire only)
+      2. + seasonal_bias           — county-level or state-level monthly bias
+      3. sigmoid                   — convert to probability
+      4. min(p, ceiling)           — cap at base rate ceiling
+
     Uses county-level bias when available (county_seasonal_bias.json),
     otherwise falls back to statewide bias (seasonal_bias.json).
     """
     cal = _load_state_calibration(state_code)
 
     T = max(cal['temperatures'].get(hazard, 1.0), 0.01)
-    scaled = raw_logit / T
+
+    # Per-state additive fire bias: shifts logit before T-scaling
+    # prob = sigmoid((logit + fire_bias) / T + seasonal_bias)
+    logit = raw_logit
+    if hazard == 'fire':
+        logit += cal.get('fire_bias', 0.0)
+
+    scaled = logit / T
 
     bias = _get_county_bias(state_code, hazard, month, county_name)
     scaled += bias

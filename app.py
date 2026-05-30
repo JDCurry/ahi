@@ -3,7 +3,7 @@ AHI — Adaptive Hazard Intelligence Platform
 Multi-state demonstration dashboard.
 Resilience Analytics Lab, LLC
 
-AHI v3.0 — multi-hazard risk prediction with regional model architecture.
+AHI v3.5 — multi-hazard risk prediction with regional model architecture.
 State-aware: select state from sidebar; UI content + calibration loaded
 from states/<XX>/config.yaml and states/registry.yaml.
 """
@@ -1559,7 +1559,7 @@ def page_state_overview():
 
 def page_statewide():
     st.markdown("## Statewide Predictions")
-    st.caption(f"Run AHI v3.0 for all {len(COUNTIES)} {ctx.state_name} counties. Results include an interactive risk map.")
+    st.caption(f"Run AHI v3.5 for all {len(COUNTIES)} {ctx.state_name} counties. Results include an interactive risk map.")
 
     target_date = datetime.now().date() + timedelta(days=MAX_FORECAST_DAYS)
 
@@ -1760,13 +1760,13 @@ def page_risk_assessment():
 # =============================================================================
 
 def page_model_info():
-    st.markdown("## AHI v3.0 — CONUS Model Diagnostics")
+    st.markdown("## AHI v3.5 — CONUS Model Diagnostics")
     st.caption("9 climate regions · 48 states + DC · 3,109 counties · 50-feature input · per-region prediction heads")
 
     st.markdown("""
-    ### What is AHI v3.0?
+    ### What is AHI v3.5?
 
-    **AHI v3.0** is the Adaptive Hazard Intelligence model powering this dashboard. It predicts the
+    **AHI v3.5** is the Adaptive Hazard Intelligence model powering this dashboard. It predicts the
     likelihood of four natural hazard types — wildfire, flood, wind, and winter storm — at the
     county level across the contiguous United States.
 
@@ -1775,17 +1775,17 @@ def page_model_info():
     operate on a slow timescale (weeks/seasons). AHI uses a proprietary multi-mesh architecture to
     decompose these timescales and learn hazard-specific patterns from 25+ years of historical data.
 
-    **v3.0** expands the feature set from 21 to **50 inputs** — adding FEMA NFHL flood zones, USDM
-    drought intensity, USGS streamflow, SNODAS snowpack, CW3E atmospheric river catalog, and
-    Wildland-Urban Interface data — and retrains on a 10M-row national dataset with two-phase
-    training (backbone + per-region fine-tuning). Fire AUC improved from 0.645 → 0.747, flood
-    from 0.676 → 0.745, and national mean from 0.736 → 0.773.
+    **v3.5** expands the feature set to **50 inputs** — adding ERA5 reanalysis (atmospheric rivers,
+    wind gusts, precipitation, temperature, pressure), MODIS vegetation indices (NDVI/EVI and
+    anomalies), FEMA NFHL flood zones, and Wildland-Urban Interface data — and retrains on a
+    10M-row national dataset with two-phase training (backbone + per-region fine-tuning).
+    Wind AUC improved from 0.719 → 0.746, and national mean from 0.773 → 0.780.
     """)
 
     st.markdown("---")
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Model", "AHI v3.0")
+    col1.metric("Model", "AHI v3.5")
     col2.metric("Parameters", "~1.7M")
     col3.metric("Architecture", "Proprietary")
     col4.metric("Status", "Online")
@@ -1794,7 +1794,7 @@ def page_model_info():
     col5.metric("Regional Models", "9")
     col6.metric("States + DC", "48 + DC")
     col7.metric("CONUS Counties", "3,109")
-    col8.metric("Deployed National AUC", "0.773")
+    col8.metric("Deployed National AUC", "0.780")
 
     # ---- Honest National Performance ----
     st.markdown("---")
@@ -1802,20 +1802,20 @@ def page_model_info():
     st.caption(
         "Evaluated on a 2,000,534-row temporal held-out split of the 10M-row national dataset "
         "(3,109 counties, 49 states, 50-feature input). Two-phase training: shared backbone "
-        "(epoch 5 best) then per-region head fine-tuning. These are the AUCs of the model "
+        "(epoch 8 best) then per-region head fine-tuning. These are the AUCs of the model "
         "actually serving this dashboard."
     )
 
     national_data = [
-        {"Hazard": "Winter", "AUC": 0.884, "Quality": "Excellent", "Notes": "All 9 regions ≥ 0.84. Consistent top performer across all climate zones."},
-        {"Hazard": "Fire",   "AUC": 0.747, "Quality": "Acceptable","Notes": "Major lift from Round 2 (0.645). Strong in northern plains (0.82), PNW (0.80); lowest in northeast (0.63)."},
-        {"Hazard": "Flood",  "AUC": 0.745, "Quality": "Acceptable","Notes": "Up from 0.676 (Round 2). NFHL flood zone features and USGS streamflow boosted signal. Best in CO (0.83)."},
-        {"Hazard": "Wind",   "AUC": 0.719, "Quality": "Acceptable","Notes": "Severity-thresholded at NWS criterion (~58 mph). Best in northeast (0.79), northern plains (0.77)."},
+        {"Hazard": "Winter", "AUC": 0.881, "Quality": "Excellent", "Notes": "All 9 regions ≥ 0.82. Consistent top performer across all climate zones."},
+        {"Hazard": "Fire",   "AUC": 0.751, "Quality": "Acceptable","Notes": "Strong in northern plains (0.83), PNW (0.81), pacific (0.80); lowest in northeast (0.55)."},
+        {"Hazard": "Wind",   "AUC": 0.746, "Quality": "Acceptable","Notes": "Largest v3.5 gain (+0.027). ERA5 gust/wind features boosted signal. Best in northeast (0.79), N. Plains (0.78)."},
+        {"Hazard": "Flood",  "AUC": 0.742, "Quality": "Acceptable","Notes": "NFHL flood zone features provide static spatial signal. Best in CO (0.86), mountain west (0.80)."},
     ]
     st.dataframe(pd.DataFrame(national_data), use_container_width=True, hide_index=True)
 
-    nat_hazards = ["Winter", "Fire", "Flood", "Wind"]
-    nat_aucs    = [0.884, 0.747, 0.745, 0.719]
+    nat_hazards = ["Winter", "Fire", "Wind", "Flood"]
+    nat_aucs    = [0.881, 0.751, 0.746, 0.742]
     nat_colors  = [COLORS['winter'], COLORS['fire'], COLORS['flood'], COLORS['wind']]
 
     fig_nat = go.Figure()
@@ -1826,7 +1826,7 @@ def page_model_info():
     fig_nat.add_hline(y=0.7, line_dash="dot",  line_color="#a3a3a3", annotation_text="Acceptable (0.7)")
     fig_nat.add_hline(y=0.5, line_dash="dash", line_color="#dc2626", annotation_text="Random (0.5)")
     fig_nat.update_layout(
-        title="AHI v3.0 — National AUC by Hazard (deployed model, per-region heads)",
+        title="AHI v3.5 — National AUC by Hazard (deployed model, per-region heads)",
         paper_bgcolor=COLORS['card_bg'],
         plot_bgcolor=COLORS['card_bg'],
         font=dict(color=COLORS['text_secondary'], family='Inter'),
@@ -1839,12 +1839,12 @@ def page_model_info():
     st.plotly_chart(fig_nat, use_container_width=True)
 
     nc1, nc2 = st.columns(2)
-    nc1.info("**Deployed Mean AUC: 0.773** — averaged over fire, flood, wind, winter (49-state national).")
+    nc1.info("**Deployed Mean AUC: 0.780** — averaged over fire, flood, wind, winter (49-state national).")
     nc2.success(
-        "AHI v3.0 expands the input set from 21 to **50 features** (NFHL flood zones, USDM drought, "
-        "USGS streamflow, SNODAS snowpack, CW3E atmospheric rivers, WUI) and retrains with two-phase "
-        "backbone + per-region fine-tuning. National mean AUC improved from 0.736 → 0.773. "
-        "Fire saw the largest gain (+0.10). See per-region breakdown below."
+        "AHI v3.5 expands the input set to **50 features** — adding ERA5 reanalysis, MODIS vegetation "
+        "indices, NFHL flood zones, and WUI data — with two-phase backbone + per-region fine-tuning. "
+        "National mean AUC improved from 0.773 → 0.780. "
+        "Wind saw the largest gain (+0.027). See per-region breakdown below."
     )
 
     # ---- Per-region per-hazard AUC table ----
@@ -1852,16 +1852,16 @@ def page_model_info():
     st.caption("Each cell is the AUC for that hazard in that climate region. Colors green ≥0.80, "
                "yellow 0.65–0.80, red <0.65.")
     region_aucs = pd.DataFrame([
-        # region,              fire,  flood, wind,  winter   (Round 3 post-finetune best epoch)
-        ['Colorado',           0.761, 0.831, 0.720, 0.876],
-        ['Great Lakes',        0.748, 0.742, 0.763, 0.913],
-        ['Mountain West',      0.760, 0.798, 0.669, 0.864],
-        ['Northeast',          0.625, 0.698, 0.789, 0.842],
-        ['Northern Plains',    0.820, 0.799, 0.768, 0.907],
-        ['Pacific',            0.783, 0.664, 0.654, 0.839],
-        ['PNW',                0.801, 0.661, 0.637, 0.845],
-        ['Southeast Gulf',     0.721, 0.728, 0.744, 0.945],
-        ['Southern Plains',    0.702, 0.780, 0.727, 0.921],
+        # region,              fire,  flood, wind,  winter   (Round 3.5 post-finetune)
+        ['Colorado',           0.788, 0.857, 0.741, 0.874],
+        ['Great Lakes',        0.755, 0.729, 0.766, 0.912],
+        ['Mountain West',      0.760, 0.798, 0.701, 0.866],
+        ['Northeast',          0.552, 0.648, 0.787, 0.824],
+        ['Northern Plains',    0.831, 0.787, 0.781, 0.905],
+        ['Pacific',            0.802, 0.662, 0.738, 0.847],
+        ['PNW',                0.814, 0.714, 0.688, 0.851],
+        ['Southeast Gulf',     0.725, 0.707, 0.756, 0.935],
+        ['Southern Plains',    0.731, 0.773, 0.754, 0.916],
     ], columns=['Region', 'Fire', 'Flood', 'Wind', 'Winter'])
 
     def _auc_color(v):
@@ -1939,9 +1939,9 @@ def page_model_info():
     aucs_co      = [0.963, 0.891, 0.857, 0.817]
     bar_colors   = [COLORS['winter'], COLORS['flood'], COLORS['fire'], COLORS['wind']]
 
-    # WA reference performance
-    hazards_wa   = ["Winter", "Fire", "Wind", "Flood"]
-    aucs_wa      = [0.908, 0.851, 0.837, 0.830]
+    # WA reference performance (PNW region, R3.5)
+    hazards_wa   = ["Winter", "Fire", "Flood", "Wind"]
+    aucs_wa      = [0.851, 0.814, 0.714, 0.688]
 
     fig_perf = go.Figure()
     fig_perf.add_trace(go.Bar(x=hazards_co, y=aucs_co, marker_color=bar_colors,
@@ -1966,35 +1966,36 @@ def page_model_info():
     st.plotly_chart(fig_perf, use_container_width=True)
 
     mc1, mc2 = st.columns(2)
-    mc1.success("**Colorado Mean AUC: 0.882** — All 4 hazards Excellent (AUC > 0.8)")
-    mc2.info("**Washington Mean AUC: 0.857** — All 4 hazards Excellent")
+    mc1.success("**Colorado Mean AUC: 0.815** — All 4 hazards ≥ 0.74")
+    mc2.info("**Washington (PNW) Mean AUC: 0.767** — Fire and Winter above 0.81")
 
     # ---- Calibration ----
     st.markdown("---")
     st.markdown("### Calibration Pipeline")
     st.markdown("""
     **Calibration** means predicted probabilities match real-world frequencies. If the model says 10% fire risk,
-    fires should occur roughly 10% of the time in those conditions. AHI v3.0 uses a **per-state calibration
+    fires should occur roughly 10% of the time in those conditions. AHI v3.5 uses a **per-state calibration
     pipeline** with per-region temperature scales to ensure locally meaningful predictions:
 
+    - **Per-state fire bias** — Additive logit shift fitted per state before temperature scaling, correcting backbone compression for high fire-rate states
     - **Temperature scaling** — Per-hazard confidence adjustment fitted on each state's validation set
     - **Seasonal bias** — Regional climatology adjustments (fire season, hurricane season, etc.)
     - **Severity-weighted base rates** — County-level rates weighted by event magnitude (wind speed, fire acreage, winter event type)
     - **Base-rate ceilings** — Caps predictions at historical plausibility limits
 
-    Each state receives its own calibration parameters, ensuring predictions are locally meaningful.
+    Each state receives its own calibration parameters (49 states x 5 hazards), ensuring predictions are locally meaningful.
     """)
 
     st.markdown("---")
     st.markdown("### Updates & Roadmap")
 
-    st.markdown("**Current (AHI v3.0 — CONUS Deployment)**")
+    st.markdown("**Current (AHI v3.5 — CONUS Deployment)**")
     st.markdown("""
     - 9 climate-region prediction heads on a shared backbone serving 48 states + DC (3,109 counties)
     - **50-feature input set** (up from 21 in Round 2) with 6 new data source families
-    - Two-phase training: shared backbone (10 epochs, best at epoch 5) then per-region head
+    - Two-phase training: shared backbone (12 epochs, best at epoch 8) then per-region head
       fine-tuning (3–6 epochs per region, ~395K trainable params per region)
-    - Per-region temperature scaling fitted on 2M-row validation set (replaces global scaling)
+    - Per-state additive fire bias + per-region temperature scaling fitted on 2M-row validation set
     - Severity-weighted calibration for fire (acreage), wind (gust speed), and winter (event type)
     - Precomputed national predictions for instant page load
     """)
@@ -2027,18 +2028,16 @@ def page_model_info():
     | **USGS Earthquakes** | National seismic catalog (M ≥ 2.0, 2000–2025) | Seismic event labels (model trained; dashboard display pending) |
     | **FEMA** | Disaster declarations (all states) | Supplementary validation labels |
     | **GridMET** | Daily gridded weather — CONUS (lat 25–49, lon –125 to –67) | Temperature, precipitation, humidity, wind speed, fire weather (ERC) |
+    | **ERA5** | ECMWF reanalysis — hourly global atmosphere (Copernicus CDS) | IVT, TCWV, wind gusts, precipitation, temperature, sea-level pressure (14 inputs) |
+    | **MODIS** | Terra/Aqua Vegetation Index — 16-day 1 km (Hamburg ICDC) | NDVI, EVI, and monthly anomalies for fire-fuel and drought signal (4 inputs) |
     | **FEMA NFHL** | National Flood Hazard Layer — 100-yr/500-yr/coastal flood zones | Static flood zone features per county (5 zone-fraction inputs) |
-    | **USDM** | U.S. Drought Monitor — weekly drought intensity (D0–D4) | Drought category fractions per county (7 inputs) |
-    | **USGS Streamflow** | National Water Information System — daily discharge | Streamflow percentiles and anomalies per county (5 inputs) |
-    | **SNODAS** | Snow Data Assimilation System — daily SWE and snow depth | Snowpack features for spring-flood and winter-confidence signal (2 inputs) |
-    | **CW3E** | Atmospheric River catalog — event tracking and intensity | AR category and duration features for PNW wind/flood (4 inputs) |
     | **WUI** | Wildland-Urban Interface — SILVIS Lab county-level data | WUI fraction, intermix/interface, housing density features (6 inputs) |
     | **US Census (TIGER)** | County-level population density | Static demographic feature for exposure weighting |
     | **NLCD / Land Cover** | Forest & urban fractions, elevation proxy by terrain class | Static geographic features for terrain-aware inference |
     """)
 
     st.caption(
-        "Note: AHI v3.0 uses population density as its only demographic feature. "
+        "Note: AHI v3.5 uses population density as its only demographic feature. "
         "CDC Social Vulnerability Index (SVI) data was evaluated but not incorporated into the "
         "training pipeline; it is reserved for future fairness/equity analysis."
     )
@@ -2207,8 +2206,15 @@ def page_national():
         return
 
     now = datetime.now().date()
-    cur_month = now.month
-    month_label = now.strftime('%B %Y')
+    # Use next month's CSV if current month is in the last 3 days
+    # (June predictions are more actionable than stale May data)
+    cur_month = now.month + 1 if now.day >= 28 and now.month < 12 else now.month
+    if cur_month > 12:
+        cur_month = 12
+    _month_names = {1:'January',2:'February',3:'March',4:'April',5:'May',
+                    6:'June',7:'July',8:'August',9:'September',10:'October',
+                    11:'November',12:'December'}
+    month_label = f"{_month_names[cur_month]} {now.year}"
 
     # ---- Top controls ----
     c1, c2 = st.columns([1.5, 1.5])
@@ -2448,7 +2454,7 @@ def main():
         {logo_html}
         <div class="ahi-header-text">
             <h2 class="title">Adaptive Hazard Intelligence</h2>
-            <div class="subtitle">Calibrated hazard risk for defensible decisions · 3,109 CONUS counties · AHI v3.0</div>
+            <div class="subtitle">Calibrated hazard risk for defensible decisions · 3,109 CONUS counties · AHI v3.5</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
