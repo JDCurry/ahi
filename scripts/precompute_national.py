@@ -70,10 +70,14 @@ def main():
             counties = sorted(cfg.get('county_coords', {}).keys())
 
             pq_path = ROOT / 'states' / sc / 'inference_data.parquet'
-            if not pq_path.exists():
+            parts_dir = ROOT / 'states' / sc / 'inference_data'
+            if pq_path.exists():
+                hdf = pd.read_parquet(pq_path)
+            elif parts_dir.exists() and parts_dir.is_dir():
+                hdf = pd.read_parquet(parts_dir)
+            else:
                 print(f"  {sc}: SKIP (no parquet)")
                 continue
-            hdf = pd.read_parquet(pq_path)
 
             ok = 0
             for county in counties:

@@ -697,17 +697,22 @@ def load_v2_model(region: str):
 
 @st.cache_data(ttl=3600, max_entries=5, show_spinner=False)
 def load_hazard_data(state_code: str):
-    """Load the active state's inference parquet (states/<XX>/inference_data.parquet)."""
+    """Load the active state's inference parquet (states/<XX>/inference_data.parquet).
+    Supports both single-file and partitioned directory (states/<XX>/inference_data/)."""
     path = Path(f'states/{state_code}/inference_data.parquet')
+    parts_dir = Path(f'states/{state_code}/inference_data')
     if path.exists():
         df = pd.read_parquet(path)
-        if 'date' in df.columns:
-            df['date'] = pd.to_datetime(df['date'])
-        # Downcast float64 → float32 to save ~50% RAM per DataFrame
-        for col in df.select_dtypes(include=['float64']).columns:
-            df[col] = df[col].astype('float32')
-        return df
-    return None
+    elif parts_dir.exists() and parts_dir.is_dir():
+        df = pd.read_parquet(parts_dir)
+    else:
+        return None
+    if 'date' in df.columns:
+        df['date'] = pd.to_datetime(df['date'])
+    # Downcast float64 -> float32 to save ~50% RAM per DataFrame
+    for col in df.select_dtypes(include=['float64']).columns:
+        df[col] = df[col].astype('float32')
+    return df
 
 
 @st.cache_data(ttl=3600, max_entries=5, show_spinner=False)
@@ -887,7 +892,13 @@ def _predict_all_national_live(month: int):
             state_ctx = StateContext.load(state_code)
         except Exception:
             continue
-        hazard_df = pd.read_parquet(state_ctx.parquet_path) if state_ctx.parquet_path.exists() else None
+        parts_dir = state_ctx.state_dir / 'inference_data'
+        if state_ctx.parquet_path.exists():
+            hazard_df = pd.read_parquet(state_ctx.parquet_path)
+        elif parts_dir.exists() and parts_dir.is_dir():
+            hazard_df = pd.read_parquet(parts_dir)
+        else:
+            hazard_df = None
         if hazard_df is None or len(hazard_df) == 0:
             continue
         _build_maps(hazard_df)

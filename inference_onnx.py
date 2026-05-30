@@ -36,15 +36,15 @@ STATIC_FEATURE_COLS = [
     'tmmx', 'tmmn', 'rmin', 'rmax', 'vs', 'erc', 'pr', 'vpd',
     'red_flag_active', 'tmmx_3d_mean', 'pr_3d_mean', 'vs_3d_mean',
     'elevation', 'forest_fraction', 'urban_fraction', 'pop_density',
-    # [21-24] ERA5 water vapor transport (daily — zero until live pipeline)
+    # [21-24] ERA5 water vapor transport (daily, merged into inference parquets)
     'era5_ivt_max', 'era5_tcwv_max', 'era5_ivt_mean', 'era5_tcwv_mean',
     # [25-29] NFHL flood zones (static, merged into inference parquets)
     'nfhl_sfha_frac', 'nfhl_v_frac', 'nfhl_x_frac', 'nfhl_sfha_km2', 'nfhl_v_km2',
-    # [30-31] ERA5 temperature/pressure (daily — zero until live pipeline)
+    # [30-31] ERA5 temperature/pressure (daily, merged into inference parquets)
     'era5_t2m_min', 'era5_msl_min',
-    # [32-35] MODIS vegetation indices (daily — zero until live pipeline)
+    # [32-35] MODIS vegetation indices (monthly, merged into inference parquets)
     'modis_ndvi', 'modis_evi', 'modis_ndvi_anom', 'modis_evi_anom',
-    # [36-43] ERA5 extended (daily — zero until live pipeline)
+    # [36-43] ERA5 extended (daily, merged into inference parquets)
     'era5_tp_sum', 'era5_tp_max', 'era5_msl_mean', 'era5_gust_max',
     'era5_ws_max', 'era5_t2m_mean', 'era5_t2m_max', 'era5_ws_mean',
     # [44-49] WUI (static, merged into inference parquets)
