@@ -2000,16 +2000,19 @@ def page_model_info():
     - Precomputed national predictions for instant page load
     """)
 
-    st.markdown("**Next (Round 3.5 — Live Data + Refinement)**")
+    st.markdown("**Next (Round 4 — Operational Nowcasting)**")
     st.markdown("""
-    Round 3 lifted the national mean from 0.736 → 0.773 via feature expansion. The remaining gap
-    is primarily in fire-rare regions (northeast 0.63) and coastal flood disambiguation. Next steps:
+    Round 3.5 added ERA5 reanalysis + MODIS vegetation indices and lifted the national mean
+    to 0.780. The remaining gap is primarily in fire-rare regions (northeast 0.55) and coastal
+    flood disambiguation. Next steps:
 
-    - **Live weather ingestion** — real-time GridMET, USDM weekly updates, USGS streamflow feeds
-      to transition from historical pattern detection to operational nowcasting
-    - **CONUS404 hydroclimate reanalysis** — 1.1 TB high-resolution dataset for training Round 4
-    - **MODIS NDVI** — vegetation state time series for fire/drought signal refinement
+    - **Live weather ingestion** — real-time ERA5/GridMET API feeds to populate the 18 daily
+      features currently zero-filled at inference, transitioning from historical pattern
+      detection to operational nowcasting
+    - **WFIGS acreage filtering** — apply 10-acre minimum threshold to wildfire labels,
+      reducing CA fire base rate from ~90% to ~3% for more actionable predictions
     - **Sub-county resolution** — census tract or grid-cell predictions for urban areas
+    - **CONUS404 hydroclimate reanalysis** — 1.1 TB high-resolution dataset for enhanced training
 
     **Further out:**
     - Larger backbone (~4-8M params) for cross-regime generalization
