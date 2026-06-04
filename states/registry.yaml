@@ -3,7 +3,7 @@
 # ONNX paths (models/<region>/model.onnx).
 
 CO:
-  region: colorado
+  region: mountain_west
   name: Colorado
   deployed: true
   default_county: El Paso
@@ -28,17 +28,17 @@ CA:
   deployed: true
   default_county: Los Angeles
 CT:
-  region: northeast
+  region: new_england
   name: Connecticut
   deployed: true
   default_county: Hartford
 DC:
-  region: northeast
+  region: mid_atlantic
   name: District of Columbia
   deployed: true
   default_county: District of Columbia
 DE:
-  region: northeast
+  region: mid_atlantic
   name: Delaware
   deployed: true
   default_county: New Castle
@@ -88,17 +88,17 @@ LA:
   deployed: true
   default_county: Orleans
 MA:
-  region: northeast
+  region: new_england
   name: Massachusetts
   deployed: true
   default_county: Middlesex
 MD:
-  region: northeast
+  region: mid_atlantic
   name: Maryland
   deployed: true
   default_county: Montgomery
 ME:
-  region: northeast
+  region: new_england
   name: Maine
   deployed: true
   default_county: Cumberland
@@ -143,12 +143,12 @@ NE:
   deployed: true
   default_county: Douglas
 NH:
-  region: northeast
+  region: new_england
   name: New Hampshire
   deployed: true
   default_county: Hillsborough
 NJ:
-  region: northeast
+  region: mid_atlantic
   name: New Jersey
   deployed: true
   default_county: Bergen
@@ -163,7 +163,7 @@ NV:
   deployed: true
   default_county: Clark
 NY:
-  region: northeast
+  region: mid_atlantic
   name: New York
   deployed: true
   default_county: New York
@@ -183,12 +183,12 @@ OR:
   deployed: true
   default_county: Multnomah
 PA:
-  region: northeast
+  region: mid_atlantic
   name: Pennsylvania
   deployed: true
   default_county: Philadelphia
 RI:
-  region: northeast
+  region: new_england
   name: Rhode Island
   deployed: true
   default_county: Providence
@@ -218,12 +218,12 @@ UT:
   deployed: true
   default_county: Salt Lake
 VA:
-  region: northeast
+  region: mid_atlantic
   name: Virginia
   deployed: true
   default_county: Fairfax
 VT:
-  region: northeast
+  region: new_england
   name: Vermont
   deployed: true
   default_county: Chittenden

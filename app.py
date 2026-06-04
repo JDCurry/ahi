@@ -1818,16 +1818,16 @@ def page_model_info():
     )
 
     national_data = [
-        {"Hazard": "Winter", "AUC": 0.881, "Quality": "Excellent", "Notes": "All 9 regions ≥ 0.82. Consistent top performer across all climate zones."},
-        {"Hazard": "Fire",   "AUC": 0.751, "Quality": "Acceptable","Notes": "Strong in northern plains (0.83), PNW (0.81), pacific (0.80); lowest in northeast (0.55)."},
-        {"Hazard": "Wind",   "AUC": 0.746, "Quality": "Acceptable","Notes": "Largest v3.5 gain (+0.027). ERA5 gust/wind features boosted signal. Best in northeast (0.79), N. Plains (0.78)."},
-        {"Hazard": "Flood",  "AUC": 0.742, "Quality": "Acceptable","Notes": "NFHL flood zone features provide static spatial signal. Best in CO (0.86), mountain west (0.80)."},
+        {"Hazard": "Wind",   "AUC": 0.907, "Quality": "Excellent", "Notes": "Largest R4 gain. SPC-validated labels + lagged wind features. Best in great_lakes (0.95), new_england (0.94)."},
+        {"Hazard": "Winter", "AUC": 0.860, "Quality": "Excellent", "Notes": "All 9 regions >= 0.81. Consistent top performer across all climate zones."},
+        {"Hazard": "Fire",   "AUC": 0.696, "Quality": "Acceptable","Notes": "FIRMS-validated labels removed 85% of noise. Best in mountain_west (0.75), mid_atlantic (0.71)."},
+        {"Hazard": "Flood",  "AUC": 0.624, "Quality": "Development","Notes": "USGS trailing streamflow added. Best in great_lakes (0.75), southern_plains (0.70)."},
     ]
     st.dataframe(pd.DataFrame(national_data), use_container_width=True, hide_index=True)
 
-    nat_hazards = ["Winter", "Fire", "Wind", "Flood"]
-    nat_aucs    = [0.881, 0.751, 0.746, 0.742]
-    nat_colors  = [COLORS['winter'], COLORS['fire'], COLORS['flood'], COLORS['wind']]
+    nat_hazards = ["Wind", "Winter", "Fire", "Flood"]
+    nat_aucs    = [0.907, 0.860, 0.696, 0.624]
+    nat_colors  = [COLORS['wind'], COLORS['winter'], COLORS['fire'], COLORS['flood']]
 
     fig_nat = go.Figure()
     fig_nat.add_trace(go.Bar(x=nat_hazards, y=nat_aucs, marker_color=nat_colors,
@@ -1863,16 +1863,16 @@ def page_model_info():
     st.caption("Each cell is the AUC for that hazard in that climate region. Colors green ≥0.80, "
                "yellow 0.65–0.80, red <0.65.")
     region_aucs = pd.DataFrame([
-        # region,              fire,  flood, wind,  winter   (Round 3.5 post-finetune)
-        ['Colorado',           0.788, 0.857, 0.741, 0.874],
-        ['Great Lakes',        0.755, 0.729, 0.766, 0.912],
-        ['Mountain West',      0.760, 0.798, 0.701, 0.866],
-        ['Northeast',          0.552, 0.648, 0.787, 0.824],
-        ['Northern Plains',    0.831, 0.787, 0.781, 0.905],
-        ['Pacific',            0.802, 0.662, 0.738, 0.847],
-        ['PNW',                0.814, 0.714, 0.688, 0.851],
-        ['Southeast Gulf',     0.725, 0.707, 0.756, 0.935],
-        ['Southern Plains',    0.731, 0.773, 0.754, 0.916],
+        # region,              fire,  flood, wind,  winter   (Round 4 post-finetune)
+        ['Great Lakes',        0.782, 0.745, 0.952, 0.912],
+        ['Mid-Atlantic',       0.709, 0.660, 0.932, 0.827],
+        ['Mountain West',      0.752, 0.496, 0.879, 0.807],
+        ['New England',        0.630, 0.627, 0.940, 0.870],
+        ['Northern Plains',    0.684, 0.621, 0.922, 0.875],
+        ['Pacific',            0.647, 0.570, 0.909, 0.830],
+        ['PNW',                0.694, 0.595, 0.846, 0.837],
+        ['Southeast Gulf',     0.638, 0.604, 0.862, 0.906],
+        ['Southern Plains',    0.630, 0.700, 0.916, 0.880],
     ], columns=['Region', 'Fire', 'Flood', 'Wind', 'Winter'])
 
     def _auc_color(v):
@@ -1895,10 +1895,10 @@ def page_model_info():
     """)
 
     _region_info = {
-        'colorado':        {'states': ['CO'], 'desc': 'Elevation gradient benchmark (64 counties)'},
         'great_lakes':     {'states': ['IL', 'IN', 'KY', 'MI', 'OH', 'TN', 'WV'], 'desc': 'Lake-effect weather, tornado alley fringe, Ohio River flooding'},
-        'mountain_west':   {'states': ['AZ', 'ID', 'MT', 'NM', 'NV', 'UT', 'WY'], 'desc': 'Arid/semi-arid fire, monsoon, mountain winter storms'},
-        'northeast':       {'states': ['CT', 'DC', 'DE', 'MA', 'MD', 'ME', 'NH', 'NJ', 'NY', 'PA', 'RI', 'VA', 'VT'], 'desc': "Nor'easters, coastal flooding, ice storms"},
+        'mid_atlantic':    {'states': ['DC', 'DE', 'MD', 'NJ', 'NY', 'PA', 'VA'], 'desc': "Dense urban corridor, nor'easters, coastal/river flooding"},
+        'mountain_west':   {'states': ['AZ', 'CO', 'ID', 'MT', 'NM', 'NV', 'UT', 'WY'], 'desc': 'Arid/semi-arid fire, monsoon, mountain winter storms'},
+        'new_england':     {'states': ['CT', 'MA', 'ME', 'NH', 'RI', 'VT'], 'desc': 'Winter-dominant, coastal storms, ice storms'},
         'northern_plains': {'states': ['IA', 'MN', 'MO', 'ND', 'SD', 'WI'], 'desc': 'Blizzards, prairie fire, spring flooding'},
         'pacific':         {'states': ['CA'], 'desc': 'Wildfire, atmospheric rivers, coastal flooding'},
         'pnw':             {'states': ['OR', 'WA'], 'desc': 'Atmospheric rivers, Cascadia subduction, PNW wildfire'},
@@ -2011,19 +2011,20 @@ def page_model_info():
     - Precomputed national predictions for instant page load
     """)
 
-    st.markdown("**Next (Round 4 — Operational Nowcasting)**")
+    st.markdown("**Current: Round 4 (FIRMS + USGS + SPC)**")
     st.markdown("""
-    Round 3.5 added ERA5 reanalysis + MODIS vegetation indices and lifted the national mean
-    to 0.780. The remaining gap is primarily in fire-rare regions (northeast 0.55) and coastal
-    flood disambiguation. Next steps:
+    Round 4 added real observational data (FIRMS satellite fire detections, USGS streamflow,
+    SPC severe wind reports) as lagged trailing features, plus FIRMS/SPC-validated label quality
+    filters that removed 85% of false fire labels and 88% of false wind labels. The northeast
+    region was split into mid-atlantic and new-england for better regional specialization.
+    National deploy mean AUC: **0.835**.
 
-    - **Live weather ingestion** — real-time ERA5/GridMET API feeds to populate the 18 daily
-      features currently zero-filled at inference, transitioning from historical pattern
-      detection to operational nowcasting
-    - **WFIGS acreage filtering** — apply 10-acre minimum threshold to wildfire labels,
-      reducing CA fire base rate from ~90% to ~3% for more actionable predictions
+    Next steps:
+
+    - **Live weather ingestion** — real-time ERA5/GridMET API feeds for operational nowcasting
+    - **Populate inference parquets** — add FIRMS/USGS/SPC trailing features to state parquets
+      for non-zero new feature values at inference time
     - **Sub-county resolution** — census tract or grid-cell predictions for urban areas
-    - **CONUS404 hydroclimate reanalysis** — 1.1 TB high-resolution dataset for enhanced training
 
     **Further out:**
     - Larger backbone (~4-8M params) for cross-regime generalization

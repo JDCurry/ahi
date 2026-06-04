@@ -36,31 +36,37 @@ STATIC_FEATURE_COLS = [
     'tmmx', 'tmmn', 'rmin', 'rmax', 'vs', 'erc', 'pr', 'vpd',
     'red_flag_active', 'tmmx_3d_mean', 'pr_3d_mean', 'vs_3d_mean',
     'elevation', 'forest_fraction', 'urban_fraction', 'pop_density',
-    # [21-24] ERA5 water vapor transport (daily, merged into inference parquets)
+    # [21-24] ERA5 water vapor transport (daily)
     'era5_ivt_max', 'era5_tcwv_max', 'era5_ivt_mean', 'era5_tcwv_mean',
-    # [25-29] NFHL flood zones (static, merged into inference parquets)
+    # [25-29] NFHL flood zones (static)
     'nfhl_sfha_frac', 'nfhl_v_frac', 'nfhl_x_frac', 'nfhl_sfha_km2', 'nfhl_v_km2',
-    # [30-31] ERA5 temperature/pressure (daily, merged into inference parquets)
+    # [30-31] ERA5 temperature/pressure (daily)
     'era5_t2m_min', 'era5_msl_min',
-    # [32-35] MODIS vegetation indices (monthly, merged into inference parquets)
+    # [32-35] MODIS vegetation indices (monthly)
     'modis_ndvi', 'modis_evi', 'modis_ndvi_anom', 'modis_evi_anom',
-    # [36-43] ERA5 extended (daily, merged into inference parquets)
+    # [36-43] ERA5 extended (daily)
     'era5_tp_sum', 'era5_tp_max', 'era5_msl_mean', 'era5_gust_max',
     'era5_ws_max', 'era5_t2m_mean', 'era5_t2m_max', 'era5_ws_mean',
-    # [44-49] WUI (static, merged into inference parquets)
+    # [44-49] WUI (static)
     'wui_frac', 'wui_intermix_frac', 'wui_interface_frac',
     'wui_veg_frac', 'wui_veg_cover_mean', 'wui_huden_log',
+    # [50-53] FIRMS trailing fire activity (lagged, z-scored)
+    'firms_count_7d', 'firms_count_3d', 'firms_frp_max_7d', 'firms_frp_mean_7d',
+    # [54-55] SPC trailing severe wind (lagged, z-scored)
+    'spc_severe_days_3d', 'spc_max_wind_3d',
+    # [56-60] USGS trailing streamflow (lagged, z-scored)
+    'usgs_log_q_3d', 'usgs_log_q_delta', 'usgs_discharge_max_3d',
+    'usgs_n_stations', 'usgs_discharge_cv_3d',
 ]
 
-# Round 2: climate-region routing for the per-region prediction heads.
-# Each state maps to a region ID 0-8 (canonical order). The ONNX model
-# uses this index to gather the correct per-region head per row.
+# Round 4: climate-region routing for the per-region prediction heads.
+# Each state maps to a region ID 0-8 (canonical order, 9 regions).
+# colorado merged into mountain_west, northeast split into mid_atlantic + new_england.
 STATE_TO_REGION_ID = {
-    'CO': 0,
-    'IL': 1, 'IN': 1, 'KY': 1, 'MI': 1, 'OH': 1, 'TN': 1, 'WV': 1,
-    'AZ': 2, 'ID': 2, 'MT': 2, 'NM': 2, 'NV': 2, 'UT': 2, 'WY': 2,
-    'CT': 3, 'DC': 3, 'DE': 3, 'MA': 3, 'MD': 3, 'ME': 3,
-    'NH': 3, 'NJ': 3, 'NY': 3, 'PA': 3, 'RI': 3, 'VA': 3, 'VT': 3,
+    'IL': 0, 'IN': 0, 'KY': 0, 'MI': 0, 'OH': 0, 'TN': 0, 'WV': 0,
+    'DC': 1, 'DE': 1, 'MD': 1, 'NJ': 1, 'NY': 1, 'PA': 1, 'VA': 1,
+    'AZ': 2, 'CO': 2, 'ID': 2, 'MT': 2, 'NM': 2, 'NV': 2, 'UT': 2, 'WY': 2,
+    'CT': 3, 'MA': 3, 'ME': 3, 'NH': 3, 'RI': 3, 'VT': 3,
     'IA': 4, 'MN': 4, 'MO': 4, 'ND': 4, 'SD': 4, 'WI': 4,
     'CA': 5,
     'OR': 6, 'WA': 6,
