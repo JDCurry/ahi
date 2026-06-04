@@ -166,7 +166,9 @@ def _get_ceiling(state_code: str, hazard: str, month: int) -> float:
     cal = _load_state_calibration(state_code)
     sc = cal['seasonal_ceiling']
     if month and 1 <= month <= 12 and hazard in sc:
-        return sc[hazard].get(month, cal['base_ceiling'].get(hazard, 1.0))
+        # Keys may be int or str depending on how JSON was loaded
+        monthly = sc[hazard]
+        return monthly.get(month, monthly.get(str(month), cal['base_ceiling'].get(hazard, 1.0)))
     return cal['base_ceiling'].get(hazard, 1.0)
 
 
