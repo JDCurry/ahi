@@ -314,6 +314,11 @@ def _run_onnx_inference(region: str, static_cont: np.ndarray, temporal: np.ndarr
     session = _get_onnx_session(region)
     if session is None:
         return None
+    # Pad static_cont to model's expected dim (61) if parquet only has 50
+    expected_dim = len(STATIC_FEATURE_COLS)  # 61
+    if static_cont.shape[-1] < expected_dim:
+        pad_width = expected_dim - static_cont.shape[-1]
+        static_cont = np.pad(static_cont, ((0, 0), (0, pad_width)), constant_values=0.0)
     feeds = {
         'static_cont': static_cont.astype(np.float32),
         'temporal':    temporal.astype(np.float32),
