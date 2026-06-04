@@ -19,8 +19,9 @@ The system is designed for emergency management decision-making at the county an
 
 **Key properties:**
 - Calibrated probabilities (not just rankings) via per-state temperature scaling + seasonal bias + base rate ceiling
-- 50-feature input vector spanning weather, reanalysis, vegetation, terrain, flood zones, and wildland-urban interface
+- 61-feature input vector spanning weather, reanalysis, vegetation, terrain, flood zones, wildland-urban interface, satellite fire detections, streamflow, and severe wind reports
 - 9 regional models serving 48 states + DC, each fine-tuned to local climate patterns
+- FIRMS/SPC-validated labels: satellite fire detections and severe wind reports filter training labels to remove noise (85% false fire and 88% false wind labels removed)
 - Runs on CPU via ONNX Runtime — no GPU required, fits within a 4 GB instance
 - Live at [ahi.run](https://ahi.run)
 
@@ -49,10 +50,13 @@ The architecture is grounded in the heat kernel attention mechanism, where atten
 | NOAA GridMET | Temperature, humidity, wind, precipitation, ERC, VPD, fire weather | Daily, 2000-2025 |
 | ECMWF ERA5 | Integrated vapor transport, total column water vapor, surface pressure, wind gusts, 2m temperature | Daily, 2000-2025 |
 | NASA MODIS (Terra/Aqua) | NDVI, EVI, vegetation anomalies | Monthly, 2000-2025 |
+| NASA FIRMS | Satellite fire detections — trailing 3-day and 7-day fire count, FRP (lagged features + label validation) | Daily, 2000-2025 |
+| USGS NWIS | Daily streamflow discharge — trailing 3-day mean, delta, max (lagged features) | Daily, 2000-2025 |
+| NOAA SPC | Severe wind reports — trailing 3-day severe days, max wind speed (lagged features + label validation) | Daily, 2000-2025 |
 | FEMA NFHL | Special flood hazard areas, V-zones, X-zones | Static |
 | SILVIS WUI | Wildland-urban interface fractions, vegetation cover, housing density | Static |
 | NOAA Storm Events | Flood, wind, winter storm, tornado records | 2000-2025 |
-| WFIGS | Historical wildfire locations and perimeters | All CONUS states |
+| WFIGS | Historical wildfire locations and perimeters (10+ acre threshold) | All CONUS states |
 | FEMA Disaster Declarations | County-level disaster records | 2000-2025 |
 | USGS Earthquake Catalog | Seismic events (model trained but hidden from UI) | 2000-2025 |
 
@@ -77,10 +81,10 @@ This repository contains the deployed dashboard and inference pipeline. The mode
 
 | Region | States |
 |---|---|
-| colorado | CO |
 | great_lakes | IL, IN, KY, MI, OH, TN, WV |
-| mountain_west | AZ, ID, MT, NM, NV, UT, WY |
-| northeast | CT, DC, DE, MA, MD, ME, NH, NJ, NY, PA, RI, VA, VT |
+| mid_atlantic | DC, DE, MD, NJ, NY, PA, VA |
+| mountain_west | AZ, CO, ID, MT, NM, NV, UT, WY |
+| new_england | CT, MA, ME, NH, RI, VT |
 | northern_plains | IA, MN, MO, ND, SD, WI |
 | pacific | CA |
 | pnw | OR, WA |
