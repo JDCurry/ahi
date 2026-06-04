@@ -227,7 +227,8 @@ def compute_relative_tiers(df, state_code: str, month: int):
     for _, row in df.iterrows():
         max_h = row.get('max_hazard', 'wind')
         max_p = row.get('max_p', 0.0)
-        br = base_rates.get(max_h, {}).get(str(month), 0.0)
+        br_val = base_rates.get(max_h, 0.0)
+        br = br_val.get(str(month), 0.0) if isinstance(br_val, dict) else float(br_val)
         level, _, _, _ = risk_level_relative(max_p, br)
         counts[level] = counts.get(level, 0) + 1
     return counts
@@ -1500,7 +1501,8 @@ def page_state_overview():
     def _county_status(row):
         max_h = row.get('max_hazard', 'wind')
         max_p = row.get('max_p', 0.0)
-        br = base_rates.get(max_h, {}).get(str(month), 0.0)
+        br_val = base_rates.get(max_h, 0.0)
+        br = br_val.get(str(month), 0.0) if isinstance(br_val, dict) else float(br_val)
         level, _, _, _ = risk_level_relative(max_p, br)
         return level
 
