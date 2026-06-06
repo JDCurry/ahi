@@ -362,7 +362,7 @@ def build_tensors_from_county_data(
     county_row: pd.Series,
     county_name: str = '',
     target_date: date = None,
-    static_pad_dim: int = 50,
+    static_pad_dim: int = 50,  # TODO: raise to 61 after T-scale refit with full features
     temporal_seq_len: int = 14,
     temporal_feat_dim: int = 20,
     default_state: str = 'CO',
