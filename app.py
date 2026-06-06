@@ -91,16 +91,15 @@ def _load_state_context(state_code: str) -> StateContext:
 
 ctx = _load_state_context(selected_state)
 
-# Backwards-compatible aliases — preserves the rest of the file's variable names
-# so the bulk of the rendering code below didn't have to be rewritten.
+# DEPRECATED: global aliases from the sidebar-selected state.
+# New/refactored pages should pass state_ctx explicitly.
+# These remain only as fallback for functions that haven't been updated yet.
 CO_COUNTY_COORDS = {k: tuple(v) for k, v in ctx.county_coords.items()}
 COUNTIES         = ctx.counties
 COUNTY_UTILITY   = ctx.county_utility
 HAZARD_GUIDANCE  = ctx.hazard_guidance
 MODEL_VERSION    = ctx.model_version
 DATA_VERSION     = ctx.data_version
-
-# County coordinates, COUNTIES list, and utility map all come from ctx (above).
 
 # =============================================================================
 # COLOR THEME — Resilience Analytics Lab (sage green / institutional)
@@ -681,12 +680,12 @@ def inject_css():
 # =============================================================================
 
 @st.cache_resource
-def load_v2_model(region: str):
-    """Check whether the regional ONNX model exists for the active state.
+def check_model_available(region: str):
+    """Check whether the regional ONNX model file is present.
 
-    The model itself is loaded lazily by inference_onnx.py; this function only
-    confirms the file is present so the UI can show an honest "model loaded"
-    status without paying the session-init cost on every page render.
+    Does NOT load the model — inference_onnx.py handles that lazily.
+    Returns (format_str, None, is_available) so the UI can show model status
+    without paying session-init cost on every page render.
     """
     if not AHI_V2_AVAILABLE:
         return None, None, False
@@ -791,34 +790,8 @@ def _geometry_bounds(geom):
 # PREDICTION
 # =============================================================================
 
-def predict_single_county(county_name, target_date):
-    _, _, ok = load_v2_model(ctx.region)
-    if not ok:
-        return None, f"Model not loaded — check models/{ctx.region}/model.onnx"
-    hazard_df = load_hazard_data(ctx.state_code)
-    if hazard_df is None or len(hazard_df) == 0:
-        return None, "Hazard dataset not found"
-    try:
-        from inference_onnx import predict_county_risks_simple as _predict
-        return _predict(ctx.state_code, ctx.region, county_name, hazard_df, target_date), None
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return None, f"Prediction failed: {e}"
-
-
-def predict_all_counties(target_date, progress_callback=None):
-    rows = []
-    for i, county in enumerate(COUNTIES):
-        if progress_callback:
-            progress_callback(i, len(COUNTIES), county)
-        risks, err = predict_single_county(county, target_date)
-        if risks:
-            row = {'county': county, 'date': str(target_date)}
-            for h in DISPLAY_HAZARDS:
-                row[f'{h}_p'] = risks.get(h, 0.0)
-            rows.append(row)
-    return pd.DataFrame(rows) if rows else None
+    # predict_single_county / predict_all_counties removed —
+    # county page uses inference_onnx directly; state uses compute_state_predictions_cached
 
 
 # ---------------------------------------------------------------------------
@@ -858,81 +831,79 @@ def load_national_geojson():
 def predict_all_national(month: int):
     """Load precomputed national predictions for a given month.
 
-    Falls back to live inference if no precomputed file exists (slow).
+    Raises FileNotFoundError if the precomputed CSV is missing — no live
+    inference fallback (that path crashes Render under load).
+
     Returns DataFrame with columns:
         state, county, county_id, fire_p, flood_p, wind_p, winter_p,
         max_p, max_hazard
     """
     csv_path = Path(f'data/national_predictions_month{month:02d}.csv')
-    if csv_path.exists():
-        df = pd.read_csv(csv_path)
-        # Recompute max from DISPLAY_HAZARDS only (excludes seismic)
-        p_cols = [f'{h}_p' for h in DISPLAY_HAZARDS]
-        df['max_p'] = df[p_cols].max(axis=1)
-        df['max_hazard'] = df[p_cols].idxmax(axis=1).str.replace('_p', '')
-        print(f"[NATIONAL] Loaded precomputed month {month}: "
-              f"{len(df)} counties from {csv_path}")
-        return df
-
-    # Fallback: live inference (slow, memory-heavy — for dev only)
-    print(f"[NATIONAL] No precomputed CSV for month {month} — running live inference")
-    return _predict_all_national_live(month)
-
-
-def _predict_all_national_live(month: int):
-    """Live inference fallback — runs ONNX for every county. Slow."""
-    from datetime import datetime
-    from inference_onnx import predict_county_risks_simple as _predict, _build_maps
-
-    target_date = datetime.now().date().replace(day=15) if month == datetime.now().month \
-                    else datetime(2026, month, 15).date()
-
-    registry = load_registry()
-    deployed = [code for code, m in registry.items() if m.get('deployed', False)]
-    rows = []
-
-    for state_code in deployed:
-        try:
-            state_ctx = StateContext.load(state_code)
-        except Exception:
-            continue
-        parts_dir = state_ctx.state_dir / 'inference_data'
-        if state_ctx.parquet_path.exists():
-            hazard_df = pd.read_parquet(state_ctx.parquet_path)
-        elif parts_dir.exists() and parts_dir.is_dir():
-            hazard_df = pd.read_parquet(parts_dir)
-        else:
-            hazard_df = None
-        if hazard_df is None or len(hazard_df) == 0:
-            continue
-        _build_maps(hazard_df)
-
-        for county in state_ctx.counties:
-            try:
-                risks = _predict(state_ctx.state_code, state_ctx.region,
-                                  county, hazard_df, target_date)
-            except Exception:
-                continue
-            if not risks:
-                continue
-            rows.append({
-                'state':     state_code,
-                'county':    county,
-                'county_id': _ascii_normalize_county(county.strip()),
-                'fire_p':    risks.get('fire', 0.0),
-                'flood_p':   risks.get('flood', 0.0),
-                'wind_p':    risks.get('wind', 0.0),
-                'winter_p':  risks.get('winter', 0.0),
-                'seismic_p': risks.get('seismic', 0.0),
-            })
-
-    if not rows:
-        return None
-    df = pd.DataFrame(rows)
+    if not csv_path.exists():
+        raise FileNotFoundError(
+            f"Missing precomputed national predictions for month {month}. "
+            f"Run `python scripts/precompute_national.py` before deploy."
+        )
+    df = pd.read_csv(csv_path)
+    # Recompute max from DISPLAY_HAZARDS only (excludes seismic)
     p_cols = [f'{h}_p' for h in DISPLAY_HAZARDS]
     df['max_p'] = df[p_cols].max(axis=1)
     df['max_hazard'] = df[p_cols].idxmax(axis=1).str.replace('_p', '')
+    print(f"[NATIONAL] Loaded precomputed month {month}: "
+          f"{len(df)} counties from {csv_path}")
     return df
+
+
+    # _predict_all_national_live removed — live national inference is a Render
+    # crasher.  Missing precomputed CSVs are now a hard FileNotFoundError.
+    # Generate CSVs offline:  python scripts/precompute_national.py
+
+
+# =============================================================================
+# CACHED STATE PREDICTIONS
+# =============================================================================
+
+@st.cache_data(ttl=86400, max_entries=100, show_spinner=False)
+def compute_state_predictions_cached(
+    state_code: str,
+    region: str,
+    target_date_str: str,
+    model_version: str,
+    data_version: str,
+):
+    """Run ONNX inference for every county in a state. Cached by a composite key
+    that includes state, date, model version, and data version — so stale results
+    are impossible when any upstream dependency changes.
+
+    Returns (predictions_df, errors_df).
+    """
+    from inference_onnx import predict_county_risks_simple as _predict
+
+    state_ctx = _load_state_context(state_code)
+    hazard_df = load_hazard_data(state_code)
+    if hazard_df is None:
+        return pd.DataFrame(), pd.DataFrame([{
+            'county': '(all)', 'error': f'No inference data for {state_code}'}])
+
+    target_date = datetime.fromisoformat(target_date_str).date()
+    rows = []
+    errors = []
+
+    for county in state_ctx.counties:
+        try:
+            risks = _predict(state_code, region, county, hazard_df, target_date)
+        except Exception as e:
+            errors.append({'county': county, 'error': str(e)})
+            continue
+        if risks:
+            row = {'county': county, 'date': target_date_str}
+            for h in DISPLAY_HAZARDS:
+                row[f'{h}_p'] = risks.get(h, 0.0)
+            rows.append(row)
+        else:
+            errors.append({'county': county, 'error': 'No predictions returned'})
+
+    return pd.DataFrame(rows), pd.DataFrame(errors)
 
 
 # =============================================================================
@@ -1013,19 +984,20 @@ _DEFAULT_GUIDANCE = {
 }
 
 
-def render_risk_summary(risks, county=''):
+def render_risk_summary(risks, county='', state_ctx=None):
+    sctx = state_ctx or ctx
     display_risks = {h: risks[h] for h in DISPLAY_HAZARDS if h in risks}
     sorted_risks = sorted(display_risks.items(), key=lambda x: x[1], reverse=True)
     st.markdown("#### Top Hazards — Recommended Actions")
     for hazard, prob in sorted_risks[:3]:
         level, interpretation = risk_level(prob)
         # Use state-specific guidance if available, otherwise generic defaults
-        guidance = HAZARD_GUIDANCE.get(hazard, {}).get(level, '')
+        guidance = sctx.hazard_guidance.get(hazard, {}).get(level, '')
         if not guidance:
             guidance = _DEFAULT_GUIDANCE.get(hazard, {}).get(level, '')
         # Append county utility contact for wind/winter at Elevated tier and above
         if hazard in ('wind', 'winter') and level != 'Low' and county:
-            utility = COUNTY_UTILITY.get(county, 'contact local utility provider')
+            utility = sctx.county_utility.get(county, 'contact local utility provider')
             guidance = f"{guidance} Primary utility: {utility}."
         color = COLORS.get(hazard, COLORS['text_primary'])
         st.markdown(f"""
@@ -1316,7 +1288,7 @@ def page_quick_predict():
     if predict_clicked:
         status = st.empty()
         status.info("Loading ONNX model…")
-        _, _, ok = load_v2_model(cr_ctx.region)
+        _, _, ok = check_model_available(cr_ctx.region)
         if not ok:
             status.error(f"Model unavailable — check models/{cr_ctx.region}/model.onnx")
             return
@@ -1355,7 +1327,8 @@ def page_quick_predict():
             render_primary_risk_callout(last['risks'])
             render_hazard_cards(last['risks'])
             st.markdown("")
-            render_risk_summary(last['risks'], county=last.get('county', ''))
+            render_risk_summary(last['risks'], county=last.get('county', ''),
+                                state_ctx=cr_ctx)
             st.markdown("---")
             with st.expander("County Spotlight Map", expanded=False):
                 render_county_spotlight_map(selected_county, last['risks'], last.get('date'),
@@ -1395,37 +1368,27 @@ def page_state_overview():
                f"Based on historical patterns for {target_date.strftime('%B')}. "
                f"Use the **County Risk Assessment** tab for specific date forecasts.")
 
-    # ---- Run predictions for all counties ----
-    # Keep only one state overview at a time to limit memory
-    cache_key = 'state_overview_df'
-    if st.session_state.get('state_overview_state') != sel_state:
-        with st.spinner(f"Running predictions for {len(state_ctx.counties)} "
-                         f"{state_ctx.state_name} counties…"):
-            hazard_df = load_hazard_data(sel_state)
-            if hazard_df is None:
-                st.error(f"No inference data for {sel_state}. "
-                         f"Check states/{sel_state}/inference_data.parquet.")
-                return
-            from inference_onnx import predict_county_risks_simple as _predict
-            rows = []
-            for county in state_ctx.counties:
-                try:
-                    risks = _predict(sel_state, state_ctx.region,
-                                      county, hazard_df, target_date)
-                except Exception:
-                    continue
-                if risks:
-                    row = {'county': county, 'date': str(target_date)}
-                    for h in DISPLAY_HAZARDS:
-                        row[f'{h}_p'] = risks.get(h, 0.0)
-                    rows.append(row)
-            if rows:
-                st.session_state[cache_key] = pd.DataFrame(rows)
-                st.session_state['state_overview_state'] = sel_state
-            else:
-                st.error("No predictions generated.")
-                return
-    df = st.session_state[cache_key]
+    # ---- Run predictions for all counties (cached by composite key) ----
+    with st.spinner(f"Loading predictions for {len(state_ctx.counties)} "
+                     f"{state_ctx.state_name} counties…"):
+        df, errors = compute_state_predictions_cached(
+            sel_state,
+            state_ctx.region,
+            str(target_date),
+            state_ctx.model_version,
+            state_ctx.data_version,
+        )
+
+    if len(errors) > 0:
+        st.warning(f"{len(errors)} of {len(state_ctx.counties)} counties "
+                    f"failed inference.")
+        with st.expander("Failed counties"):
+            st.dataframe(errors, use_container_width=True, hide_index=True)
+
+    if len(df) == 0:
+        st.error(f"No predictions generated for {sel_state}. "
+                  f"Check states/{sel_state}/inference_data.parquet and model files.")
+        return
 
     hazards = DISPLAY_HAZARDS
     df['max_p'] = df[[f'{h}_p' for h in hazards]].max(axis=1)
@@ -1569,206 +1532,8 @@ def page_state_overview():
         )
 
 
-# =============================================================================
-# PAGE: STATEWIDE (legacy — kept for reference, no longer in tab list)
-# =============================================================================
-
-def page_statewide():
-    st.markdown("## Statewide Predictions")
-    st.caption(f"Run AHI v4.0 for all {len(COUNTIES)} {ctx.state_name} counties. Results include an interactive risk map.")
-
-    target_date = datetime.now().date() + timedelta(days=MAX_FORECAST_DAYS)
-
-    if st.button("Run Statewide Predictions", type="primary"):
-        progress = st.progress(0)
-        status = st.empty()
-
-        def callback(i, total, county):
-            progress.progress((i + 1) / total)
-            status.text(f"Inferring {county}… ({i+1}/{total})")
-
-        df = predict_all_counties(target_date, progress_callback=callback)
-        progress.progress(1.0)
-        status.text("Complete.")
-
-        if df is not None and len(df) > 0:
-            st.session_state['statewide'] = df
-            st.success(f"Predictions complete for {len(df)} counties.")
-        else:
-            st.error("No predictions generated. Check model availability.")
-
-    if 'statewide' not in st.session_state:
-        st.info("Click **Run Statewide Predictions** to generate results.")
-        return
-
-    df = st.session_state['statewide']
-    hazards = DISPLAY_HAZARDS
-
-    # Keep as floats (0–100 range) so column-header click sorts numerically.
-    # st.column_config.NumberColumn handles the "%" suffix at render time.
-    display = df.copy()
-    for h in hazards:
-        col = f'{h}_p'
-        if col in display.columns:
-            display[h.title()] = (display[col] * 100).round(1)
-    st.dataframe(
-        display[['county'] + [h.title() for h in hazards]].rename(columns={'county': 'County'}),
-        use_container_width=True, hide_index=True,
-        column_config={
-            h.title(): st.column_config.NumberColumn(
-                h.title(), format="%.1f%%",
-            )
-            for h in hazards
-        },
-    )
-
-    csv = df.to_csv(index=False)
-    st.download_button(
-        "Download Predictions (CSV)", data=csv,
-        file_name=f"ahi_{ctx.state_code.lower()}_statewide_{target_date}.csv", mime="text/csv"
-    )
-
-    st.markdown("---")
-
-    hazard_choice = st.selectbox(
-        "Select hazard to display on map",
-        DISPLAY_HAZARDS, index=0,
-        format_func=lambda h: HAZARD_NAMES.get(h, h.title()),
-    )
-    render_statewide_choropleth(df, hazard_choice, HAZARD_NAMES.get(hazard_choice, hazard_choice.title()),
-                                state_code=ctx.state_code,
-                                county_coords=ctx.county_coords)
-
-
-# =============================================================================
-# PAGE: RISK ASSESSMENT (portfolio view)
-# =============================================================================
-
-def page_risk_assessment():
-    st.markdown("## Comprehensive Risk Assessment")
-    st.caption(f"Portfolio-level view of model predictions across all {len(COUNTIES)} {ctx.state_name} counties.")
-
-    if 'statewide' not in st.session_state:
-        st.info("No statewide predictions yet. Run them now to populate this view.")
-        if st.button("Run Statewide Predictions ▶", type="primary"):
-            target_date = datetime.now().date() + timedelta(days=MAX_FORECAST_DAYS)
-            progress = st.progress(0)
-            status = st.empty()
-
-            def _callback(i, total, county):
-                progress.progress((i + 1) / total)
-                status.text(f"Inferring {county}… ({i+1}/{total})")
-
-            df_sw = predict_all_counties(target_date, progress_callback=_callback)
-            progress.progress(1.0)
-            status.text("Complete.")
-
-            if df_sw is not None and len(df_sw) > 0:
-                st.session_state['statewide'] = df_sw
-                st.rerun()
-            else:
-                st.error("No predictions generated. Check model availability.")
-        return
-
-    df = st.session_state['statewide'].copy()
-    hazards = DISPLAY_HAZARDS
-
-    df['max_p'] = df[[f'{h}_p' for h in hazards]].max(axis=1)
-    df['max_hazard'] = df[[f'{h}_p' for h in hazards]].idxmax(axis=1).str.replace('_p', '').map(HAZARD_NAMES)
-
-    severe   = int((df['max_p'] >= 0.50).sum())
-    high     = int(((df['max_p'] >= 0.35) & (df['max_p'] < 0.50)).sum())
-    moderate = int(((df['max_p'] >= 0.20) & (df['max_p'] < 0.35)).sum())
-    elevated = int(((df['max_p'] >= 0.10) & (df['max_p'] < 0.20)).sum())
-    low      = int((df['max_p'] < 0.10).sum())
-
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Severe (>50%)", severe)
-    c2.metric("High (35–50%)", high)
-    c3.metric("Moderate (20–35%)", moderate)
-    c4.metric("Elevated (10–20%)", elevated)
-    c5.metric("Low (<10%)", low)
-
-    st.markdown("---")
-
-    st.markdown("### Per-Hazard Statewide Summary")
-    hazard_rows = []
-    for h in hazards:
-        col = f'{h}_p'
-        idx_max = df[col].idxmax()
-        hazard_rows.append({
-            'Hazard': HAZARD_NAMES[h],
-            # Floats so column-header sort works numerically; column_config below
-            # handles the "%" suffix display.
-            'Statewide Mean': round(df[col].mean() * 100, 1),
-            'Median':         round(df[col].median() * 100, 1),
-            'Max':            round(df[col].max() * 100, 1),
-            'Highest County': df.loc[idx_max, 'county'],
-            'Counties ≥ 20%': int((df[col] >= 0.20).sum()),
-        })
-    st.dataframe(
-        pd.DataFrame(hazard_rows),
-        use_container_width=True, hide_index=True,
-        column_config={
-            'Statewide Mean': st.column_config.NumberColumn('Statewide Mean', format="%.1f%%"),
-            'Median':         st.column_config.NumberColumn('Median',         format="%.1f%%"),
-            'Max':            st.column_config.NumberColumn('Max',            format="%.1f%%"),
-        },
-    )
-
-    st.markdown("---")
-
-    st.markdown("### County Ranking by Hazard")
-    rank_col1, rank_col2 = st.columns([0.9, 3.1], gap="large")
-    with rank_col1:
-        st.markdown("")
-        rank_hazard = st.selectbox("Hazard", [HAZARD_NAMES[h] for h in hazards], index=0, key='rank_hazard', label_visibility="visible")
-        st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
-        top_n = st.slider("Counties to show", 5, 64, 10, key='rank_topn',
-                          help="Highest-risk counties for the selected hazard, in descending order.")
-    with rank_col2:
-        rank_key = {v: k for k, v in HAZARD_NAMES.items()}[rank_hazard]
-        col = f'{rank_key}_p'
-        top_df = df.nlargest(top_n, col)[['county', col]].copy()
-        top_df['pct'] = top_df[col] * 100
-        top_df['tier_color'] = top_df[col].apply(risk_color)
-
-        fig = go.Figure(go.Bar(
-            x=top_df['pct'][::-1],
-            y=top_df['county'][::-1],
-            orientation='h',
-            marker=dict(color=top_df['tier_color'][::-1]),
-            hovertemplate="<b>%{y}</b><br>" + rank_hazard + ": %{x:.1f}%<extra></extra>",
-        ))
-        fig.update_layout(
-            paper_bgcolor=COLORS['card_bg'],
-            plot_bgcolor=COLORS['card_bg'],
-            font=dict(color=COLORS['text_secondary'], family='Inter'),
-            xaxis=dict(title=f"{rank_hazard} Risk (%)", gridcolor=COLORS['border'],
-                       range=[0, max(top_df['pct'].max() * 1.15, 10)]),
-            yaxis=dict(gridcolor=COLORS['border']),
-            height=max(320, 28 * top_n),
-            margin=dict(l=10, r=10, t=10, b=40),
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown("---")
-
-    st.markdown("### Detailed County Table")
-    detail = df.copy()
-    detail['Max Risk'] = (detail['max_p'] * 100).round(1)
-    detail['Primary Hazard'] = detail['max_hazard']
-    for h in hazards:
-        detail[HAZARD_NAMES[h]] = (detail[f'{h}_p'] * 100).round(1)
-    detail = detail[['county', 'Primary Hazard', 'Max Risk'] + [HAZARD_NAMES[h] for h in hazards]]
-    detail = detail.rename(columns={'county': 'County'}).sort_values('Max Risk', ascending=False)
-    st.dataframe(
-        detail.style.format({
-            'Max Risk': '{:.1f}%',
-            **{HAZARD_NAMES[h]: '{:.1f}%' for h in hazards}
-        }),
-        use_container_width=True, hide_index=True
-    )
+    # (Legacy pages page_statewide / page_risk_assessment removed —
+    #  superseded by page_state_overview + compute_state_predictions_cached)
 
 
 # =============================================================================
@@ -2250,10 +2015,14 @@ def page_national():
             key='national_map_style',
         )
 
-    df = predict_all_national(cur_month)
+    try:
+        df = predict_all_national(cur_month)
+    except FileNotFoundError as e:
+        st.error(str(e))
+        return
     if df is None or len(df) == 0:
-        st.error("No precomputed predictions found for this month. "
-                 "Run `python scripts/precompute_national.py` to generate them.")
+        st.error("Precomputed national CSV is empty. "
+                 "Re-run `python scripts/precompute_national.py`.")
         return
 
     st.caption(f"**{month_label}** · {len(df):,} counties · "
@@ -2475,24 +2244,27 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
-    tab_national, tab_state, tab_county, tab_diag, tab_about = st.tabs([
-        "National",
-        "State",
-        "County Risk Assessment",
-        "Model Diagnostics",
-        "About"
-    ])
+    # ---- Page router (radio selector) ----
+    # Only the selected page renders, preventing hidden tabs from
+    # executing expensive inference or data loads on every rerun.
+    PAGES = {
+        "National":              page_national,
+        "State":                 page_state_overview,
+        "County Risk Assessment": page_quick_predict,
+        "Model Diagnostics":     page_model_info,
+        "About":                 page_about,
+    }
 
-    with tab_national:
-        page_national()
-    with tab_state:
-        page_state_overview()
-    with tab_county:
-        page_quick_predict()
-    with tab_diag:
-        page_model_info()
-    with tab_about:
-        page_about()
+    page = st.radio(
+        "Page",
+        list(PAGES.keys()),
+        horizontal=True,
+        key="active_page",
+        label_visibility="collapsed",
+    )
+    st.markdown("<div style='margin-bottom: 8px;'></div>", unsafe_allow_html=True)
+
+    PAGES[page]()
 
 
 if __name__ == '__main__':
