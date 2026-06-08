@@ -130,8 +130,8 @@ COLORS = {
 RISK_TIERS = [
     (0.00, 0.10, '#2d5a3a', 'Low',      '< 10%',   'Baseline conditions — routine monitoring'),
     (0.10, 0.20, '#6b9e7a', 'Elevated', '10–20%',  'Above baseline — increased awareness recommended'),
-    (0.20, 0.35, '#f59e0b', 'Moderate', '20–35%',  'Notable risk — review preparedness plans'),
-    (0.35, 0.50, '#f97316', 'High',     '35–50%',  'Significant risk — consider pre-positioning resources'),
+    (0.20, 0.35, '#d4a017', 'Moderate', '20–35%',  'Notable risk — review preparedness plans'),
+    (0.35, 0.50, '#e07020', 'High',     '35–50%',  'Significant risk — consider pre-positioning resources'),
     (0.50, 1.01, '#dc2626', 'Severe',   '> 50%',   'Activate operations — emergency response posture'),
 ]
 
@@ -160,8 +160,8 @@ RELATIVE_TIER_DEFS = [
     # (max_ratio, color, label, description)
     (0.50, '#2d5a3a', 'Low',      'Well below historical norm — routine monitoring'),
     (1.00, '#6b9e7a', 'Normal',   'Near historical baseline — standard operations'),
-    (1.50, '#f59e0b', 'Elevated', 'Above historical norm — increased awareness'),
-    (2.00, '#f97316', 'High',     'Significantly above baseline — review preparedness'),
+    (1.50, '#d4a017', 'Elevated', 'Above historical norm — increased awareness'),
+    (2.00, '#e07020', 'High',     'Significantly above baseline — review preparedness'),
     (99.0, '#dc2626', 'Severe',   'Far exceeds historical norm — activate response'),
 ]
 
@@ -201,17 +201,25 @@ def risk_level_relative(prob: float, base_rate: float):
         return level, color, interp, ''
 
     ratio = prob / base_rate
+
+    # Human-friendly ratio text: percentages up to 5×, multiplier above that, capped at 10×
+    def _ratio_str(r):
+        if r < 1.0:
+            return f"{(1 - r) * 100:.0f}% below historical"
+        elif r < 5.0:
+            return f"{(r - 1) * 100:.0f}% above historical"
+        elif r < 10.0:
+            return f"{r:.0f}× historical avg"
+        else:
+            return f">10× historical avg"
+
     for max_r, color, label, desc in RELATIVE_TIER_DEFS:
         if ratio <= max_r:
-            if ratio >= 1.0:
-                ratio_str = f"{(ratio - 1) * 100:.0f}% above historical"
-            else:
-                ratio_str = f"{(1 - ratio) * 100:.0f}% below historical"
-            return label, color, desc, ratio_str
+            return label, color, desc, _ratio_str(ratio)
 
-    # Fallback (ratio > 99)
+    # Fallback (ratio > max tier)
     t = RELATIVE_TIER_DEFS[-1]
-    return t[2], t[1], t[3], f"{(ratio - 1) * 100:.0f}% above historical"
+    return t[2], t[1], t[3], _ratio_str(ratio)
 
 
 def compute_relative_tiers(df, state_code: str, month: int):
@@ -1095,8 +1103,8 @@ def render_statewide_choropleth(df, hazard_key, hazard_label,
         colorscale=[
             [0.00, '#2d5a3a'], [0.10, '#2d5a3a'],
             [0.10, '#6b9e7a'], [0.20, '#6b9e7a'],
-            [0.20, '#f59e0b'], [0.35, '#f59e0b'],
-            [0.35, '#f97316'], [0.50, '#f97316'],
+            [0.20, '#d4a017'], [0.35, '#d4a017'],
+            [0.35, '#e07020'], [0.50, '#e07020'],
             [0.50, '#dc2626'], [1.00, '#dc2626'],
         ],
         zmin=0, zmax=100,
@@ -1164,8 +1172,8 @@ def render_county_spotlight_map(selected_county, risks, target_date,
     risk_colorscale = [
         [0.00, '#2d5a3a'], [0.10, '#2d5a3a'],
         [0.10, '#6b9e7a'], [0.20, '#6b9e7a'],
-        [0.20, '#f59e0b'], [0.35, '#f59e0b'],
-        [0.35, '#f97316'], [0.50, '#f97316'],
+        [0.20, '#d4a017'], [0.35, '#d4a017'],
+        [0.35, '#e07020'], [0.50, '#e07020'],
         [0.50, '#dc2626'], [1.00, '#dc2626'],
     ]
 
@@ -1498,7 +1506,7 @@ def page_state_overview():
             "Hazard layer",
             DISPLAY_HAZARDS, index=default_idx,
             format_func=lambda h: HAZARD_NAMES.get(h, h.title()),
-            key='state_overview_hazard_map',
+            key=f'state_overview_hazard_map_{sel_state}',
         )
     with mc2:
         state_map_style = st.selectbox(
@@ -1888,9 +1896,9 @@ def render_national_choropleth(df: pd.DataFrame, geojson: dict, hazard: str,
         z=df['pct'],
         featureidkey='properties._id',
         colorscale=[
-            [0.00, RISK_TIERS[0][2]], [0.10, RISK_TIERS[1][2]],
-            [0.20, RISK_TIERS[2][2]], [0.35, RISK_TIERS[3][2]],
-            [0.50, RISK_TIERS[4][2]], [1.00, RISK_TIERS[4][2]],
+            [0.00, RISK_TIERS[0][2]], [0.20, RISK_TIERS[1][2]],
+            [0.40, RISK_TIERS[2][2]], [0.70, RISK_TIERS[3][2]],
+            [1.00, RISK_TIERS[4][2]],
         ],
         zmin=0, zmax=50,
         marker_line_width=0.4,
@@ -2147,12 +2155,13 @@ def page_national():
                 f"<div>Click any county on the map<br>to see hazard breakdown</div></div>",
                 unsafe_allow_html=True)
 
-    # ---- National stats footer ----
-    severe   = int((df['max_p'] >= 0.50).sum())
-    high     = int(((df['max_p'] >= 0.35) & (df['max_p'] < 0.50)).sum())
-    moderate = int(((df['max_p'] >= 0.20) & (df['max_p'] < 0.35)).sum())
-    elevated = int(((df['max_p'] >= 0.10) & (df['max_p'] < 0.20)).sum())
-    low      = int((df['max_p'] < 0.10).sum())
+    # ---- National stats footer (follow selected hazard layer) ----
+    _tier_col = f'{hazard}_p' if hazard != 'max' else 'max_p'
+    severe   = int((df[_tier_col] >= 0.50).sum())
+    high     = int(((df[_tier_col] >= 0.35) & (df[_tier_col] < 0.50)).sum())
+    moderate = int(((df[_tier_col] >= 0.20) & (df[_tier_col] < 0.35)).sum())
+    elevated = int(((df[_tier_col] >= 0.10) & (df[_tier_col] < 0.20)).sum())
+    low      = int((df[_tier_col] < 0.10).sum())
     cols = st.columns(5)
     cols[0].metric("Severe (>50%)",     severe)
     cols[1].metric("High (35–50%)",     high)
