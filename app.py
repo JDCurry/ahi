@@ -1641,28 +1641,31 @@ def page_model_info():
 
     # ---- Per-region per-hazard AUC table ----
     st.markdown("#### Per-region AUC breakdown")
-    st.caption("Each cell is the AUC for that hazard in that climate region. Colors green ≥0.80, "
-               "yellow 0.65–0.80, red <0.65.")
+    st.caption("Per-hazard AUCs from Phase 1 backbone training. **Deploy** column is the aggregate "
+               "AUC after Phase 2 regional head fine-tuning (deployed model). "
+               "Colors green ≥0.80, yellow 0.65–0.80, red <0.65.")
     region_aucs = pd.DataFrame([
-        # region,              fire,  flood, wind,  winter   (AHI 4.0 backbone AUCs)
-        ['Great Lakes',        0.759, 0.817, 0.954, 0.873],
-        ['Mid-Atlantic',       0.674, 0.741, 0.950, 0.889],
-        ['Mountain West',      0.818, 0.861, 0.921, 0.853],
-        ['New England',        0.782, 0.762, 0.958, 0.792],
-        ['Northern Plains',    0.792, 0.829, 0.956, 0.878],
-        ['Pacific',            0.737, 0.885, 0.963, 0.905],
-        ['PNW',                0.771, 0.866, 0.911, 0.602],
-        ['Southeast Gulf',     0.634, 0.834, 0.925, 0.939],
-        ['Southern Plains',    0.706, 0.876, 0.930, 0.918],
-    ], columns=['Region', 'Fire', 'Flood', 'Wind', 'Winter'])
+        # region,              fire,  flood, wind,  winter, deploy  (AHI 4.0)
+        ['Great Lakes',        0.759, 0.817, 0.954, 0.873, 0.874],
+        ['Mid-Atlantic',       0.674, 0.741, 0.950, 0.889, 0.852],
+        ['Mountain West',      0.818, 0.861, 0.921, 0.853, 0.892],
+        ['New England',        0.782, 0.762, 0.958, 0.792, 0.860],
+        ['Northern Plains',    0.792, 0.829, 0.956, 0.878, 0.894],
+        ['Pacific',            0.737, 0.885, 0.963, 0.905, 0.879],
+        ['PNW',                0.771, 0.866, 0.911, 0.602, 0.860],
+        ['Southeast Gulf',     0.634, 0.834, 0.925, 0.939, 0.895],
+        ['Southern Plains',    0.706, 0.876, 0.930, 0.918, 0.886],
+    ], columns=['Region', 'Fire', 'Flood', 'Wind', 'Winter', 'Deploy'])
 
     def _auc_color(v):
         if v >= 0.80: return 'background-color: #1a3d1f; color: #b9d7be'
         if v >= 0.65: return 'background-color: #4a3a17; color: #e5d39a'
         return 'background-color: #3d1f1f; color: #d9a5a5'
 
-    styled = region_aucs.style.map(_auc_color, subset=['Fire','Flood','Wind','Winter']).format({
-        'Fire':'{:.3f}', 'Flood':'{:.3f}', 'Wind':'{:.3f}', 'Winter':'{:.3f}'
+    styled = region_aucs.style.map(
+        _auc_color, subset=['Fire','Flood','Wind','Winter','Deploy']
+    ).format({
+        'Fire':'{:.3f}', 'Flood':'{:.3f}', 'Wind':'{:.3f}', 'Winter':'{:.3f}', 'Deploy':'{:.3f}'
     })
     st.dataframe(styled, use_container_width=True, hide_index=True)
 
@@ -1758,23 +1761,25 @@ def page_model_info():
     st.plotly_chart(fig_perf, use_container_width=True)
 
     mc1, mc2 = st.columns(2)
-    mc1.success("**Colorado Mean AUC: 0.815** — All 4 hazards ≥ 0.74")
-    mc2.info("**Washington (PNW) Mean AUC: 0.767** — Fire and Winter above 0.81")
+    mc1.success("**Mountain West Deploy AUC: 0.892** — AZ, CO, ID, MT, NM, NV, UT, WY")
+    mc2.info("**PNW Deploy AUC: 0.860** — OR, WA (+0.073 from Phase 2 fine-tuning)")
 
     # ---- Calibration ----
     st.markdown("---")
     st.markdown("### Calibration Pipeline")
     st.markdown("""
     **Calibration** means predicted probabilities match real-world frequencies. If the model says 10% fire risk,
-    fires should occur roughly 10% of the time in those conditions. AHI v4.0 uses a **per-state calibration
-    pipeline** with per-region temperature scales to ensure locally meaningful predictions:
+    fires should occur roughly 10% of the time in those conditions.
 
-    - **Per-hazard logit bias** — Additive logit shift fitted per state per hazard before temperature scaling
-    - **Temperature scaling** — Per-hazard confidence adjustment fitted on each state's validation set
-    - **Seasonal bias** — Monthly climatology adjustments computed from Round 4 label rates (fire season, hurricane season, etc.)
-    - **Base-rate ceilings** — Caps predictions at historical plausibility limits (refitted for cleaned R4 label rates)
+    AHI v4.0 currently uses **passthrough calibration** — model outputs pass directly through sigmoid
+    without post-hoc scaling. The model's internal `LearnedSeasonalBias(5,12)` handles seasonal structure.
 
-    Each state receives its own calibration parameters (49 states x 5 hazards), ensuring predictions are locally meaningful.
+    The per-state calibration infrastructure exists and can be re-enabled:
+    - **Temperature scaling** — Per-hazard confidence adjustment (T=1.0 passthrough for all states)
+    - **Seasonal bias** — Monthly climatology adjustments (zeroed — model handles this internally)
+    - **Base-rate ceilings** — Caps at historical plausibility limits (set to 1.0 — disabled)
+
+    Refitting per-state T-scales on CONUS validation data is the next calibration step.
     """)
 
     st.markdown("---")
@@ -1787,10 +1792,10 @@ def page_model_info():
       WUI data, plus 11 lagged observational features (FIRMS fire, USGS streamflow, SPC severe wind)
     - **Label quality filters** — FIRMS satellite validation removed 85% of false fire labels,
       SPC report validation removed 88% of false wind labels
-    - Two-phase training: shared backbone (12 epochs) then per-region head fine-tuning (6 epochs)
+    - Two-phase training: shared backbone (12 epochs) then per-region head fine-tuning (up to 20 epochs, patience=5)
     - Northeast split into mid-atlantic + new-england; Colorado merged into mountain_west
-    - All calibration (temperature scales, seasonal biases, base rate ceilings) refitted for R4 labels
-    - National deploy mean AUC: **0.835**
+    - Passthrough calibration — model's internal LearnedSeasonalBias handles seasonality
+    - National deploy mean AUC: **0.877**
     """)
 
     st.markdown("**Next steps:**")
