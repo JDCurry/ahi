@@ -362,7 +362,7 @@ def build_tensors_from_county_data(
     county_row: pd.Series,
     county_name: str = '',
     target_date: date = None,
-    static_pad_dim: int = 50,  # TODO: raise to 61 after T-scale refit with full features
+    static_pad_dim: int = 61,  # AHI 4.0: 50 GridMET/ERA5/MODIS + 4 FIRMS + 2 SPC + 5 USGS
     temporal_seq_len: int = 14,
     temporal_feat_dim: int = 20,
     default_state: str = 'CO',

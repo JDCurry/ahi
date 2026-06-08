@@ -1,16 +1,16 @@
 {
-    "temperatures": {
-        "fire": 0.7115,
-        "flood": 0.2743,
-        "wind": 0.5355,
-        "winter": 0.2935,
-        "seismic": 0.6065
-    },
-    "biases": {
-        "fire": -2.3347,
-        "flood": -0.6725,
-        "wind": -0.8159,
-        "winter": -0.2675,
-        "seismic": -2.87
-    }
+  "temperatures": {
+    "fire": 1.0,
+    "flood": 1.0,
+    "wind": 1.0,
+    "winter": 1.0,
+    "seismic": 1.0
+  },
+  "biases": {
+    "fire": 0.0,
+    "flood": 0.0,
+    "wind": 0.0,
+    "winter": 0.0,
+    "seismic": 0.0
+  }
 }
