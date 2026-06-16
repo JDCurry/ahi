@@ -1,6 +1,6 @@
-state_code: RI
+﻿state_code: RI
 state_name: Rhode Island
-region: northeast
+region: new_england
 default_county: Providence
 page_title: Adaptive Hazard Intelligence — TODO
 tagline: Multi-hazard risk intelligence for all NN TODO counties

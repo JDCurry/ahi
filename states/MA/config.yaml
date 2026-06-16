@@ -1,6 +1,6 @@
-state_code: MA
+﻿state_code: MA
 state_name: Massachusetts
-region: northeast
+region: new_england
 default_county: Middlesex
 page_title: Adaptive Hazard Intelligence — TODO
 tagline: Multi-hazard risk intelligence for all NN TODO counties

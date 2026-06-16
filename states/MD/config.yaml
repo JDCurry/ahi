@@ -1,6 +1,6 @@
-state_code: MD
+﻿state_code: MD
 state_name: Maryland
-region: northeast
+region: mid_atlantic
 default_county: Montgomery
 page_title: Adaptive Hazard Intelligence — TODO
 tagline: Multi-hazard risk intelligence for all NN TODO counties

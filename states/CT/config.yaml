@@ -1,6 +1,6 @@
-state_code: CT
+﻿state_code: CT
 state_name: Connecticut
-region: northeast
+region: new_england
 default_county: Hartford
 page_title: Adaptive Hazard Intelligence — TODO
 tagline: Multi-hazard risk intelligence for all NN TODO counties
