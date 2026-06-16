@@ -706,7 +706,7 @@ def check_model_available(region: str):
     return None, None, False
 
 
-@st.cache_data(ttl=3600, max_entries=5, show_spinner=False)
+@st.cache_data(ttl=3600, max_entries=2, show_spinner=False)
 def load_hazard_data(state_code: str):
     """Load the active state's inference parquet (states/<XX>/inference_data.parquet).
     Supports both single-file and partitioned directory (states/<XX>/inference_data/)."""
@@ -726,37 +726,34 @@ def load_hazard_data(state_code: str):
     return df
 
 
-@st.cache_data(ttl=3600, max_entries=5, show_spinner=False)
+@st.cache_data(ttl=3600, max_entries=2, show_spinner=False)
 def load_geojson(state_code: str):
-    """Load the active state's county GeoJSON (states/<XX>/counties.geojson)."""
+    """Load the active state's county GeoJSON (states/<XX>/counties.geojson).
+    Pre-normalizes NAME_NORM properties so callers don't need to deep-copy."""
     path = Path(f'states/{state_code}/counties.geojson')
     if path.exists():
         with open(path, encoding='utf-8-sig') as f:
-            return json.load(f)
+            data = json.load(f)
+        _add_geojson_name_norms(data)
+        return data
     return None
 
 
-def _normalize_geojson_names(geojson):
-    """Add a normalized 'NAME_NORM' property for consistent lookup.
+def _add_geojson_name_norms(geojson):
+    """Add normalized 'NAME_NORM' property in-place for consistent lookup.
 
     Uses NAMELSAD (e.g. "Fairfax County", "Alexandria city") when available
     so Virginia independent cities and Louisiana parishes match correctly.
     Falls back to NAME. Strips " County" and upper-cases for case-insensitive
-    matching. This means:
-      - "Fairfax County" → "FAIRFAX"      (matches prediction "Fairfax")
-      - "Alexandria city" → "ALEXANDRIA CITY" (matches prediction "Alexandria City")
-      - "Acadia Parish"  → "ACADIA PARISH"   (matches prediction "Acadia Parish")
+    matching.
     """
     if geojson is None:
-        return None
-    out = json.loads(json.dumps(geojson))
-    for feat in out.get('features', []):
+        return
+    for feat in geojson.get('features', []):
         props = feat.get('properties', {})
-        # Prefer NAMELSAD (includes designation), fall back to NAME
         name = props.get('NAMELSAD') or props.get('NAME') or props.get('name')
         if name:
             props['NAME_NORM'] = name.replace(' County', '').strip().upper()
-    return out
 
 
 def _get_geojson_features(geojson_data):
@@ -819,7 +816,7 @@ def _ascii_normalize_county(s: str) -> str:
     return _ud.normalize('NFKD', s).encode('ascii', 'ignore').decode('ascii').upper()
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(ttl=3600, max_entries=1, show_spinner=False)
 def load_national_geojson():
     """Cached load of the national counties geojson (3,109 CONUS + 35 AK/HI)."""
     p = Path('data/national_counties.geojson')
@@ -871,7 +868,7 @@ def predict_all_national(month: int):
 # CACHED STATE PREDICTIONS
 # =============================================================================
 
-@st.cache_data(ttl=86400, max_entries=100, show_spinner=False)
+@st.cache_data(ttl=86400, max_entries=10, show_spinner=False)
 def compute_state_predictions_cached(
     state_code: str,
     region: str,
@@ -1080,12 +1077,11 @@ def render_statewide_choropleth(df, hazard_key, hazard_label,
                                  state_code, county_coords,
                                  map_style='Dark'):
     """Statewide risk map using Choroplethmapbox (same style as national tab)."""
-    geojson_data = load_geojson(state_code)
-    if geojson_data is None:
+    geojson_norm = load_geojson(state_code)
+    if geojson_norm is None:
         st.info(f"GeoJSON not found for {state_code}. County map unavailable.")
         return
 
-    geojson_norm = _normalize_geojson_names(geojson_data)
     col_name = f"{hazard_key}_p"
 
     plot_df = df.copy()
@@ -1139,8 +1135,7 @@ def render_county_spotlight_map(selected_county, risks, target_date,
                                  state_code, county_coords):
     """State map with selected county highlighted, all others dimmed.
     Uses Choroplethmapbox for consistent styling with national/state tabs."""
-    geojson_data = load_geojson(state_code)
-    geojson_norm = _normalize_geojson_names(geojson_data)
+    geojson_norm = load_geojson(state_code)
     if geojson_norm is None:
         st.info(f"GeoJSON not available for {state_code}.")
         return

@@ -1,5 +1,5 @@
 """
-State-aware ONNX inference engine for AHI v2.5.
+State-aware ONNX inference engine for AHI v4.0.
 
 Single deployment serves multiple states. Each state has its own:
   - calibration JSONs (temperature_scales, seasonal_bias, base_rate_ceiling)
@@ -79,7 +79,9 @@ STATE_TO_REGION_ID = {
 # ---------------------------------------------------------------------------
 _STATE_CALIBRATION_CACHE: Dict[str, Dict] = {}
 _COUNTY_BIAS_CACHE:       Dict[str, Dict] = {}   # state_code -> county_seasonal_bias.json
-_REGIONAL_ONNX_CACHE:     Dict[str, object] = {}   # region -> ort.InferenceSession
+_REGIONAL_ONNX_CACHE: Dict[str, object] = {}   # region -> ort.InferenceSession
+_ONNX_LOAD_ORDER: list = []                     # LRU eviction tracker
+_ONNX_MAX_CACHED: int = 3                       # keep at most 3 regional models in RAM
 _COUNTY_MAP: Dict[str, int] = {}
 _STATE_MAP:  Dict[str, int] = {}
 
@@ -261,9 +263,13 @@ def _apply_calibration(state_code: str, raw_logit: float,
 # ---------------------------------------------------------------------------
 
 def _get_onnx_session(region: str):
-    """Lazy-load (and cache) the regional ONNX session."""
+    """Lazy-load (and cache) the regional ONNX session with LRU eviction."""
     if region in _REGIONAL_ONNX_CACHE:
-        return _REGIONAL_ONNX_CACHE[region]
+        cached = _REGIONAL_ONNX_CACHE[region]
+        if cached is not None and region in _ONNX_LOAD_ORDER:
+            _ONNX_LOAD_ORDER.remove(region)
+            _ONNX_LOAD_ORDER.append(region)
+        return cached
 
     try:
         import onnxruntime as ort
@@ -277,21 +283,29 @@ def _get_onnx_session(region: str):
     ]
     for p in candidates:
         if p.exists():
+            # Evict oldest model if at capacity
+            while len(_ONNX_LOAD_ORDER) >= _ONNX_MAX_CACHED:
+                evict = _ONNX_LOAD_ORDER.pop(0)
+                _REGIONAL_ONNX_CACHE.pop(evict, None)
+                print(f"[AHI] Evicted regional model {evict} (capacity={_ONNX_MAX_CACHED})")
+
             opts = ort.SessionOptions()
             opts.inter_op_num_threads = 1
             opts.intra_op_num_threads = 1
-            opts.enable_cpu_mem_arena = False   # reduce retained memory on Render
+            opts.enable_cpu_mem_arena = False
             opts.enable_mem_pattern = False
             session = ort.InferenceSession(
                 str(p), sess_options=opts, providers=['CPUExecutionProvider']
             )
             _REGIONAL_ONNX_CACHE[region] = session
+            _ONNX_LOAD_ORDER.append(region)
             print(f"[AHI] Loaded regional model {region} from {p} "
-                  f"({p.stat().st_size / 1024 / 1024:.1f} MB)")
+                  f"({p.stat().st_size / 1024 / 1024:.1f} MB) "
+                  f"[{len(_ONNX_LOAD_ORDER)}/{_ONNX_MAX_CACHED} cached]")
             return session
 
     print(f"[AHI] No ONNX model found for region '{region}' — checked {candidates}")
-    _REGIONAL_ONNX_CACHE[region] = None   # cache the negative result so we don't spam the log
+    _REGIONAL_ONNX_CACHE[region] = None
     return None
 
 

@@ -128,7 +128,7 @@ class StateContext:
 
     @property
     def model_version(self) -> str:
-        return self.versions.get('model', f'AHI v2.5 ({self.state_code})')
+        return self.versions.get('model', f'AHI v4.0 ({self.state_code})')
 
     @property
     def data_version(self) -> str:
