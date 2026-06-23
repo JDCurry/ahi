@@ -111,6 +111,31 @@ def main():
         print(f"\nMonth {month}: {len(df)} counties, "
               f"{out.stat().st_size / 1024:.0f} KB, {elapsed:.0f}s")
 
+        _validate_against_geojson(df)
+
+
+def _validate_against_geojson(df: pd.DataFrame):
+    """Check that every prediction matches a national geojson feature."""
+    gj_path = ROOT / 'data' / 'national_counties.geojson'
+    if not gj_path.exists():
+        print("  WARN: national_counties.geojson not found, skipping validation")
+        return
+
+    import json
+    with open(gj_path, encoding='utf-8') as f:
+        gj = json.load(f)
+    geo_ids = set(feat['properties']['_id'] for feat in gj['features'])
+    pred_ids = set(df['state'] + '|' + df['county_id'])
+
+    unmatched = sorted(pred_ids - geo_ids)
+    if unmatched:
+        print(f"\n  WARNING: {len(unmatched)} predictions have no geojson polygon:")
+        for u in unmatched:
+            print(f"    {u}")
+        print("  Run: python scripts/build_national_geojson.py")
+    else:
+        print(f"  Validated: all {len(pred_ids)} predictions match geojson features")
+
 
 if __name__ == '__main__':
     main()
