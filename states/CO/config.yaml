@@ -1,4 +1,4 @@
-# Colorado state configuration for AHI v2.5
+# Colorado state configuration for AHI v4.0
 # All state-specific UI content lives here. The app.py reads this at startup.
 
 state_code: CO
@@ -259,5 +259,5 @@ performance:
 
 # Model + data version strings shown in audit reports and About page
 versions:
-  model: "AHI v2.5 (Colorado)"
+  model: "AHI v4.0"
   data:  "NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025"

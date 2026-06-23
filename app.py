@@ -331,9 +331,9 @@ def generate_audit_report(county: str, forecast_date_str: str,
         {"factor": "Seasonal pattern",
          "explanation": seasonal_text},
         {"factor": "Geographic context",
-         "explanation": f"{county} County's location, elevation, and land-cover profile "
+         "explanation": f"{_county_display_name(county)}'s location, elevation, and land-cover profile "
                         f"contribute to its baseline {primary_name.lower()} risk relative to "
-                        f"other {sctx.state_name} counties. These static features are baked into the model's learned weights."},
+                        f"other {sctx.state_name} {_subdivision_label(sctx.state_code)}. These static features are baked into the model's learned weights."},
         {"factor": "Regional spatial signal",
          "explanation": "Neighboring county patterns are incorporated via the spatial attention "
                         "mesh. Cross-county phenomena — fire spread, downstream flooding, storm tracks "
@@ -398,7 +398,7 @@ def render_decision_audit(audit: dict, state_ctx=None):
           <div style="color:{COLORS['text_tertiary']}; font-size:0.75em; text-transform:uppercase;
                letter-spacing:0.05em;">Primary result</div>
           <div style="color:{COLORS['text_primary']}; font-size:1em; margin-top:4px;">
-            <strong>{primary}</strong> is the top-ranked hazard for {county} County on
+            <strong>{primary}</strong> is the top-ranked hazard for {_county_display_name(county)} on
             {audit['forecast_date']} with an estimated probability of
             <strong>{prob:.1f}%</strong> ({level}).
           </div>
@@ -1033,8 +1033,8 @@ def render_interpretation_guide(forecast_days, state_ctx=None):
         **What the percentages mean:**
         - These are **calibrated risk probabilities for a single point-in-time**: conditions on the forecast date ({forecast_days} days from today), not an average across the window
         - Changing the forecast date changes the target date for inference — different dates have different seasonal weights, so a 7-day and 14-day run can produce different rankings if the window crosses a seasonal transition
-        - Probabilities are based on **25 years of historical patterns** (2000–2025) across all {len(sctx.counties)} {sctx.state_name} counties
-        - A county with few historical events can still show elevated risk if current seasonal/geographic conditions match patterns that preceded events elsewhere
+        - Probabilities are based on **25 years of historical patterns** (2000–2025) across all {len(sctx.counties)} {sctx.state_name} {_subdivision_label(sctx.state_code)}
+        - A {_subdivision_label(sctx.state_code, plural=False)} with few historical events can still show elevated risk if current seasonal/geographic conditions match patterns that preceded events elsewhere
 
         **Risk thresholds:**
         | Level | Range | Suggested Response |
@@ -1240,7 +1240,8 @@ def page_quick_predict():
         )
     cr_ctx = _load_state_context(cr_state)
     with col_county:
-        selected_county = st.selectbox("Select County", cr_ctx.counties, index=0)
+        selected_county = st.selectbox(
+            f"Select {_subdivision_label(cr_state, plural=False).title()}", cr_ctx.counties, index=0)
     with col_hz:
         forecast_horizon = st.selectbox("Forecast Window",
                                          options=[14, 30], index=0,
@@ -1333,7 +1334,7 @@ def page_quick_predict():
             render_risk_summary(last['risks'], county=last.get('county', ''),
                                 state_ctx=cr_ctx)
             st.markdown("---")
-            with st.expander("County Spotlight Map", expanded=False):
+            with st.expander(f"{_subdivision_label(cr_state, plural=False).title()} Spotlight Map", expanded=False):
                 render_county_spotlight_map(selected_county, last['risks'], last.get('date'),
                                              state_code=cr_state, county_coords=cr_ctx.county_coords)
             if 'audit' in last:
@@ -1367,13 +1368,13 @@ def page_state_overview():
     month_label = target_date.strftime('%B %Y')
 
     st.markdown(f"## {state_ctx.state_name} — Statewide Risk Assessment")
-    st.caption(f"{len(state_ctx.counties)} counties · {month_label} outlook · "
+    st.caption(f"{len(state_ctx.counties)} {_subdivision_label(sel_state)} · {month_label} outlook · "
                f"Based on historical patterns for {target_date.strftime('%B')}. "
                f"Use the **County Risk Assessment** tab for specific date forecasts.")
 
     # ---- Run predictions for all counties (cached by composite key) ----
     with st.spinner(f"Loading predictions for {len(state_ctx.counties)} "
-                     f"{state_ctx.state_name} counties…"):
+                     f"{state_ctx.state_name} {_subdivision_label(sel_state)}…"):
         df, errors = compute_state_predictions_cached(
             sel_state,
             state_ctx.region,
@@ -1383,9 +1384,9 @@ def page_state_overview():
         )
 
     if len(errors) > 0:
-        st.warning(f"{len(errors)} of {len(state_ctx.counties)} counties "
+        st.warning(f"{len(errors)} of {len(state_ctx.counties)} {_subdivision_label(sel_state)} "
                     f"failed inference.")
-        with st.expander("Failed counties"):
+        with st.expander(f"Failed {_subdivision_label(sel_state)}"):
             st.dataframe(errors, use_container_width=True, hide_index=True)
 
     if len(df) == 0:
@@ -1411,7 +1412,7 @@ def page_state_overview():
     context_line = f"Mean risk: <strong style='color: {rel_color};'>{level}</strong>"
     if ratio_str:
         context_line += f" · {ratio_str}"
-    context_line += f" · {(df['max_hazard'] == primary_hazard).sum()} of {len(df)} counties led by this hazard"
+    context_line += f" · {(df['max_hazard'] == primary_hazard).sum()} of {len(df)} {_subdivision_label(sel_state)} led by this hazard"
     if primary_br >= 0.005:
         context_line += f" · Historical avg: {primary_br*100:.1f}%"
 
@@ -1458,7 +1459,7 @@ def page_state_overview():
 
     # ---- County table ----
     st.markdown("---")
-    st.markdown("### All Counties")
+    st.markdown(f"### All {_subdivision_label(sel_state).title()}")
     base_rates = _load_base_rates(sel_state)
     display = df.copy()
     for h in hazards:
@@ -1474,7 +1475,7 @@ def page_state_overview():
 
     display['Status'] = display.apply(_county_status, axis=1)
     show = display[['county', 'Status'] + [HAZARD_NAMES[h] for h in hazards]].rename(
-        columns={'county': 'County'})
+        columns={'county': _subdivision_label(sel_state, plural=False).title()})
     col_config = {
         HAZARD_NAMES[h]: st.column_config.NumberColumn(
             HAZARD_NAMES[h], format="%.1f%%")
@@ -1877,6 +1878,16 @@ def _county_display_name(name: str) -> str:
         if name.endswith(suffix):
             return name
     return f'{name} County'
+
+
+def _subdivision_label(state_code: str, plural: bool = True) -> str:
+    """Return the correct subdivision term for a state (e.g. 'parishes' for LA)."""
+    labels = {
+        'LA': ('parish', 'parishes'),
+        'DC': ('jurisdiction', 'jurisdictions'),
+    }
+    singular, pl = labels.get(state_code, ('county', 'counties'))
+    return pl if plural else singular
 
 
 def render_national_choropleth(df: pd.DataFrame, geojson: dict, hazard: str,

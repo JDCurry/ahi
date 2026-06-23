@@ -362,5 +362,5 @@ performance:
   - NOAA Storm Events Database
   - FEMA Disaster Declarations
 versions:
-  model: AHI v2.5 (TODO)
+  model: "AHI v4.0"
   data: NOAA GridMET / WFIGS / USGS / NOAA Storm Events, 2000–2025
