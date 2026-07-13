@@ -1,0 +1,149 @@
+{
+  "release": "AHI v5.0",
+  "created": "2026-07-13T02:24:31",
+  "engine_map": {
+    "fire": "xgb",
+    "flood": "xgb",
+    "wind": "attn",
+    "winter": "attn"
+  },
+  "decision_basis": "paired bootstrap, 2,950,441 identical test county-days; see attn/xgb/hyb CONUS metrics + ensemble_report.json",
+  "label_semantics": "base/NOAA-all v2: 3-day forward event windows; wind = all NOAA significant wind (not SPC-convective-only); flood = $10K damage threshold; fire = WFIGS; winter = zone-resolved NOAA Storm Events",
+  "supersedes": "All pre-v5 metrics were measured on a structurally deficient (sparse) dataset and are superseded. Wind AUC is not comparable to v4 (definition changed from SPC-convective-only to NOAA-all).",
+  "training_parquet_sha256": "67c80afb63a0dba36cf7ed1493b57d5c7c31b79deda70cf2ae11c7896e028712",
+  "n_counties": 3109,
+  "n_features": 62,
+  "feature_cols": [
+    "erc",
+    "pr",
+    "rmax",
+    "rmin",
+    "tmmn",
+    "tmmx",
+    "vpd",
+    "vs",
+    "day_of_year",
+    "month",
+    "year",
+    "tmmx_3d_mean",
+    "pr_3d_mean",
+    "vs_3d_mean",
+    "red_flag_active",
+    "latitude",
+    "longitude",
+    "elevation",
+    "forest_fraction",
+    "urban_fraction",
+    "pop_density",
+    "era5_gust_max",
+    "era5_gust_mean",
+    "era5_tcwv_mean",
+    "era5_tcwv_max",
+    "era5_ivt_mean",
+    "era5_ivt_max",
+    "era5_tp_sum",
+    "era5_tp_max",
+    "era5_t2m_min",
+    "era5_t2m_max",
+    "era5_t2m_mean",
+    "era5_msl_mean",
+    "era5_msl_min",
+    "era5_ws_mean",
+    "era5_ws_max",
+    "modis_ndvi",
+    "modis_evi",
+    "modis_ndvi_anom",
+    "modis_evi_anom",
+    "nfhl_sfha_frac",
+    "nfhl_v_frac",
+    "nfhl_x_frac",
+    "nfhl_sfha_km2",
+    "nfhl_v_km2",
+    "wui_frac",
+    "wui_intermix_frac",
+    "wui_interface_frac",
+    "wui_veg_frac",
+    "wui_veg_cover_mean",
+    "wui_huden_log",
+    "firms_count_7d",
+    "firms_count_3d",
+    "firms_frp_max_7d",
+    "firms_frp_mean_7d",
+    "spc_severe_days_3d",
+    "spc_max_wind_3d",
+    "usgs_log_q_3d",
+    "usgs_log_q_delta",
+    "usgs_discharge_max_3d",
+    "usgs_n_stations",
+    "usgs_discharge_cv_3d"
+  ],
+  "artifacts": {
+    "attention_onnx": {
+      "file": "ahi_v5_attention.onnx",
+      "sha256": "d928afc52141e2a6f11cae1de6f1394b2730d6770b83775e56e42c6ee00e51c5",
+      "serves": [
+        "wind",
+        "winter"
+      ],
+      "checkpoint_sha256": "25285e74b3ff4dcbb1c50c5e1b0722309d013bc9c1444f9d0358898c0b7a4889",
+      "coupling_gate": 0.1113
+    },
+    "xgb_fire": {
+      "file": "xgb_CONUS_fire.json",
+      "sha256": "5fe1bc0638da763a07d686bbf60d6cb74ef5f1f00b44fb7026e2f620b9ace3e4",
+      "serves": [
+        "fire"
+      ]
+    },
+    "xgb_flood": {
+      "file": "xgb_CONUS_flood.json",
+      "sha256": "4c9a8d59b7d295cce726252692b808be86829fab3052c556bf4866f484b4c843",
+      "serves": [
+        "flood"
+      ]
+    },
+    "scaler": {
+      "file": "scaler_CONUS.json",
+      "sha256": "8f85c58068d0c5c2371c5baa2ebfd96cf60cfe8b5c2cfdc4b6cb202e557de208",
+      "note": "also baked into the ONNX graph"
+    },
+    "county_order": {
+      "file": "county_order.json",
+      "sha256": "73675c5928d6c5b22ae946b92d0c70463f2878fd45f78a08e777505659c6c43c",
+      "note": "input row-order contract"
+    },
+    "calibrators": {
+      "fire": {
+        "file": "calibrator_fire.json",
+        "sha256": "076ab2b97f2f0f8fd452fa89efd46398b80c82764f609f1dce52ab664ea4341a",
+        "verified_auc": 0.8776,
+        "verified_vs_evaluated": true
+      },
+      "flood": {
+        "file": "calibrator_flood.json",
+        "sha256": "28ff1f5d7d3cb367071f469b70ee00f3b8539a4686ffccfcc8fa5f275bec5a8e",
+        "verified_auc": 0.9026,
+        "verified_vs_evaluated": true
+      },
+      "wind": {
+        "file": "calibrator_wind.json",
+        "sha256": "85eb64e96559f39fd5247089d171dc15dfe1c748d8faa12594a73fc9446ef1cd",
+        "verified_auc": 0.8689,
+        "verified_vs_evaluated": true
+      },
+      "winter": {
+        "file": "calibrator_winter.json",
+        "sha256": "0913478962582c09f3d6582ed33d3f637dbdb817745d56423a06668d09cc773f",
+        "verified_auc": 0.9415,
+        "verified_vs_evaluated": true
+      }
+    }
+  },
+  "deployed_test_auc": {
+    "fire": 0.8776,
+    "flood": 0.9026,
+    "wind": 0.8689,
+    "winter": 0.9415
+  },
+  "deployed_mean_auc": 0.8976
+}

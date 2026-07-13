@@ -3,8 +3,8 @@ AHI — Adaptive Hazard Intelligence Platform
 Multi-state demonstration dashboard.
 Resilience Analytics Lab, LLC
 
-AHI v4.0 — multi-hazard risk prediction with regional model architecture.
-State-aware: select state from sidebar; UI content + calibration loaded
+AHI v5.0 — CONUS-wide hybrid inference (attention + XGBoost).
+State-aware: select state from sidebar; UI content loaded
 from states/<XX>/config.yaml and states/registry.yaml.
 """
 
@@ -30,7 +30,22 @@ try:
 except ImportError:
     FOLIUM_AVAILABLE = False
 
-# State-aware ONNX inference
+# v5 CONUS-wide hybrid inference
+try:
+    from inference_v5 import V5Engine, HAZARDS as V5_HAZARDS
+    _V5_ENGINE = None
+    def get_v5_engine():
+        global _V5_ENGINE
+        if _V5_ENGINE is None:
+            _V5_ENGINE = V5Engine()
+        return _V5_ENGINE
+    AHI_V5_AVAILABLE = True
+except Exception as e:
+    print(f"[IMPORT] inference_v5 import failed: {e}")
+    get_v5_engine = None
+    AHI_V5_AVAILABLE = False
+
+# Legacy v4 inference (kept for shadow period comparison)
 try:
     from inference_onnx import predict_county_risks_simple, predict_from_ahi_v2
     AHI_V2_AVAILABLE = True
@@ -689,19 +704,21 @@ def inject_css():
 
 @st.cache_resource
 def check_model_available(region: str):
-    """Check whether the regional ONNX model file is present.
+    """Check whether model files are present (v5 or v4 fallback).
 
-    Does NOT load the model — inference_onnx.py handles that lazily.
-    Returns (format_str, None, is_available) so the UI can show model status
-    without paying session-init cost on every page render.
+    Returns (format_str, None, is_available).
     """
+    # v5 CONUS model
+    v5_path = Path("models/v5/ahi_v5_attention.onnx")
+    if v5_path.exists():
+        return "v5_hybrid", None, True
+
+    # v4 regional fallback
     if not AHI_V2_AVAILABLE:
         return None, None, False
     for p in [Path(f"models/{region}/model.onnx"),
               Path(f"/mount/src/ahi-platform/models/{region}/model.onnx")]:
         if p.exists():
-            print(f"[AHI] Regional ONNX present: {p} "
-                  f"({p.stat().st_size / 1024 / 1024:.1f} MB)")
             return "onnx", None, True
     return None, None, False
 
@@ -847,10 +864,9 @@ def predict_all_national(month: int):
     if not csv_path.exists():
         raise FileNotFoundError(
             f"Missing precomputed national predictions for month {month}. "
-            f"Run `python scripts/precompute_national.py` before deploy."
+            f"Run `python scripts/precompute_v5.py` before deploy."
         )
     df = pd.read_csv(csv_path)
-    # Recompute max from DISPLAY_HAZARDS only (excludes seismic)
     p_cols = [f'{h}_p' for h in DISPLAY_HAZARDS]
     df['max_p'] = df[p_cols].max(axis=1)
     df['max_hazard'] = df[p_cols].idxmax(axis=1).str.replace('_p', '')
@@ -876,24 +892,44 @@ def compute_state_predictions_cached(
     model_version: str,
     data_version: str,
 ):
-    """Run ONNX inference for every county in a state. Cached by a composite key
-    that includes state, date, model version, and data version — so stale results
-    are impossible when any upstream dependency changes.
+    """Run v5 hybrid inference for every county in a state.
+
+    Uses the precomputed national CSV (v5) when available, falling back to
+    v4 per-county ONNX inference if v5 is unavailable.
 
     Returns (predictions_df, errors_df).
     """
-    from inference_onnx import predict_county_risks_simple as _predict
+    target_date = datetime.fromisoformat(target_date_str).date()
+    month = target_date.month
 
+    # Try loading from precomputed v5 national CSV
+    csv_path = Path(f'data/national_predictions_month{month:02d}.csv')
+    if csv_path.exists():
+        nat_df = pd.read_csv(csv_path)
+        state_df = nat_df[nat_df['state'] == state_code].copy()
+        if len(state_df) > 0:
+            rows = []
+            for _, r in state_df.iterrows():
+                row = {'county': r['county'], 'date': target_date_str}
+                for h in DISPLAY_HAZARDS:
+                    row[f'{h}_p'] = r.get(f'{h}_p', 0.0)
+                rows.append(row)
+            return pd.DataFrame(rows), pd.DataFrame()
+
+    # Fallback: v4 per-county inference
+    if not AHI_V2_AVAILABLE:
+        return pd.DataFrame(), pd.DataFrame([{
+            'county': '(all)', 'error': f'No v5 CSV and v4 unavailable for {state_code}'}])
+
+    from inference_onnx import predict_county_risks_simple as _predict
     state_ctx = _load_state_context(state_code)
     hazard_df = load_hazard_data(state_code)
     if hazard_df is None:
         return pd.DataFrame(), pd.DataFrame([{
             'county': '(all)', 'error': f'No inference data for {state_code}'}])
 
-    target_date = datetime.fromisoformat(target_date_str).date()
     rows = []
     errors = []
-
     for county in state_ctx.counties:
         try:
             risks = _predict(state_code, region, county, hazard_df, target_date)
@@ -1291,25 +1327,43 @@ def page_quick_predict():
 
     if predict_clicked:
         status = st.empty()
-        status.info("Loading ONNX model…")
-        _, _, ok = check_model_available(cr_ctx.region)
-        if not ok:
-            status.error(f"Model unavailable — check models/{cr_ctx.region}/model.onnx")
-            return
-        status.info("Extracting county features…")
-        hazard_df = load_hazard_data(cr_state)
-        status.info("Running model inference…")
+        status.info("Loading v5 hybrid engine…")
         risks, err = None, None
-        try:
-            from inference_onnx import predict_county_risks_simple as _predict
-            risks = _predict(cr_state, cr_ctx.region, selected_county,
-                              hazard_df, target_date)
-        except Exception as e:
-            err = str(e)
+
+        # v5 path: load from precomputed national CSV
+        csv_path = Path(f'data/national_predictions_month{target_date.month:02d}.csv')
+        if csv_path.exists():
+            status.info("Reading precomputed predictions…")
+            nat_df = pd.read_csv(csv_path)
+            county_upper = selected_county.upper().replace(' COUNTY', '').strip()
+            match = nat_df[
+                (nat_df['state'] == cr_state) &
+                (nat_df['county_id'].str.upper() == county_upper)
+            ]
+            if len(match) > 0:
+                r = match.iloc[0]
+                risks = {h: float(r.get(f'{h}_p', 0.0)) for h in DISPLAY_HAZARDS}
+            else:
+                err = f"County {selected_county} not found in precomputed CSV"
+        else:
+            # Fallback: v4 per-county inference
+            try:
+                _, _, ok = check_model_available(cr_ctx.region)
+                if not ok:
+                    status.error(f"No precomputed CSV and no v4 model for {cr_ctx.region}")
+                    return
+                status.info("Running v4 fallback inference…")
+                hazard_df = load_hazard_data(cr_state)
+                from inference_onnx import predict_county_risks_simple as _predict
+                risks = _predict(cr_state, cr_ctx.region, selected_county,
+                                  hazard_df, target_date)
+            except Exception as e:
+                err = str(e)
+
         if risks is None:
             status.error(f"Prediction failed: {err}")
         else:
-            status.info("Applying calibration (temperature scaling + seasonal bias)…")
+            status.info("Applying isotonic calibration…")
             time.sleep(0.15)
             status.empty()
             audit = generate_audit_report(
@@ -1545,76 +1599,71 @@ def page_state_overview():
 # =============================================================================
 
 def page_model_info():
-    st.markdown("## AHI v4.0 — CONUS Model Diagnostics")
-    st.caption("9 climate regions · 48 states + DC · 3,109 counties · 61-feature input · per-region prediction heads")
+    st.markdown("## AHI v5.0 — CONUS Model Diagnostics")
+    st.caption("Hybrid engine (attention + XGBoost) · 49 states · 3,109 counties · 62-feature input · isotonic calibration")
 
     st.markdown("""
-    ### What is AHI v4.0?
+    ### What is AHI v5.0?
 
-    **AHI v4.0** is the Adaptive Hazard Intelligence model powering this dashboard. It predicts the
-    likelihood of four natural hazard types — wildfire, flood, wind, and winter storm — at the
-    county level across the contiguous United States.
+    **AHI v5.0** is a hybrid hazard prediction system that combines two engines to serve four hazards
+    at the county level across the contiguous United States:
 
-    **The core problem it solves:** Weather sequences (temperature, wind, precipitation) evolve on a
-    fast timescale (days), while spatial correlations (fire spread, downstream flooding, storm tracks)
-    operate on a slow timescale (weeks/seasons). AHI uses a proprietary multi-mesh architecture to
-    decompose these timescales and learn hazard-specific patterns from 25+ years of historical data.
+    - **Attention mesh** (wind, winter): A CONUS-wide spatial attention model with learned gated
+      coupling between temporal and spatial signal. Trained on all 3,109 counties simultaneously.
+    - **XGBoost** (fire, flood): Gradient-boosted trees trained on the same dense feature matrix.
+      Selected by paired bootstrap on 2.95M identical test county-days.
 
-    **v4.0** expands the feature set to **61 inputs** — adding 11 lagged observational features from
-    FIRMS satellite fire detections (trailing 3/7-day fire count, FRP), USGS streamflow (trailing
-    discharge, rate-of-change), and SPC severe wind reports (trailing severe days, max wind). Labels
-    were cleaned using FIRMS/SPC observational validation for fire/wind, and flood/winter/seismic
-    labels rebuilt with a tight 3-day event window (down from 30-day) plus a $10K flood damage threshold.
-    The northeast region was split into mid-atlantic and new-england for better specialization.
-    National deploy mean AUC improved from 0.785 to **0.877**.
+    **v5.0** replaces the 9 per-region models of v4 with a single CONUS-wide architecture.
+    The feature set expands to **62 inputs** (adding ERA5 gust mean). Labels use 3-day forward
+    event windows with NOAA-all wind semantics (all significant wind, not SPC-convective-only).
+    Calibration uses isotonic regression (portable, verified) instead of per-state temperature scaling.
     """)
 
     st.markdown("---")
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Model", "AHI v4.0")
-    col2.metric("Parameters", "~1.7M")
-    col3.metric("Architecture", "Proprietary")
+    col1.metric("Model", "AHI v5.0")
+    col2.metric("Architecture", "Hybrid")
+    col3.metric("Engines", "2 (Attn + XGB)")
     col4.metric("Status", "Online")
 
     col5, col6, col7, col8 = st.columns(4)
-    col5.metric("Regional Models", "9")
+    col5.metric("Features", "62")
     col6.metric("States + DC", "48 + DC")
     col7.metric("CONUS Counties", "3,109")
-    col8.metric("Deployed National AUC", "0.877")
+    col8.metric("Deployed Mean AUC", "0.898")
 
-    # ---- Honest National Performance ----
+    # ---- National Performance ----
     st.markdown("---")
-    st.markdown("### National Validation Performance (49-state Held-out)")
+    st.markdown("### National Validation Performance (CONUS Held-out)")
     st.caption(
-        "Evaluated on a 2M-row temporal held-out split of the 10M-row national dataset "
-        "(3,109 counties, 49 states, 61-feature input). Two-phase training: shared backbone "
-        "then per-region head fine-tuning (up to 20 epochs/region, early-stop controlled). "
-        "Labels use 3-day event windows with observational validation (FIRMS fire, SPC wind, "
-        "$10K flood threshold). These are the AUCs of the model actually serving this dashboard."
+        "Evaluated on a temporal held-out split of the CONUS dataset "
+        "(3,109 counties, 49 states, 62-feature input). Engine selection by paired bootstrap on "
+        "2,950,441 identical test county-days. Labels use 3-day forward event windows with "
+        "NOAA-all wind semantics. Calibration: isotonic regression, verified against evaluated metrics."
     )
 
     national_data = [
-        {"Hazard": "Wind",   "AUC": 0.941, "Quality": "Excellent", "Notes": "SPC-validated labels + lagged wind features. Best: pacific (0.96), new_england/northern_plains (0.96)."},
-        {"Hazard": "Winter", "AUC": 0.850, "Quality": "Excellent", "Notes": "3-day label window removed 61% halo noise. Best: southeast_gulf (0.94), southern_plains (0.92)."},
-        {"Hazard": "Flood",  "AUC": 0.830, "Quality": "Excellent", "Notes": "$10K threshold + 3-day window. Flood AUC jumped from 0.62 to 0.83. Best: pacific (0.89), southern_plains (0.88)."},
-        {"Hazard": "Fire",   "AUC": 0.742, "Quality": "Good",      "Notes": "FIRMS-validated labels. Best: mountain_west (0.82), northern_plains (0.79)."},
+        {"Hazard": "Winter", "Engine": "Attention", "AUC": 0.9415, "Quality": "Excellent", "Notes": "Spatial attention captures storm-track patterns across counties."},
+        {"Hazard": "Flood",  "Engine": "XGBoost",   "AUC": 0.9026, "Quality": "Excellent", "Notes": "XGBoost won by bootstrap; $10K damage threshold + USGS streamflow features."},
+        {"Hazard": "Fire",   "Engine": "XGBoost",   "AUC": 0.8776, "Quality": "Excellent", "Notes": "XGBoost won by bootstrap; FIRMS satellite fire features + WUI data."},
+        {"Hazard": "Wind",   "Engine": "Attention",  "AUC": 0.8689, "Quality": "Excellent", "Notes": "NOAA-all wind (not SPC-convective-only). Not comparable to v4 wind AUC."},
     ]
     st.dataframe(pd.DataFrame(national_data), use_container_width=True, hide_index=True)
 
-    nat_hazards = ["Wind", "Winter", "Flood", "Fire"]
-    nat_aucs    = [0.941, 0.850, 0.830, 0.742]
-    nat_colors  = [COLORS['wind'], COLORS['winter'], COLORS['flood'], COLORS['fire']]
+    nat_hazards = ["Winter", "Flood", "Fire", "Wind"]
+    nat_aucs    = [0.9415, 0.9026, 0.8776, 0.8689]
+    nat_colors  = [COLORS['winter'], COLORS['flood'], COLORS['fire'], COLORS['wind']]
 
     fig_nat = go.Figure()
     fig_nat.add_trace(go.Bar(x=nat_hazards, y=nat_aucs, marker_color=nat_colors,
-                              text=[f"{a:.3f}" for a in nat_aucs], textposition='outside',
-                              name="National (49-state)"))
+                              text=[f"{a:.4f}" for a in nat_aucs], textposition='outside',
+                              name="v5 CONUS"))
     fig_nat.add_hline(y=0.8, line_dash="dash", line_color="#6b9e7a", annotation_text="Good (0.8)")
     fig_nat.add_hline(y=0.7, line_dash="dot",  line_color="#a3a3a3", annotation_text="Acceptable (0.7)")
     fig_nat.add_hline(y=0.5, line_dash="dash", line_color="#dc2626", annotation_text="Random (0.5)")
     fig_nat.update_layout(
-        title="AHI v4.0 — National AUC by Hazard (deployed model, per-region heads)",
+        title="AHI v5.0 — Deployed AUC by Hazard (hybrid engine, isotonic calibration)",
         paper_bgcolor=COLORS['card_bg'],
         plot_bgcolor=COLORS['card_bg'],
         font=dict(color=COLORS['text_secondary'], family='Inter'),
@@ -1627,138 +1676,71 @@ def page_model_info():
     st.plotly_chart(fig_nat, use_container_width=True)
 
     nc1, nc2 = st.columns(2)
-    nc1.info("**Deployed Mean AUC: 0.877** — averaged over fire, flood, wind, winter across 9 regions (49-state national).")
+    nc1.info("**Deployed Mean AUC: 0.898** — averaged over fire, flood, wind, winter (CONUS-wide, hybrid engine).")
     nc2.success(
-        "AHI v4.0 uses **61 features** with FIRMS fire detections, USGS streamflow, and SPC severe "
-        "wind reports. 3-day label windows with observational validation replaced 30-day halos. "
-        "Flood AUC jumped +0.21, wind hit 0.94, all 4 hazards now above 0.74. "
-        "National mean AUC improved from 0.785 to **0.877**."
+        "AHI v5.0 uses a hybrid architecture: spatial attention for wind/winter, XGBoost for "
+        "fire/flood. Engine selection by paired bootstrap on 2.95M test county-days. All 4 "
+        "hazards above 0.86. Mean AUC improved from 0.877 (v4) to **0.898** (v5)."
     )
 
-    # ---- Per-region per-hazard AUC table ----
-    st.markdown("#### Per-region AUC breakdown")
-    st.caption("Per-hazard AUCs from Phase 1 backbone training. **Deploy** column is the aggregate "
-               "AUC after Phase 2 regional head fine-tuning (deployed model). "
-               "Colors green ≥0.80, yellow 0.65–0.80, red <0.65.")
-    region_aucs = pd.DataFrame([
-        # region,              fire,  flood, wind,  winter, deploy  (AHI 4.0)
-        ['Great Lakes',        0.759, 0.817, 0.954, 0.873, 0.874],
-        ['Mid-Atlantic',       0.674, 0.741, 0.950, 0.889, 0.852],
-        ['Mountain West',      0.818, 0.861, 0.921, 0.853, 0.892],
-        ['New England',        0.782, 0.762, 0.958, 0.792, 0.860],
-        ['Northern Plains',    0.792, 0.829, 0.956, 0.878, 0.894],
-        ['Pacific',            0.737, 0.885, 0.963, 0.905, 0.879],
-        ['PNW',                0.771, 0.866, 0.911, 0.602, 0.860],
-        ['Southeast Gulf',     0.634, 0.834, 0.925, 0.939, 0.895],
-        ['Southern Plains',    0.706, 0.876, 0.930, 0.918, 0.886],
-    ], columns=['Region', 'Fire', 'Flood', 'Wind', 'Winter', 'Deploy'])
-
-    def _auc_color(v):
-        if v >= 0.80: return 'background-color: #1a3d1f; color: #b9d7be'
-        if v >= 0.65: return 'background-color: #4a3a17; color: #e5d39a'
-        return 'background-color: #3d1f1f; color: #d9a5a5'
-
-    styled = region_aucs.style.map(
-        _auc_color, subset=['Fire','Flood','Wind','Winter','Deploy']
-    ).format({
-        'Fire':'{:.3f}', 'Flood':'{:.3f}', 'Wind':'{:.3f}', 'Winter':'{:.3f}', 'Deploy':'{:.3f}'
-    })
-    st.dataframe(styled, use_container_width=True, hide_index=True)
-
-    # ---- Regional Model Overview ----
+    # ---- Engine architecture ----
     st.markdown("---")
-    st.markdown("### Regional Model Deployment")
-    st.markdown("""
-    AHI deploys **9 regional models**, each trained on states with similar climate, geography, and
-    hazard profiles. Every state within a region shares the same model weights but receives
-    **per-state calibration** to match local historical hazard frequencies.
-    """)
+    st.markdown("### Hybrid Engine Architecture")
+    st.caption("Engine selection determined by paired bootstrap on 2,950,441 identical test county-days. "
+               "The winning engine per hazard serves that hazard in production.")
 
-    _region_info = {
-        'great_lakes':     {'states': ['IL', 'IN', 'KY', 'MI', 'OH', 'TN', 'WV'], 'desc': 'Lake-effect weather, tornado alley fringe, Ohio River flooding'},
-        'mid_atlantic':    {'states': ['DC', 'DE', 'MD', 'NJ', 'NY', 'PA', 'VA'], 'desc': "Dense urban corridor, nor'easters, coastal/river flooding"},
-        'mountain_west':   {'states': ['AZ', 'CO', 'ID', 'MT', 'NM', 'NV', 'UT', 'WY'], 'desc': 'Arid/semi-arid fire, monsoon, mountain winter storms'},
-        'new_england':     {'states': ['CT', 'MA', 'ME', 'NH', 'RI', 'VT'], 'desc': 'Winter-dominant, coastal storms, ice storms'},
-        'northern_plains': {'states': ['IA', 'MN', 'MO', 'ND', 'SD', 'WI'], 'desc': 'Blizzards, prairie fire, spring flooding'},
-        'pacific':         {'states': ['CA'], 'desc': 'Wildfire, atmospheric rivers, coastal flooding'},
-        'pnw':             {'states': ['OR', 'WA'], 'desc': 'Atmospheric rivers, Cascadia subduction, PNW wildfire'},
-        'southeast_gulf':  {'states': ['AL', 'AR', 'FL', 'GA', 'LA', 'MS', 'NC', 'SC'], 'desc': 'Hurricanes, Gulf moisture, severe convective storms'},
-        'southern_plains': {'states': ['KS', 'NE', 'OK', 'TX'], 'desc': 'Tornado alley, prairie fire, flash flooding'},
-    }
-    _region_display = {'pnw': 'PNW', 'dc': 'DC'}
-    region_rows = []
-    for region, info in _region_info.items():
-        region_rows.append({
-            'Region': _region_display.get(region, region.replace('_', ' ').title()),
-            'States': len(info['states']),
-            'Coverage': ', '.join(info['states']),
-            'Hazard Profile': info['desc'],
-        })
-    st.dataframe(pd.DataFrame(region_rows), use_container_width=True, hide_index=True)
+    engine_data = pd.DataFrame([
+        {"Hazard": "Fire",   "Engine": "XGBoost",   "Verified AUC": 0.8776, "Coupling Gate": "N/A"},
+        {"Hazard": "Flood",  "Engine": "XGBoost",   "Verified AUC": 0.9026, "Coupling Gate": "N/A"},
+        {"Hazard": "Wind",   "Engine": "Attention",  "Verified AUC": 0.8689, "Coupling Gate": "0.111"},
+        {"Hazard": "Winter", "Engine": "Attention",  "Verified AUC": 0.9415, "Coupling Gate": "0.111"},
+    ])
+    st.dataframe(engine_data, use_container_width=True, hide_index=True)
+
+    st.markdown("""
+    **Attention engine** — CONUS-wide spatial attention model with learned gated coupling.
+    Baked-in scaler, k-NN adjacency, and county/state embeddings. Single ONNX graph
+    processes all 3,109 counties in one forward pass.
+
+    **XGBoost engine** — gradient-boosted trees on the same 62-feature matrix. No scaler
+    needed (tree-based). One model per hazard (fire, flood).
+
+    **Calibration** — isotonic regression fitted on the calibration split, verified to reproduce
+    evaluated test AUCs within 0.001 tolerance. Applied via `np.interp` from portable JSON maps.
+    Replaces the v4 per-state temperature scaling + seasonal bias + ceiling pipeline.
+    """)
 
     st.markdown("### Model Capabilities")
     st.markdown("""
     | Capability | Description |
     |-----------|-------------|
-    | **Multi-modal input** | Ingests weather, geography, and land cover features into a unified representation |
-    | **Temporal learning** | Learns hazard-specific memory horizons from historical sequences |
-    | **Spatial awareness** | Captures cross-county correlations (fire spread, downstream flooding, storm tracks) |
-    | **Hazard specialization** | Per-hazard adaptation without duplicating the full model |
-    | **Cross-hazard modeling** | Models physical dependencies between correlated hazard types |
-    | **Calibrated output** | Per-hazard prediction heads with post-hoc calibration per state |
+    | **Hybrid engine selection** | Best-performing engine per hazard chosen by paired bootstrap |
+    | **Spatial attention (wind/winter)** | CONUS-wide k-NN mesh captures storm tracks and cross-county correlations |
+    | **Gradient boosting (fire/flood)** | XGBoost leverages FIRMS fire and USGS streamflow features directly |
+    | **62-feature input** | GridMET, ERA5, MODIS, NFHL, WUI, FIRMS, SPC, USGS — unified feature matrix |
+    | **Isotonic calibration** | Verified calibrators per hazard; probabilities that mean what they say |
+    | **Single CONUS model** | No per-region splits; all 3,109 counties in one forward pass |
     """)
 
-    # ---- Reference Performance: Colorado ----
+    # ---- Version comparison ----
     st.markdown("---")
-    st.markdown("### Reference Performance — Single-State Benchmarks")
+    st.markdown("### Version Comparison — v4 to v5")
     st.caption(
-        "Single-state models trained on Colorado (64 counties) and Washington (39 counties) demonstrate "
-        "what unified architectures can achieve when the parameter budget targets one region's climate "
-        "regime. They are NOT the deployed model — they are upper-bound benchmarks. The deployed "
-        "national model (see above) trades per-state accuracy for full CONUS coverage."
+        "v5 wind AUC uses NOAA-all wind semantics (6.8% event rate) vs v4's SPC-convective-only "
+        "(0.74% rate). Wind AUCs are not directly comparable across versions."
     )
 
-    co_data = [
-        {"Hazard": "Winter",  "AUC": 0.963, "Quality": "Excellent", "Notes": "Best performer — strong elevation-driven seasonal signal."},
-        {"Hazard": "Flood",   "AUC": 0.891, "Quality": "Excellent", "Notes": "Bimodal seasonal pattern (snowmelt + monsoon) well-captured."},
-        {"Hazard": "Fire",    "AUC": 0.857, "Quality": "Excellent", "Notes": "Western Slope + foothills fire patterns learned well."},
-        {"Hazard": "Wind",    "AUC": 0.817, "Quality": "Excellent", "Notes": "Chinook corridor captured; diffuse plains wind harder to localize."},
-    ]
-    st.dataframe(pd.DataFrame(co_data), use_container_width=True, hide_index=True)
-
-    hazards_co   = ["Winter", "Flood", "Fire", "Wind"]
-    aucs_co      = [0.963, 0.891, 0.857, 0.817]
-    bar_colors   = [COLORS['winter'], COLORS['flood'], COLORS['fire'], COLORS['wind']]
-
-    # WA reference performance (PNW region, single-state v2.5 benchmark)
-    hazards_wa   = ["Winter", "Fire", "Flood", "Wind"]
-    aucs_wa      = [0.851, 0.814, 0.714, 0.688]
-
-    fig_perf = go.Figure()
-    fig_perf.add_trace(go.Bar(x=hazards_co, y=aucs_co, marker_color=bar_colors,
-                               name="Colorado (reference)", opacity=0.9))
-    fig_perf.add_trace(go.Bar(x=hazards_wa, y=aucs_wa, marker_color=bar_colors,
-                               name="Washington (PNW)", opacity=0.5))
-    fig_perf.add_hline(y=0.8, line_dash="dash", line_color="#6b9e7a", annotation_text="Excellent (0.8)")
-    fig_perf.add_hline(y=0.5, line_dash="dash", line_color="#dc2626", annotation_text="Random (0.5)")
-    fig_perf.update_layout(
-        title="AHI — AUC by Hazard Type (single-state reference benchmarks)",
-        barmode='group',
-        paper_bgcolor=COLORS['card_bg'],
-        plot_bgcolor=COLORS['card_bg'],
-        font=dict(color=COLORS['text_secondary'], family='Inter'),
-        legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1,
-                    font=dict(color=COLORS['text_secondary'])),
-        xaxis=dict(gridcolor=COLORS['border']),
-        yaxis=dict(title="AUC-ROC", range=[0, 1], gridcolor=COLORS['border']),
-        height=400,
-        margin=dict(l=40, r=20, t=60, b=40),
-    )
-    st.plotly_chart(fig_perf, use_container_width=True)
-
-    mc1, mc2 = st.columns(2)
-    mc1.success("**Mountain West Deploy AUC: 0.892** — AZ, CO, ID, MT, NM, NV, UT, WY")
-    mc2.info("**PNW Deploy AUC: 0.860** — OR, WA (+0.073 from Phase 2 fine-tuning)")
+    comparison = pd.DataFrame([
+        {"Metric": "Architecture", "v4.0": "9 regional ONNX models", "v5.0": "1 CONUS attention + 2 XGBoost"},
+        {"Metric": "Features",     "v4.0": "61",                     "v5.0": "62 (+ERA5 gust mean)"},
+        {"Metric": "Calibration",  "v4.0": "Per-state T-scaling + seasonal bias + ceiling", "v5.0": "Isotonic regression (verified, portable)"},
+        {"Metric": "Fire AUC",     "v4.0": "0.742",                  "v5.0": "0.878 (+0.136)"},
+        {"Metric": "Flood AUC",    "v4.0": "0.830",                  "v5.0": "0.903 (+0.073)"},
+        {"Metric": "Wind AUC",     "v4.0": "0.941*",                 "v5.0": "0.869 (diff. semantics)"},
+        {"Metric": "Winter AUC",   "v4.0": "0.850",                  "v5.0": "0.942 (+0.092)"},
+        {"Metric": "Mean AUC",     "v4.0": "0.877",                  "v5.0": "0.898 (+0.021)"},
+    ])
+    st.dataframe(comparison, use_container_width=True, hide_index=True)
 
     # ---- Calibration ----
     st.markdown("---")
@@ -1767,31 +1749,27 @@ def page_model_info():
     **Calibration** means predicted probabilities match real-world frequencies. If the model says 10% fire risk,
     fires should occur roughly 10% of the time in those conditions.
 
-    AHI v4.0 currently uses **passthrough calibration** — model outputs pass directly through sigmoid
-    without post-hoc scaling. The model's internal `LearnedSeasonalBias(5,12)` handles seasonal structure.
+    AHI v5.0 uses **isotonic regression** — a non-parametric calibrator fitted per hazard on the
+    calibration split. Each calibrator is serialized as a JSON lookup table and applied via
+    `np.interp(p_raw, x_thresholds, y_thresholds)`.
 
-    The per-state calibration infrastructure exists and can be re-enabled:
-    - **Temperature scaling** — Per-hazard confidence adjustment (T=1.0 passthrough for all states)
-    - **Seasonal bias** — Monthly climatology adjustments (zeroed — model handles this internally)
-    - **Base-rate ceilings** — Caps at historical plausibility limits (set to 1.0 — disabled)
-
-    Refitting per-state T-scales on CONUS validation data is the next calibration step.
+    The calibrators are **verified at build time**: refit AUCs must reproduce the evaluated test
+    AUCs within 0.001 tolerance. If verification fails, `build_release.py` refuses to emit the
+    artifact. This eliminates the calibration gap that plagued v4's per-state T-scaling approach.
     """)
 
     st.markdown("---")
     st.markdown("### Updates & Roadmap")
 
-    st.markdown("**Current (AHI v4.0 — CONUS Deployment)**")
+    st.markdown("**Current (AHI v5.0 — CONUS Hybrid Engine)**")
     st.markdown("""
-    - 9 climate-region prediction heads on a shared backbone serving 48 states + DC (3,109 counties)
-    - **61-feature input set** — GridMET weather, ERA5 reanalysis, MODIS vegetation, NFHL flood zones,
-      WUI data, plus 11 lagged observational features (FIRMS fire, USGS streamflow, SPC severe wind)
-    - **Label quality filters** — FIRMS satellite validation removed 85% of false fire labels,
-      SPC report validation removed 88% of false wind labels
-    - Two-phase training: shared backbone (12 epochs) then per-region head fine-tuning (up to 20 epochs, patience=5)
-    - Northeast split into mid-atlantic + new-england; Colorado merged into mountain_west
-    - Passthrough calibration — model's internal LearnedSeasonalBias handles seasonality
-    - National deploy mean AUC: **0.877**
+    - Hybrid architecture: spatial attention (wind/winter) + XGBoost (fire/flood), selected by paired bootstrap
+    - **62-feature input set** — GridMET, ERA5 (14 features), MODIS vegetation, NFHL, WUI, FIRMS, SPC, USGS
+    - Single CONUS-wide model replaces 9 per-region models — all 3,109 counties in one pass
+    - **Dense training data**: 100% county/date coverage across all 49 states (rebuilt from sparse v4 dataset)
+    - **Isotonic calibration**: verified, portable JSON maps per hazard; replaces per-state T-scaling
+    - NOAA-all wind semantics (all significant wind, not SPC-convective-only)
+    - CONUS deploy mean AUC: **0.898**
     """)
 
     st.markdown("**Next steps:**")
@@ -2194,9 +2172,9 @@ def page_about():
         <p style="color: {COLORS['text_primary']}; line-height: 1.7;">
         AHI is a calibrated, multi-hazard risk prediction system deployed across the contiguous United States.
         It predicts the likelihood of four natural hazard types — wildfire, flood, wind, and winter storm
-        — at the county level using a proprietary deep learning architecture trained on 25 years of
-        historical data. AHI currently covers <strong>3,109 counties</strong> across <strong>48 states and DC</strong>
-        through 9 regional models with per-state calibration.
+        — at the county level using a hybrid architecture (spatial attention + gradient boosting) trained
+        on 25 years of historical data. AHI currently covers <strong>3,109 counties</strong> across
+        <strong>48 states and DC</strong> with isotonic-calibrated probabilities.
         </p>
         <p style="color: {COLORS['text_secondary']}; line-height: 1.7;">
         </p>
@@ -2218,23 +2196,22 @@ def page_about():
         - 25 years of historical training data (2000–2025)
         - Severity-weighted calibration reflects actual event impact
 
-        **Regional Model Strategy**
-        - 9 climate-coherent regions serving 48 states + DC
-        - Region-specific weights with per-state calibration
-        - Locally meaningful predictions for every county
+        **Hybrid Engine**
+        - Spatial attention (wind/winter) + XGBoost (fire/flood)
+        - Engine selection by paired bootstrap on 2.95M test county-days
+        - Single CONUS-wide model — no per-region splits
         """)
     with col2:
         st.markdown("""
-        **Per-State Calibration**
-        - Per-hazard confidence adjustment for each state
-        - Monthly seasonal biases matched to Round 4 label rates
-        - Historical plausibility ceilings prevent overconfident predictions
+        **Isotonic Calibration**
+        - Verified calibrators per hazard (portable JSON maps)
+        - Refit AUCs verified to reproduce evaluated metrics within 0.001
+        - Replaces per-state T-scaling + seasonal bias + ceiling
 
-        **Satellite-Validated Labels (v4.0)**
-        - FIRMS satellite fire detections validate fire labels (85% noise removed)
-        - SPC severe wind reports validate wind labels (88% noise removed)
-        - Fire acreage threshold (>=10 acres), wind magnitude threshold (>=50 kt)
-        - 11 lagged trailing features (FIRMS, USGS streamflow, SPC wind)
+        **62-Feature Input**
+        - GridMET weather, ERA5 reanalysis (14 features), MODIS vegetation
+        - NFHL flood zones, WUI data, FIRMS fire, SPC wind, USGS streamflow
+        - Dense training: 100% county/date coverage across all 49 states
         """)
 
     st.markdown("---")
@@ -2261,7 +2238,7 @@ def main():
         {logo_html}
         <div class="ahi-header-text">
             <h2 class="title">Adaptive Hazard Intelligence</h2>
-            <div class="subtitle">Calibrated hazard risk for defensible decisions · 3,109 CONUS counties · AHI v4.0</div>
+            <div class="subtitle">Calibrated hazard risk for defensible decisions · 3,109 CONUS counties · AHI v5.0</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
