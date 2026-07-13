@@ -13,33 +13,47 @@
 
 ## Overview
 
-AHI is a calibrated, multi-hazard risk prediction system for the contiguous United States. It produces daily county-level probabilities for four natural hazards — wildfire, flood, wind, and winter storm — using a stacked dual-mesh deep learning architecture trained on 25 years of weather, satellite, and hazard event data across 3,109 counties.
+AHI is a calibrated, multi-hazard risk prediction system for the contiguous United States. It produces daily county-level probabilities for four natural hazards — wildfire, flood, wind, and winter storm — using a hybrid engine (spatial attention + gradient boosting) trained on 25 years of weather, satellite, and hazard event data across 3,109 counties.
 
-The system is designed for emergency management decision-making at the county and regional level, providing calibrated risk tiers, audit-ready outputs, and structured decision support. Probabilities are temperature-scaled and seasonally adjusted so they mean what they say — not just relative rankings.
+The system is designed for emergency management decision-making at the county and regional level, providing calibrated risk tiers, audit-ready outputs, and structured decision support. Probabilities are isotonic-calibrated so they mean what they say — not just relative rankings.
 
 **Key properties:**
-- Calibrated probabilities (not just rankings) via per-state temperature scaling + seasonal bias + base rate ceiling
-- 61-feature input vector spanning weather, reanalysis, vegetation, terrain, flood zones, wildland-urban interface, satellite fire detections, streamflow, and severe wind reports
-- 9 regional models serving 48 states + DC, each fine-tuned to local climate patterns
-- FIRMS/SPC-validated labels: satellite fire detections and severe wind reports filter training labels to remove noise (85% false fire and 88% false wind labels removed)
-- Runs on CPU via ONNX Runtime — no GPU required, fits within a 4 GB instance
+- Calibrated probabilities (not just rankings) via per-hazard isotonic regression, verified to reproduce evaluated AUCs within 0.001
+- 62-feature input vector spanning weather, reanalysis, vegetation, terrain, flood zones, wildland-urban interface, satellite fire detections, streamflow, and severe wind reports
+- Single CONUS-wide hybrid engine: spatial attention for wind/winter, XGBoost for fire/flood — engine selection by paired bootstrap on 2.95M test county-days
+- FIRMS/SPC-validated labels: satellite fire detections and severe wind reports filter training labels to remove noise
+- Mean AUC 0.898 across all four hazards (fire 0.878, flood 0.903, wind 0.869, winter 0.942)
+- Runs on CPU via ONNX Runtime + XGBoost — no GPU required
 - Live at [ahi.run](https://ahi.run)
 
 ---
 
 ## Architecture
 
-AHI uses a **stacked dual-mesh** design (~1.55M parameters):
+AHI v5.0 uses a **hybrid engine** that combines two model families, with the best engine per hazard selected by paired bootstrap on 2,950,441 identical test county-days:
 
-- **Temporal mesh** (3 layers, heat-kernel attention) — captures per-county weather dynamics with a locality-biased attention mechanism where nearby timesteps attend strongly and distant ones decay exponentially
-- **Spatial mesh** (2 layers, standard softmax attention) — captures cross-county correlations using full attention to preserve long-range spatial coherence
-- **Gated coupling** — learned scalar gate (~0.08) blends temporal and spatial signals, allowing the model to control how much spatial context enters the prediction
-- **Per-hazard LoRA adapters** — low-rank specialization per hazard type without overwriting shared representations
-- **Regional prediction heads** — 9 climate-region-specific output MLPs, fine-tuned after national backbone training
+### Attention Engine (wind, winter)
+- CONUS-wide spatial attention model with learned gated coupling between temporal and spatial signal
+- Baked-in scaler, k-NN adjacency, and county/state embeddings
+- Single ONNX graph processes all 3,109 counties in one forward pass
+- Grounded in heat kernel attention, where attention weights follow the heat equation solution
 
-Calibration is applied post-inference: `sigmoid((logit + bias) / T + seasonal_bias)`, clamped to historical base rate ceilings.
+### XGBoost Engine (fire, flood)
+- Gradient-boosted trees on the same 62-feature matrix
+- One model per hazard, no scaler needed (tree-based)
 
-The architecture is grounded in the heat kernel attention mechanism, where attention weights follow the heat equation solution rather than softmax normalization. This provides provable sparsity, compositional depth scaling, and a natural inductive bias for sequential data.
+### Calibration
+- Per-hazard isotonic regression maps raw probabilities to calibrated outputs
+- Portable JSON lookup tables: `np.interp(p_raw, x_thresholds, y_thresholds)`
+- Verified to reproduce evaluated AUCs within 0.001 tolerance
+
+| Hazard | Engine | AUC |
+|---|---|---|
+| Fire | XGBoost | 0.878 |
+| Flood | XGBoost | 0.903 |
+| Wind | Attention | 0.869 |
+| Winter | Attention | 0.942 |
+| **Mean** | **Hybrid** | **0.898** |
 
 ---
 
@@ -69,27 +83,14 @@ This repository contains the deployed dashboard and inference pipeline. The mode
 | Path | Description |
 |---|---|
 | `app.py` | Streamlit dashboard application |
-| `inference_onnx.py` | ONNX inference engine with per-state calibration pipeline |
+| `inference_v5.py` | v5 hybrid inference engine (ONNX + XGBoost + isotonic calibration) |
+| `inference_onnx.py` | Legacy v4 ONNX inference engine (per-state calibration) |
 | `state_context.py` | Per-state configuration loader |
-| `models/<region>/model.onnx` | 9 regional ONNX models (~6 MB each) |
-| `states/<XX>/` | Per-state calibration, inference data, GeoJSON, and config |
+| `models/v5/` | CONUS-wide v5 model artifacts (ONNX, XGBoost, calibrators, county order) |
+| `states/<XX>/` | Per-state inference data, GeoJSON, and config |
 | `states/registry.yaml` | State deployment status and region mapping |
 | `data/` | National precomputed prediction CSVs |
-| `scripts/` | Utility scripts (national precompute, state onboarding) |
-
-### Regional Model Coverage
-
-| Region | States |
-|---|---|
-| great_lakes | IL, IN, KY, MI, OH, TN, WV |
-| mid_atlantic | DC, DE, MD, NJ, NY, PA, VA |
-| mountain_west | AZ, CO, ID, MT, NM, NV, UT, WY |
-| new_england | CT, MA, ME, NH, RI, VT |
-| northern_plains | IA, MN, MO, ND, SD, WI |
-| pacific | CA |
-| pnw | OR, WA |
-| southeast_gulf | AL, AR, FL, GA, LA, MS, NC, SC |
-| southern_plains | KS, NE, OK, TX |
+| `scripts/` | Utility scripts (precompute_v5, state onboarding) |
 
 ---
 
@@ -97,7 +98,8 @@ This repository contains the deployed dashboard and inference pipeline. The mode
 
 - Python 3.11
 - Streamlit — dashboard framework
-- ONNX Runtime — model inference (CPU-only, no GPU required)
+- ONNX Runtime — attention model inference (CPU-only, no GPU required)
+- XGBoost — gradient boosting inference
 - Plotly — interactive mapping and visualization
 - Pandas / NumPy — data processing
 - Deployed on Render
