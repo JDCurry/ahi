@@ -1,7 +1,12 @@
 streamlit>=1.30.0
 pandas>=2.0.0
 numpy>=1.24.0
-plotly>=5.15.0
+# <6 is load-bearing: plotly 6.0 removed the mapbox-based traces
+# (Choroplethmapbox, Scattermapbox, Densitymapbox) in favour of the MapLibre
+# ones (Choroplethmap, ...). app.py uses Choroplethmapbox in four places plus
+# mapbox_style / mapbox_layers / mapbox_zoom / mapbox_center layout kwargs.
+# Removing this pin requires migrating all of them together.
+plotly>=5.15.0,<6
 scikit-learn>=1.3.0
 folium>=0.14.0
 streamlit-folium>=0.15.0
