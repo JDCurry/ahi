@@ -849,30 +849,61 @@ def load_national_geojson():
 # One CSV per month: data/national_predictions_month05.csv, etc.
 # ---------------------------------------------------------------------------
 
+def _national_csv_path(month: int) -> Path:
+    return Path(f'data/national_predictions_month{month:02d}.csv')
+
+
+def _available_prediction_months() -> list:
+    """Months that actually have a precomputed CSV on disk."""
+    return [m for m in range(1, 13) if _national_csv_path(m).exists()]
+
+
+def _nearest_available_month(month: int, available: list):
+    """Closest month by circular distance, or None if nothing is available.
+
+    Distance wraps at the year boundary, so December falls back to January
+    before it falls back to August. Hazard risk is seasonal; substituting a
+    month six away would be worse than showing nothing.
+    """
+    if not available:
+        return None
+    return min(available,
+               key=lambda m: (min((m - month) % 12, (month - m) % 12), m))
+
+
 @st.cache_data(ttl=3600, max_entries=3, show_spinner=False)
 def predict_all_national(month: int):
     """Load precomputed national predictions for a given month.
 
-    Raises FileNotFoundError if the precomputed CSV is missing — no live
-    inference fallback (that path crashes Render under load).
+    Returns (DataFrame, month_used). month_used differs from the requested
+    month when that month has no precomputed CSV and the nearest seasonal
+    neighbour was substituted; the caller is expected to say so in the UI.
 
-    Returns DataFrame with columns:
+    Raises FileNotFoundError only when no month is available at all. There is
+    still no live-inference fallback — that path crashes Render under load.
+
+    DataFrame columns:
         state, county, county_id, fire_p, flood_p, wind_p, winter_p,
         max_p, max_hazard
     """
-    csv_path = Path(f'data/national_predictions_month{month:02d}.csv')
-    if not csv_path.exists():
+    available = _available_prediction_months()
+    month_used = month if month in available else _nearest_available_month(month, available)
+    if month_used is None:
         raise FileNotFoundError(
-            f"Missing precomputed national predictions for month {month}. "
-            f"Run `python scripts/precompute_v5.py` before deploy."
+            "No precomputed national predictions found for any month. "
+            "Run `python scripts/precompute_v5.py --all` before deploy."
         )
+    csv_path = _national_csv_path(month_used)
     df = pd.read_csv(csv_path)
     p_cols = [f'{h}_p' for h in DISPLAY_HAZARDS]
     df['max_p'] = df[p_cols].max(axis=1)
     df['max_hazard'] = df[p_cols].idxmax(axis=1).str.replace('_p', '')
-    print(f"[NATIONAL] Loaded precomputed month {month}: "
+    if month_used != month:
+        print(f"[NATIONAL] month {month} unavailable; substituted month "
+              f"{month_used} from {csv_path}")
+    print(f"[NATIONAL] Loaded precomputed month {month_used}: "
           f"{len(df)} counties from {csv_path}")
-    return df
+    return df, month_used
 
 
     # _predict_all_national_live removed — live national inference is a Render
@@ -2015,17 +2046,27 @@ def page_national():
         )
 
     try:
-        df = predict_all_national(cur_month)
+        df, month_used = predict_all_national(cur_month)
     except FileNotFoundError as e:
         st.error(str(e))
         return
     if df is None or len(df) == 0:
         st.error("Precomputed national CSV is empty. "
-                 "Re-run `python scripts/precompute_national.py`.")
+                 "Re-run `python scripts/precompute_v5.py`.")
         return
 
+    if month_used != cur_month:
+        st.info(
+            f"Predictions for {_month_names[cur_month]} have not been "
+            f"precomputed yet, so the map is showing "
+            f"**{_month_names[month_used]}**, the closest month available. "
+            f"Hazard risk is seasonal, so read these as indicative rather "
+            f"than current."
+        )
+
     st.caption(f"**{month_label}** · {len(df):,} counties · "
-               f"Predictions calibrated from historical patterns for {_month_names[cur_month]}. "
+               f"Predictions calibrated from historical patterns for "
+               f"{_month_names[month_used]}. "
                f"Drill into the **State** tab for county-level detail.")
 
     # ---- Extract selection BEFORE rendering columns ----
