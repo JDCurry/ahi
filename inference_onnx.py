@@ -28,6 +28,9 @@ from typing import Dict, Optional, Tuple
 import numpy as np
 import pandas as pd
 
+from county_names import build_index as build_county_index
+from county_names import resolve as resolve_county
+
 HAZARD_TYPES = ['fire', 'flood', 'wind', 'winter', 'seismic']
 
 STATIC_FEATURE_COLS = [
@@ -213,12 +216,10 @@ def _get_county_bias(state_code: str, hazard: str, month: int,
                 if m_str in county_data:
                     return float(county_data[m_str])
 
-            # Case-insensitive fallback
-            county_upper = county_name.upper().replace(' COUNTY', '').strip()
-            for stored_name, monthly in hazard_biases.items():
-                if stored_name.upper().replace(' COUNTY', '').strip() == county_upper:
-                    if m_str in monthly:
-                        return float(monthly[m_str])
+            # Spelling-tolerant fallback: parishes, planning regions, VA cities
+            stored = resolve_county(county_name, build_county_index(hazard_biases))
+            if stored is not None and m_str in hazard_biases[stored]:
+                return float(hazard_biases[stored][m_str])
 
     # Fall back to state-level bias
     cal = _load_state_calibration(state_code)
@@ -452,16 +453,10 @@ def predict_county_risks_simple(
         _build_maps(hazard_df)
 
     month = target_date.month if target_date is not None else 0
-    county_upper = county_name.upper().replace(' COUNTY', '').strip()
 
     if hazard_df is not None and len(hazard_df) > 0 and 'county' in hazard_df.columns:
-        mask = (
-            hazard_df['county'].str.upper()
-                               .str.replace(' COUNTY', '', regex=False)
-                               .str.strip()
-            == county_upper
-        )
-        rows = hazard_df[mask]
+        stored = resolve_county(county_name, build_county_index(hazard_df['county'].unique()))
+        rows = hazard_df[hazard_df['county'] == stored] if stored is not None else pd.DataFrame()
     else:
         rows = pd.DataFrame()
 

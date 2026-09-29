@@ -12,4 +12,9 @@ services:
         value: "false"
       - key: STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION
         value: "false"
+      # Streamlit runs each session on its own thread; glibc gives threads
+      # separate malloc arenas that fragment and never shrink, so the process
+      # ratchets upward. Capping arenas at 2 stops the ratchet.
+      - key: MALLOC_ARENA_MAX
+        value: "2"
     autoDeploy: true

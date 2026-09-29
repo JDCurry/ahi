@@ -57,6 +57,11 @@ except Exception as e:
 
 # State context loader (registry + per-state config)
 from state_context import StateContext, load_registry, deployed_states
+from county_names import build_index as build_county_index
+from county_names import census_label
+from county_names import display_name as county_display_name
+from county_names import resolve as resolve_county
+import memory_guard
 
 get_batch_adjacency = None
 
@@ -743,6 +748,40 @@ def load_hazard_data(state_code: str):
     return df
 
 
+_WEATHER_COLS = ('erc', 'vs', 'rmin', 'pr', 'tmmx', 'tmmn', 'vpd')
+
+
+@st.cache_resource(show_spinner=False)
+def _county_weather_table():
+    """Every county's weather drivers for every month: 37,308 rows, 0.33 MB.
+
+    Built by scripts/build_county_weather.py. Shared, read-only, never copied.
+    """
+    path = Path('data/county_weather_by_month.parquet')
+    return pd.read_parquet(path) if path.exists() else None
+
+
+def load_county_weather(state_code: str, county: str, month: int):
+    """Seven weather drivers for one county, as a small dict.
+
+    This used to load the county's whole state (Virginia: 1.26M rows, +822 MB)
+    to read seven numbers, which is what pushed the service past its 2 GB limit.
+    Now it is a lookup in a 0.33 MB table. Values are identical: the table keeps
+    the first row of each county-month in file order, exactly as before.
+    """
+    table = _county_weather_table()
+    if table is None:
+        return None
+    rows = table[table['state'] == state_code]
+    stored = resolve_county(county, build_county_index(rows['county'].unique()))
+    if stored is None:
+        return None
+    rows = rows[rows['county'] == stored]
+    in_month = rows[rows['month'] == month]
+    wx = (in_month if len(in_month) else rows).iloc[0]
+    return {c: float(wx.get(c, 0)) for c in _WEATHER_COLS}
+
+
 @st.cache_data(ttl=3600, max_entries=2, show_spinner=False)
 def load_geojson(state_code: str):
     """Load the active state's county GeoJSON (states/<XX>/counties.geojson).
@@ -841,6 +880,42 @@ def load_national_geojson():
         return None
     with open(p, encoding='utf-8-sig') as f:
         return json.load(f)
+
+
+@st.cache_resource(show_spinner=False)
+def _national_shape_index():
+    """{state: county_names index over that state's keys in the national map file}.
+
+    The map file spells counties its own way (CA|LOS_ANGELES, LA|ACADIA_PARISH,
+    VA|ALEXANDRIA_CITY, NM|DONA_ANA) and Plotly silently leaves blank any county
+    whose key finds no shape. Joining on 'state|county_id' left 272 blank.
+    """
+    by_state = {}
+    for feat in (load_national_geojson() or {}).get('features', []):
+        state, _, name = feat['properties']['_id'].partition('|')
+        by_state.setdefault(state, []).append(name)
+    return {s: build_county_index(names) for s, names in by_state.items()}
+
+
+def _national_map_ids(df: pd.DataFrame) -> pd.Series:
+    """Each prediction row's key in the national map file (properties._id)."""
+    index = _national_shape_index()
+    return pd.Series(
+        [f"{s}|{resolve_county(c, index.get(s, {})) or c}"
+         for s, c in zip(df['state'], df['county_id'])],
+        index=df.index)
+
+
+@st.cache_resource(show_spinner=False)
+def _county_labels():
+    """{national map _id: Census long name}, e.g. 'LA|ACADIA_PARISH' -> 'Acadia
+    Parish'. The CSV's short names would read 'Acadia County', 'Alexandria
+    County', 'Capitol County'. Built by scripts/build_county_labels.py."""
+    path = Path('data/county_labels.csv')
+    if not path.exists():
+        return {}
+    table = pd.read_csv(path, encoding='utf-8', keep_default_na=False)
+    return dict(zip(table['_id'], table['label']))
 
 
 # ---------------------------------------------------------------------------
@@ -1152,8 +1227,20 @@ def render_statewide_choropleth(df, hazard_key, hazard_label,
     col_name = f"{hazard_key}_p"
 
     plot_df = df.copy()
-    plot_df['county_norm'] = plot_df['county'].str.replace(' County', '').str.strip().str.upper()
-    plot_df['_display'] = plot_df['county'].apply(_county_display_name)
+    # The CSV says ACADIA / ALEXANDRIA / CAPITOL; the map file says ACADIA PARISH /
+    # ALEXANDRIA CITY / CAPITOL PLANNING REGION. Stripping " County" left every
+    # LA parish, CT planning region and 34 VA cities blank.
+    shape_index = build_county_index(
+        f['properties']['NAME_NORM'] for f in geojson_norm.get('features', [])
+        if f.get('properties', {}).get('NAME_NORM'))
+    plot_df['county_norm'] = [resolve_county(c, shape_index) or c for c in plot_df['county']]
+    # Label from the Census long name (Acadia Parish, Alexandria City, James City
+    # County); Colorado's file has none, and its units are all plain counties.
+    long_names = {f['properties']['NAME_NORM']: f['properties'].get('NAMELSAD')
+                  for f in geojson_norm.get('features', [])
+                  if f.get('properties', {}).get('NAME_NORM')}
+    plot_df['_display'] = [census_label(long_names[k]) if long_names.get(k) else _county_display_name(c)
+                           for k, c in zip(plot_df['county_norm'], plot_df['county'])]
     plot_df['pct'] = plot_df[col_name] * 100
 
     style = _NATIONAL_TILE_STYLES.get(map_style, _NATIONAL_TILE_STYLES['Dark'])
@@ -1207,7 +1294,14 @@ def render_county_spotlight_map(selected_county, risks, target_date,
         st.info(f"GeoJSON not available for {state_code}.")
         return
 
-    selected_norm = selected_county.replace(' County', '').strip().upper()
+    all_names = []
+    for feat in geojson_norm.get('features', []):
+        n = feat.get('properties', {}).get('NAME_NORM')
+        if n:
+            all_names.append(n)
+
+    selected_norm = (resolve_county(selected_county, build_county_index(all_names))
+                     or selected_county.replace(' County', '').strip().upper())
     selected_display = _county_display_name(selected_county.replace(' County', '').strip())
 
     ordered_hazard_keys = sorted(
@@ -1224,12 +1318,6 @@ def render_county_spotlight_map(selected_county, risks, target_date,
     )
     hkey = hazard_choice
     sel_prob = risks.get(hkey, 0.0) * 100
-
-    all_names = []
-    for feat in geojson_norm.get('features', []):
-        n = feat.get('properties', {}).get('NAME_NORM')
-        if n:
-            all_names.append(n)
 
     risk_colorscale = [
         [0.00, '#2d5a3a'], [0.10, '#2d5a3a'],
@@ -1272,8 +1360,10 @@ def render_county_spotlight_map(selected_county, risks, target_date,
     ))
 
     center, zoom = _auto_zoom_from_coords(county_coords)
+    spot_style = _NATIONAL_TILE_STYLES['Dark']  # was a hardcoded CARTO style; see _esri_canvas
     fig.update_layout(
-        mapbox_style='carto-darkmatter',
+        mapbox_style=spot_style['mapbox_style'],
+        mapbox_layers=spot_style['mapbox_layers'],
         mapbox_zoom=zoom,
         mapbox_center=center,
         paper_bgcolor=COLORS['card_bg'],
@@ -1366,11 +1456,12 @@ def page_quick_predict():
         if csv_path.exists():
             status.info("Reading precomputed predictions…")
             nat_df = pd.read_csv(csv_path)
-            county_upper = selected_county.upper().replace(' COUNTY', '').strip()
-            match = nat_df[
-                (nat_df['state'] == cr_state) &
-                (nat_df['county_id'].str.upper() == county_upper)
-            ]
+            state_rows = nat_df[nat_df['state'] == cr_state]
+            # The dropdown says 'Acadia Parish' / 'Capitol Planning Region' /
+            # 'Alexandria City'; the CSV says ACADIA / CAPITOL / ALEXANDRIA.
+            county_id = resolve_county(selected_county,
+                                       build_county_index(state_rows['county_id']))
+            match = state_rows[state_rows['county_id'] == county_id]
             if len(match) > 0:
                 r = match.iloc[0]
                 risks = {h: float(r.get(f'{h}_p', 0.0)) for h in DISPLAY_HAZARDS}
@@ -1849,6 +1940,17 @@ def page_model_info():
 
 # Tile-server presets for the national choropleth basemap selector.
 # Esri free / USGS free / built-in styles. No tokens required.
+def _esri_canvas(shade: str) -> dict:
+    """Esri's Dark Gray or Light Gray canvas as a Plotly raster layer."""
+    return {
+        'below': 'traces', 'sourcetype': 'raster',
+        'sourceattribution': 'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, '
+                             '&copy; OpenStreetMap contributors',
+        'source': ['https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/'
+                   f'World_{shade}_Gray_Base/MapServer/tile/{{z}}/{{y}}/{{x}}'],
+    }
+
+
 _NATIONAL_TILE_STYLES = {
     'Satellite':  {
         'mapbox_style': 'white-bg',
@@ -1862,9 +1964,13 @@ _NATIONAL_TILE_STYLES = {
         }],
         'border': '#fbbf24', 'opacity': 0.65,
     },
-    'Dark':       {'mapbox_style': 'carto-darkmatter', 'mapbox_layers': [],
+    # Dark and Light were Plotly's built-in 'carto-darkmatter' / 'carto-positron'.
+    # CARTO now serves an "API KEY REQUIRED" watermark tile in place of the map,
+    # so both use Esri's canvas basemaps instead: same service as Satellite,
+    # no token.
+    'Dark':       {'mapbox_style': 'white-bg', 'mapbox_layers': [_esri_canvas('Dark')],
                    'border': '#30363d', 'opacity': 0.85},
-    'Light':      {'mapbox_style': 'carto-positron',   'mapbox_layers': [],
+    'Light':      {'mapbox_style': 'white-bg', 'mapbox_layers': [_esri_canvas('Light')],
                    'border': '#888',    'opacity': 0.85},
     # USGS satellite — kept in reserve; uncomment if Esri throttles
     # 'Satellite (USGS)':  {
@@ -1882,11 +1988,9 @@ _NATIONAL_TILE_STYLES = {
 
 
 def _county_display_name(name: str) -> str:
-    """Return full display name: 'King' → 'King County', but 'Iberia Parish' stays as-is."""
-    for suffix in (' Parish', ' City', ' Borough', ' Census Area', ' Municipality'):
-        if name.endswith(suffix):
-            return name
-    return f'{name} County'
+    """Return full display name: 'King' → 'King County', but 'Iberia Parish' and
+    'Capitol Planning Region' stay as-is (no more 'Capitol Planning Region County')."""
+    return county_display_name(name)
 
 
 def _subdivision_label(state_code: str, plural: bool = True) -> str:
@@ -1904,9 +2008,11 @@ def render_national_choropleth(df: pd.DataFrame, geojson: dict, hazard: str,
     """Plotly choropleth of CONUS counties colored by selected hazard."""
     col = f'{hazard}_p' if hazard != 'max' else 'max_p'
     df = df.copy()
-    df['_id'] = df['state'] + '|' + df['county_id']
+    df['_id'] = _national_map_ids(df)
     df['pct'] = df[col] * 100
-    df['_display'] = df['county'].apply(_county_display_name)
+    labels = _county_labels()
+    df['_display'] = [labels.get(i) or _county_display_name(c)
+                      for i, c in zip(df['_id'], df['county'])]
 
     style = _NATIONAL_TILE_STYLES.get(map_style, _NATIONAL_TILE_STYLES['Dark'])
 
@@ -2102,7 +2208,7 @@ def page_national():
                     sel_id = pts[0].get('location')
 
         if sel_id:
-            match = df[df['state'] + '|' + df['county_id'] == sel_id]
+            match = df[_national_map_ids(df) == sel_id]
             if len(match) > 0:
                 row = match.iloc[0]
                 primary = row['max_hazard']
@@ -2110,7 +2216,8 @@ def page_national():
                 level, _ = risk_level(row['max_p'])
                 pcolor = COLORS.get(primary, COLORS['primary_light'])
 
-                display_name = _county_display_name(row['county'].title())
+                display_name = (_county_labels().get(sel_id)
+                                or _county_display_name(row['county'].title()))
 
                 # Close button + county header on same row
                 _hdr_col, _close_col = st.columns([5, 1])
@@ -2137,33 +2244,14 @@ def page_national():
                 # Hazard bars (vertical layout from mockup)
                 _render_hazard_bars_vertical(row)
 
-                # Weather drivers from parquet (if available)
+                # Weather drivers: seven numbers for one county, read without
+                # loading the whole state (the old full load cost 822 MB for
+                # Virginia and was what pushed the service past its 2 GB limit)
                 weather_key = f'_weather_{row["state"]}_{row["county"]}'
                 if weather_key not in st.session_state:
                     try:
-                        hdf = load_hazard_data(row['state'])
-                        if hdf is not None:
-                            county_upper = row['county'].upper().strip()
-                            cmask = (hdf['county'].str.upper()
-                                     .str.replace(' COUNTY', '', regex=False)
-                                     .str.strip() == county_upper)
-                            crows = hdf[cmask]
-                            if len(crows) > 0 and 'month' in crows.columns:
-                                sm = crows[crows['month'] == cur_month]
-                                wx = sm.iloc[0] if len(sm) > 0 else crows.iloc[0]
-                                st.session_state[weather_key] = {
-                                    'erc':  float(wx.get('erc', 0)),
-                                    'vs':   float(wx.get('vs', 0)),
-                                    'rmin': float(wx.get('rmin', 0)),
-                                    'pr':   float(wx.get('pr', 0)),
-                                    'tmmx': float(wx.get('tmmx', 0)),
-                                    'tmmn': float(wx.get('tmmn', 0)),
-                                    'vpd':  float(wx.get('vpd', 0)),
-                                }
-                            else:
-                                st.session_state[weather_key] = None
-                        else:
-                            st.session_state[weather_key] = None
+                        st.session_state[weather_key] = load_county_weather(
+                            row['state'], row['county'], cur_month)
                     except Exception:
                         st.session_state[weather_key] = None
 
@@ -2269,6 +2357,14 @@ def page_about():
 # =============================================================================
 
 def main():
+    # Every rerun is activity. After 10 quiet minutes, drop the heavy caches and
+    # return the memory to the OS (see memory_guard.py for why both are needed).
+    memory_guard.touch()
+    memory_guard.start(clear=[
+        load_hazard_data.clear, load_geojson.clear, load_national_geojson.clear,
+        predict_all_national.clear, compute_state_predictions_cached.clear,
+    ])
+
     inject_css()
 
     logo_b64 = get_logo_base64()
