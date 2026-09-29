@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# Render build script — installs deps, then conditionally precomputes
-# national predictions if models or calibration files changed.
+# Render build script — installs deps, then checks that the committed
+# national predictions were built from the current model files.
 #
 # Render Build Command:  ./build.sh
 #
 # How it works:
 #   data/.model_hash stores the MD5 of all ONNX model files from the last
 #   precompute run. On each build, we recompute the hash and compare:
-#     - Hash matches  → skip precompute (fast deploy, ~2 min)
-#     - Hash differs  → run precompute (rebuilds CSVs, ~30 min)
+#     - Hash matches  → deploy the committed CSVs
+#     - Hash differs  → warn and still deploy the committed CSVs; they must be
+#                       regenerated locally (see below), not on Render
 #
-# After a model update, commit the new CSVs + .model_hash locally for
-# fast deploys. If you forget, the build step catches it as a fallback.
+# After a model update, run scripts/precompute_v5.py locally and commit the
+# new CSVs + .model_hash.
 set -e
 
 echo "=== Installing dependencies ==="
@@ -35,10 +36,14 @@ if [ -f "$HASH_FILE" ]; then
 fi
 
 if [ "$CURRENT_HASH" = "$SAVED_HASH" ]; then
-    echo "=== Models unchanged ($CURRENT_HASH) — skipping precompute ==="
+    echo "=== Models unchanged ($CURRENT_HASH) — using committed predictions ==="
 else
-    echo "=== Models changed (was: $SAVED_HASH, now: $CURRENT_HASH) ==="
-    echo "=== Rebuilding national predictions... ==="
-    python scripts/precompute_national.py
-    echo "=== Precompute complete ==="
+    # Predictions can't be rebuilt here: scripts/precompute_v5.py averages every
+    # day of 2000-2025 from the dense CONUS grid, which lives in hazard-lm, not
+    # in this repo. (This branch used to run precompute_national.py, the v4
+    # engine, which overwrote the v5 files with the old model's numbers.)
+    echo "=== WARNING: model files changed (was: $SAVED_HASH, now: $CURRENT_HASH) ==="
+    echo "=== Serving the committed predictions. Regenerate them locally with"
+    echo "===   python scripts/precompute_v5.py --all --jobs 4"
+    echo "=== then commit data/national_predictions_month*.csv and data/.model_hash ==="
 fi

@@ -1,74 +1,65 @@
 """
 Build data/county_weather_by_month.parquet: the weather-driver panel's inputs
-for every county and month, about 1 MB.
+for every county and month, about 1.5 MB.
 
-The National tab shows seven weather drivers when a county is clicked. The app
-used to read them by loading that state's whole inference parquet (Virginia:
-1.26M rows, +822 MB), which is what pushed the Render service past its 2 GB
-limit. Reading only the needed columns cut that to roughly 60 MB per new state,
-but the process heap still kept it. This table removes the parquet read from
-the request path altogether.
+The National tab shows seven weather drivers when a county is clicked. Each is
+the average of that county's daily values over every day of that month from
+2000 through 2025 (735-806 days per county-month), read from the same dense
+CONUS grid that scripts/precompute_v5.py predicts from, so the panel shows the
+conditions behind the numbers above it. (The per-state inference files are not
+used: Colorado's temperatures there are in C, which the panel would print as F.)
 
-Semantics are unchanged: for each county and month it keeps the FIRST row in
-file order, exactly as the old code picked `rows[month == m].iloc[0]`. It does
-not average, so the numbers on screen stay identical.
+History: the panel used to show the first row of the month, the 1st of the
+month in 2000, and loaded the state's whole inference parquet to get it
+(Virginia: 1.26M rows, +822 MB), which is what pushed the Render service past
+its 2 GB limit.
 
-Re-run whenever states/*/inference_data.parquet changes:
+Re-run whenever the dense grid changes:
 
-    python scripts/build_county_weather.py
+    python scripts/build_county_weather.py [--dense PATH]
 """
 from __future__ import annotations
 
+import argparse
+import os
 from pathlib import Path
 
-import pandas as pd
 import pyarrow.parquet as pq
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'data' / 'county_weather_by_month.parquet'
 WEATHER = ['erc', 'vs', 'rmin', 'pr', 'tmmx', 'tmmn', 'vpd']
-
-
-def state_source(state_dir: Path):
-    """A state's inference data: one file for most states, a folder of parts for
-    the largest (Georgia, Texas). load_hazard_data() accepts both, so must this."""
-    single = state_dir / 'inference_data.parquet'
-    folder = state_dir / 'inference_data'
-    if single.exists():
-        return single
-    if folder.is_dir() and any(folder.glob('*.parquet')):
-        return folder
-    return None
-
-
-def part_files(path: Path):
-    return [path] if path.is_file() else sorted(path.glob('*.parquet'))
+DENSE_DEFAULT = Path(os.environ.get(
+    'AHI_DENSE_PARQUET',
+    r'C:\Users\JDC\Desktop\hazard-lm\data\dense_CONUS_61feat_v2.parquet'))
 
 
 def main() -> int:
-    parts = []
-    for state_dir in sorted(d for d in (ROOT / 'states').iterdir()
-                            if d.is_dir() and not d.name.startswith('_')):
-        state = state_dir.name
-        path = state_source(state_dir)
-        if path is None:
-            continue
-        have = set(pq.read_schema(part_files(path)[0]).names)
-        cols = ['county', 'month'] + [c for c in WEATHER if c in have]
-        df = pq.read_table(path, columns=cols).to_pandas()
-        # first row per (county, month) in file order == the old .iloc[0]
-        first = df.drop_duplicates(['county', 'month'], keep='first').copy()
-        first.insert(0, 'state', state)
-        parts.append(first)
-        print(f'  {state}: {first.county.nunique():>4} counties, {len(first):>5} county-months')
-    out = pd.concat(parts, ignore_index=True)
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--dense', type=Path, default=DENSE_DEFAULT)
+    args = ap.parse_args()
+    if not args.dense.exists():
+        raise SystemExit(f'dense grid not found: {args.dense}\n'
+                         'Pass --dense PATH or set AHI_DENSE_PARQUET.')
+
+    df = pq.read_table(args.dense, columns=['state', 'county', 'date'] + WEATHER).to_pandas()
+    df = df.drop_duplicates(['state', 'county', 'date'], keep='first')  # the grid has 138 duplicate keys
+    df['month'] = df['date'].dt.month
+    df['year'] = df['date'].dt.year
+    grouped = df.groupby(['state', 'county', 'month'], sort=True)
+    out = grouped[WEATHER].mean().reset_index()
+    span = grouped['year'].agg(['min', 'max', 'size']).reset_index(drop=True)
+    out['first_year'], out['last_year'], out['n_days'] = span['min'], span['max'], span['size']
+
     for c in WEATHER:
-        if c in out:
-            out[c] = out[c].astype('float32')
+        out[c] = out[c].astype('float32')
     out['month'] = out['month'].astype('int8')
+    for c in ('first_year', 'last_year', 'n_days'):
+        out[c] = out[c].astype('int16')
     out.to_parquet(OUT, index=False)
-    print(f'\nwrote {OUT.relative_to(ROOT)}: {len(out):,} rows, '
-          f'{out.state.nunique()} states, {OUT.stat().st_size / 1e6:.2f} MB')
+    print(f'wrote {OUT.relative_to(ROOT)}: {len(out):,} county-months, {out.state.nunique()} states, '
+          f'{out.county.nunique():,} county names, {int(out.first_year.min())}-{int(out.last_year.max())}, '
+          f'{int(out.n_days.min())}-{int(out.n_days.max())} days each, {OUT.stat().st_size / 1e6:.2f} MB')
     return 0
 
 

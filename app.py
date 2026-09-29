@@ -365,8 +365,9 @@ def generate_audit_report(county: str, forecast_date_str: str,
         "not live weather feeds. Results reflect seasonal and geographic baselines.",
         "This output is a decision-support tool, not an official forecast. Cross-reference with "
         f"current NWS watches/warnings ({nws_label}) and local situational awareness before operational action.",
-        f"Risk probability is a calibrated point-in-time estimate for {date_display} — "
-        f"not a cumulative probability across {horizon_days} days.",
+        f"Risk probability is the calibrated risk on a typical {month_name} day: the model's "
+        f"daily predictions averaged over every {month_name} day from 2000 through 2025. It is "
+        f"not specific to {date_display}, and not a cumulative probability across {horizon_days} days.",
     ]
 
     if margin < 0.02:
@@ -753,7 +754,8 @@ _WEATHER_COLS = ('erc', 'vs', 'rmin', 'pr', 'tmmx', 'tmmn', 'vpd')
 
 @st.cache_resource(show_spinner=False)
 def _county_weather_table():
-    """Every county's weather drivers for every month: 37,308 rows, 0.33 MB.
+    """Every county's weather drivers for every month, each the average of
+    every day of that month in 2000-2025: 37,308 rows, 1.4 MB.
 
     Built by scripts/build_county_weather.py. Shared, read-only, never copied.
     """
@@ -765,9 +767,9 @@ def load_county_weather(state_code: str, county: str, month: int):
     """Seven weather drivers for one county, as a small dict.
 
     This used to load the county's whole state (Virginia: 1.26M rows, +822 MB)
-    to read seven numbers, which is what pushed the service past its 2 GB limit.
-    Now it is a lookup in a 0.33 MB table. Values are identical: the table keeps
-    the first row of each county-month in file order, exactly as before.
+    to read seven numbers from a single day (the 1st of the month in 2000),
+    which is what pushed the service past its 2 GB limit. Now it is a lookup of
+    26-year averages in a small precomputed table.
     """
     table = _county_weather_table()
     if table is None:
@@ -1173,9 +1175,9 @@ def render_interpretation_guide(forecast_days, state_ctx=None):
     with st.expander("How to interpret these numbers", expanded=False):
         st.markdown(f"""
         **What the percentages mean:**
-        - These are **calibrated risk probabilities for a single point-in-time**: conditions on the forecast date ({forecast_days} days from today), not an average across the window
-        - Changing the forecast date changes the target date for inference — different dates have different seasonal weights, so a 7-day and 14-day run can produce different rankings if the window crosses a seasonal transition
-        - Probabilities are based on **25 years of historical patterns** (2000–2025) across all {len(sctx.counties)} {sctx.state_name} {_subdivision_label(sctx.state_code)}
+        - These are **calibrated risk probabilities for a typical day** in the month of the forecast date ({forecast_days} days from today). They are not a forecast of this year's weather
+        - Each one averages the model's daily predictions over **every day of that month from 2000 through 2025** (about 800 days per {_subdivision_label(sctx.state_code, plural=False)}), across all {len(sctx.counties)} {sctx.state_name} {_subdivision_label(sctx.state_code)}
+        - The forecast window only changes the result when it moves the forecast date into a different month
         - A {_subdivision_label(sctx.state_code, plural=False)} with few historical events can still show elevated risk if current seasonal/geographic conditions match patterns that preceded events elsewhere
 
         **Risk thresholds:**
@@ -1379,7 +1381,8 @@ def render_county_spotlight_map(selected_county, risks, target_date,
 
 def page_quick_predict():
     st.markdown("## County Risk Assessment")
-    st.caption("Analyze hazard risk for a single county. Assessment based on 25 years of historical hazard patterns.")
+    st.caption("Analyze hazard risk for a single county. Each estimate averages every day of the "
+               "month from 2000 through 2025.")
 
     # State + county + horizon selectors
     col_st, col_county, col_hz = st.columns([1.2, 2, 1])
@@ -1545,8 +1548,8 @@ def page_state_overview():
 
     st.markdown(f"## {state_ctx.state_name} — Statewide Risk Assessment")
     st.caption(f"{len(state_ctx.counties)} {_subdivision_label(sel_state)} · {month_label} outlook · "
-               f"Based on historical patterns for {target_date.strftime('%B')}. "
-               f"Use the **County Risk Assessment** tab for specific date forecasts.")
+               f"Average daily risk across every {target_date.strftime('%B')} from 2000 through 2025. "
+               f"Use the **County Risk Assessment** tab for a single {_subdivision_label(sel_state, plural=False)}.")
 
     # ---- Run predictions for all counties (cached by composite key) ----
     with st.spinner(f"Loading predictions for {len(state_ctx.counties)} "
@@ -2080,7 +2083,7 @@ def _render_weather_drivers(wx_data):
         ('ERC',        wx_data.get('erc'),  '(energy release)'),
         ('Wind Speed', wx_data.get('vs'),   'm/s'),
         ('Min RH',     wx_data.get('rmin'), '%'),
-        ('Precip',     wx_data.get('pr'),   'mm'),
+        ('Precip',     wx_data.get('pr'),   'mm/day'),
         ('Max Temp',   _k_to_f(wx_data.get('tmmx')), '°F'),
         ('Min Temp',   _k_to_f(wx_data.get('tmmn')), '°F'),
         ('VPD',        wx_data.get('vpd'),  'kPa'),
@@ -2091,7 +2094,8 @@ def _render_weather_drivers(wx_data):
 
     st.markdown(
         f"<div style='color:{COLORS['text_secondary']}; font-size:0.85em; "
-        f"margin-top:8px;'>**Weather drivers (sample for this month):**</div>",
+        f"margin-top:8px;'><strong>Weather drivers</strong> · daily average for "
+        f"this month, 2000–2025</div>",
         unsafe_allow_html=True)
     cols = st.columns(min(len(drivers), 4))
     for i, (label, val, unit) in enumerate(drivers):
@@ -2171,8 +2175,8 @@ def page_national():
         )
 
     st.caption(f"**{month_label}** · {len(df):,} counties · "
-               f"Predictions calibrated from historical patterns for "
-               f"{_month_names[month_used]}. "
+               f"Average daily risk across every {_month_names[month_used]} "
+               f"from 2000 through 2025. "
                f"Drill into the **State** tab for county-level detail.")
 
     # ---- Extract selection BEFORE rendering columns ----
