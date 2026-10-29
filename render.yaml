@@ -3,7 +3,7 @@ services:
     name: ahi-platform
     runtime: python
     plan: standard  # 2GB RAM — needed for parquet load + ONNX session + streamlit
-    buildCommand: pip install -r requirements.txt
+    buildCommand: bash build.sh  # pip install + model-hash check, see build.sh
     startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true --browser.gatherUsageStats false
     envVars:
       - key: PYTHON_VERSION

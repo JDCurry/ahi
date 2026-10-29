@@ -48,6 +48,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from inference_v5 import V5Engine, HAZARDS
+from model_hash import write_model_hash
 
 DISPLAY_HAZARDS = ['fire', 'flood', 'wind', 'winter']
 DENSE_DEFAULT = Path(os.environ.get(
@@ -192,7 +193,8 @@ def main():
             for summary in pool.map(run_month, months, [out_dir] * n, [threads] * n, [args.dense] * n):
                 print(summary, flush=True)
 
-    print("\nDone. Precomputed CSVs ready for deployment.")
+    hash_path = write_model_hash(out_dir)
+    print(f"\nDone. Precomputed CSVs ready for deployment; model hash written to {hash_path}.")
 
 
 if __name__ == '__main__':

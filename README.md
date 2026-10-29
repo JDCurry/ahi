@@ -78,19 +78,18 @@ AHI v5.0 uses a **hybrid engine** that combines two model families, with the bes
 
 ## Repository Contents
 
-This repository contains the deployed dashboard and inference pipeline. The model architecture, training pipeline, and training data preparation are maintained as proprietary assets.
+This repository contains the deployed dashboard and inference pipeline. The live site never runs the model: every number it shows is read from `data/national_predictions_monthNN.csv`, which `scripts/precompute_v5.py` regenerates offline after a model or calibrator change. The model architecture, training pipeline, and training data preparation are maintained as proprietary assets.
 
 | Path | Description |
 |---|---|
 | `app.py` | Streamlit dashboard application |
 | `inference_v5.py` | v5 hybrid inference engine (ONNX + XGBoost + isotonic calibration) |
-| `inference_onnx.py` | Legacy v4 ONNX inference engine (per-state calibration) |
 | `state_context.py` | Per-state configuration loader |
 | `models/v5/` | CONUS-wide v5 model artifacts (ONNX, XGBoost, calibrators, county order) |
-| `states/<XX>/` | Per-state inference data, GeoJSON, and config |
+| `states/<XX>/` | Per-state config, county GeoJSON, and historical base rates |
 | `states/registry.yaml` | State deployment status and region mapping |
-| `data/` | National precomputed prediction CSVs |
-| `scripts/` | Utility scripts (precompute_v5, state onboarding) |
+| `data/` | Precomputed monthly predictions (what the site serves), national GeoJSON, weather-driver table |
+| `scripts/` | Utility scripts: `precompute_v5.py` regenerates the monthly predictions from the private dense grid; the rest build the data/ tables |
 
 ---
 

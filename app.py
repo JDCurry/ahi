@@ -21,15 +21,6 @@ import warnings
 import base64
 warnings.filterwarnings('ignore')
 
-# Optional imports (folium only)
-try:
-    import folium
-    from folium.features import GeoJsonTooltip
-    from streamlit_folium import st_folium
-    FOLIUM_AVAILABLE = True
-except ImportError:
-    FOLIUM_AVAILABLE = False
-
 # v5 CONUS-wide hybrid inference
 try:
     from inference_v5 import V5Engine, HAZARDS as V5_HAZARDS
@@ -45,16 +36,6 @@ except Exception as e:
     get_v5_engine = None
     AHI_V5_AVAILABLE = False
 
-# Legacy v4 inference (kept for shadow period comparison)
-try:
-    from inference_onnx import predict_county_risks_simple, predict_from_ahi_v2
-    AHI_V2_AVAILABLE = True
-except Exception as e:
-    print(f"[IMPORT] inference_onnx import failed: {e}")
-    predict_county_risks_simple = None
-    predict_from_ahi_v2 = None
-    AHI_V2_AVAILABLE = False
-
 # State context loader (registry + per-state config)
 from state_context import StateContext, load_registry, deployed_states
 from county_names import build_index as build_county_index
@@ -62,8 +43,6 @@ from county_names import census_label
 from county_names import display_name as county_display_name
 from county_names import resolve as resolve_county
 import memory_guard
-
-get_batch_adjacency = None
 
 # =============================================================================
 # CONFIGURATION
@@ -524,7 +503,7 @@ def render_decision_audit(audit: dict, state_ctx=None):
             data=audit_json,
             file_name=f"ahi_audit_{county.lower().replace(' ', '_')}_{audit['forecast_date']}.json",
             mime="application/json",
-            use_container_width=False,
+            width='content',
         )
 
 
@@ -708,47 +687,6 @@ def inject_css():
 # DATA & MODEL
 # =============================================================================
 
-@st.cache_resource
-def check_model_available(region: str):
-    """Check whether model files are present (v5 or v4 fallback).
-
-    Returns (format_str, None, is_available).
-    """
-    # v5 CONUS model
-    v5_path = Path("models/v5/ahi_v5_attention.onnx")
-    if v5_path.exists():
-        return "v5_hybrid", None, True
-
-    # v4 regional fallback
-    if not AHI_V2_AVAILABLE:
-        return None, None, False
-    for p in [Path(f"models/{region}/model.onnx"),
-              Path(f"/mount/src/ahi-platform/models/{region}/model.onnx")]:
-        if p.exists():
-            return "onnx", None, True
-    return None, None, False
-
-
-@st.cache_data(ttl=3600, max_entries=2, show_spinner=False)
-def load_hazard_data(state_code: str):
-    """Load the active state's inference parquet (states/<XX>/inference_data.parquet).
-    Supports both single-file and partitioned directory (states/<XX>/inference_data/)."""
-    path = Path(f'states/{state_code}/inference_data.parquet')
-    parts_dir = Path(f'states/{state_code}/inference_data')
-    if path.exists():
-        df = pd.read_parquet(path)
-    elif parts_dir.exists() and parts_dir.is_dir():
-        df = pd.read_parquet(parts_dir)
-    else:
-        return None
-    if 'date' in df.columns:
-        df['date'] = pd.to_datetime(df['date'])
-    # Downcast float64 -> float32 to save ~50% RAM per DataFrame
-    for col in df.select_dtypes(include=['float64']).columns:
-        df[col] = df[col].astype('float32')
-    return df
-
-
 _WEATHER_COLS = ('erc', 'vs', 'rmin', 'pr', 'tmmx', 'tmmn', 'vpd')
 
 
@@ -853,8 +791,8 @@ def _geometry_bounds(geom):
 # PREDICTION
 # =============================================================================
 
-    # predict_single_county / predict_all_counties removed —
-    # county page uses inference_onnx directly; state uses compute_state_predictions_cached
+    # Every number on the site comes from data/national_predictions_monthNN.csv
+    # (see predict_all_national). The web process never runs the model.
 
 
 # ---------------------------------------------------------------------------
@@ -922,7 +860,7 @@ def _county_labels():
 
 # ---------------------------------------------------------------------------
 # National predictions — loaded from precomputed CSVs for instant startup.
-# CSVs are generated offline via:  python scripts/precompute_national.py
+# CSVs are generated offline via:  python scripts/precompute_v5.py --all
 # One CSV per month: data/national_predictions_month05.csv, etc.
 # ---------------------------------------------------------------------------
 
@@ -985,7 +923,7 @@ def predict_all_national(month: int):
 
     # _predict_all_national_live removed — live national inference is a Render
     # crasher.  Missing precomputed CSVs are now a hard FileNotFoundError.
-    # Generate CSVs offline:  python scripts/precompute_national.py
+    # Generate CSVs offline:  python scripts/precompute_v5.py --all
 
 
 # =============================================================================
@@ -1000,59 +938,28 @@ def compute_state_predictions_cached(
     model_version: str,
     data_version: str,
 ):
-    """Run v5 hybrid inference for every county in a state.
+    """Every county in a state for the target month, from the precomputed
+    national table (see predict_all_national). There is no live inference
+    path and no v4 fallback: the fallback loaded a whole state parquet
+    (Virginia: ~820 MB) and was what used to push Render past 2 GB.
 
-    Uses the precomputed national CSV (v5) when available, falling back to
-    v4 per-county ONNX inference if v5 is unavailable.
-
-    Returns (predictions_df, errors_df).
+    Returns (predictions_df, errors_df). predictions_df columns:
+        county, date, fire_p, flood_p, wind_p, winter_p
     """
     target_date = datetime.fromisoformat(target_date_str).date()
-    month = target_date.month
-
-    # Try loading from precomputed v5 national CSV
-    csv_path = Path(f'data/national_predictions_month{month:02d}.csv')
-    if csv_path.exists():
-        nat_df = pd.read_csv(csv_path)
-        state_df = nat_df[nat_df['state'] == state_code].copy()
-        if len(state_df) > 0:
-            rows = []
-            for _, r in state_df.iterrows():
-                row = {'county': r['county'], 'date': target_date_str}
-                for h in DISPLAY_HAZARDS:
-                    row[f'{h}_p'] = r.get(f'{h}_p', 0.0)
-                rows.append(row)
-            return pd.DataFrame(rows), pd.DataFrame()
-
-    # Fallback: v4 per-county inference
-    if not AHI_V2_AVAILABLE:
+    try:
+        nat_df, month_used = predict_all_national(target_date.month)
+    except FileNotFoundError as e:
+        return pd.DataFrame(), pd.DataFrame([{'county': '(all)', 'error': str(e)}])
+    state_df = nat_df[nat_df['state'] == state_code]
+    if len(state_df) == 0:
         return pd.DataFrame(), pd.DataFrame([{
-            'county': '(all)', 'error': f'No v5 CSV and v4 unavailable for {state_code}'}])
-
-    from inference_onnx import predict_county_risks_simple as _predict
-    state_ctx = _load_state_context(state_code)
-    hazard_df = load_hazard_data(state_code)
-    if hazard_df is None:
-        return pd.DataFrame(), pd.DataFrame([{
-            'county': '(all)', 'error': f'No inference data for {state_code}'}])
-
-    rows = []
-    errors = []
-    for county in state_ctx.counties:
-        try:
-            risks = _predict(state_code, region, county, hazard_df, target_date)
-        except Exception as e:
-            errors.append({'county': county, 'error': str(e)})
-            continue
-        if risks:
-            row = {'county': county, 'date': target_date_str}
-            for h in DISPLAY_HAZARDS:
-                row[f'{h}_p'] = risks.get(h, 0.0)
-            rows.append(row)
-        else:
-            errors.append({'county': county, 'error': 'No predictions returned'})
-
-    return pd.DataFrame(rows), pd.DataFrame(errors)
+            'county': '(all)',
+            'error': f'{state_code} is missing from the precomputed predictions '
+                     f'for month {month_used:02d}. Re-run scripts/precompute_v5.py.'}])
+    out = state_df[['county'] + [f'{h}_p' for h in DISPLAY_HAZARDS]].copy()
+    out.insert(1, 'date', target_date_str)
+    return out.reset_index(drop=True), pd.DataFrame()
 
 
 # =============================================================================
@@ -1284,7 +1191,7 @@ def render_statewide_choropleth(df, hazard_key, hazard_label,
         margin=dict(l=0, r=0, t=10, b=10),
         height=540,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_county_spotlight_map(selected_county, risks, target_date,
@@ -1372,7 +1279,7 @@ def render_county_spotlight_map(selected_county, risks, target_date,
         margin=dict(l=0, r=0, t=10, b=10),
         height=400,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 # =============================================================================
@@ -1447,11 +1354,11 @@ def page_quick_predict():
 
     _, btn_col, _ = st.columns([1, 1, 1])
     with btn_col:
-        predict_clicked = st.button("Run Prediction", type="primary", use_container_width=True)
+        predict_clicked = st.button("Run Prediction", type="primary", width='stretch')
 
     if predict_clicked:
         status = st.empty()
-        status.info("Loading v5 hybrid engine…")
+        status.info("Loading predictions…")
         risks, err = None, None
 
         # v5 path: load from precomputed national CSV
@@ -1471,19 +1378,8 @@ def page_quick_predict():
             else:
                 err = f"County {selected_county} not found in precomputed CSV"
         else:
-            # Fallback: v4 per-county inference
-            try:
-                _, _, ok = check_model_available(cr_ctx.region)
-                if not ok:
-                    status.error(f"No precomputed CSV and no v4 model for {cr_ctx.region}")
-                    return
-                status.info("Running v4 fallback inference…")
-                hazard_df = load_hazard_data(cr_state)
-                from inference_onnx import predict_county_risks_simple as _predict
-                risks = _predict(cr_state, cr_ctx.region, selected_county,
-                                  hazard_df, target_date)
-            except Exception as e:
-                err = str(e)
+            err = (f"No precomputed predictions for {target_date.strftime('%B')} "
+                   f"({csv_path}). Run scripts/precompute_v5.py and commit the CSVs.")
 
         if risks is None:
             status.error(f"Prediction failed: {err}")
@@ -1496,6 +1392,7 @@ def page_quick_predict():
                 state_ctx=cr_ctx,
             )
             st.session_state['last_prediction'] = {
+                'state':   cr_state,
                 'county':  selected_county,
                 'date':    str(target_date),
                 'risks':   risks,
@@ -1505,7 +1402,13 @@ def page_quick_predict():
 
     if 'last_prediction' in st.session_state:
         last = st.session_state['last_prediction']
-        if last.get('county') == selected_county:
+        # Match on state as well as county: ten states start alphabetically
+        # with Adams, so switching Colorado -> Washington used to show
+        # Colorado's Adams numbers under a Washington header. The date check
+        # keeps a 14-day result from appearing under a 30-day heading.
+        if (last.get('state') == cr_state
+                and last.get('county') == selected_county
+                and last.get('date') == str(target_date)):
             st.markdown("---")
             render_primary_risk_callout(last['risks'])
             render_hazard_cards(last['risks'])
@@ -1543,7 +1446,7 @@ def page_state_overview():
 
     # Load the selected state's context
     state_ctx = _load_state_context(sel_state)
-    target_date = datetime.now().date() + timedelta(days=14)
+    target_date = datetime.now().date() + timedelta(days=MAX_FORECAST_DAYS)
     month_label = target_date.strftime('%B %Y')
 
     st.markdown(f"## {state_ctx.state_name} — Statewide Risk Assessment")
@@ -1566,7 +1469,7 @@ def page_state_overview():
         st.warning(f"{len(errors)} of {len(state_ctx.counties)} {_subdivision_label(sel_state)} "
                     f"failed inference.")
         with st.expander(f"Failed {_subdivision_label(sel_state)}"):
-            st.dataframe(errors, use_container_width=True, hide_index=True)
+            st.dataframe(errors, width='stretch', hide_index=True)
 
     if len(df) == 0:
         st.error(f"No predictions generated for {sel_state}. "
@@ -1628,6 +1531,12 @@ def page_state_overview():
 
     # Risk tier distribution (relative to historical base rates)
     st.markdown("---")
+    st.caption(
+        f"Tiers on this tab are **relative**: each "
+        f"{_subdivision_label(sel_state, plural=False)}'s leading hazard is compared "
+        f"with {state_ctx.state_name}'s historical {target_date.strftime('%B')} base rate "
+        f"for that hazard (Normal ≈ baseline, Severe > 2×). The National and County tabs "
+        f"use absolute probability bands, so the same label means something different there.")
     rel_tiers = compute_relative_tiers(df, sel_state, month)
     tier_cols = st.columns(5)
     tier_cols[0].metric("Severe",   rel_tiers.get('Severe', 0))
@@ -1661,7 +1570,7 @@ def page_state_overview():
         for h in hazards
     }
     st.dataframe(
-        show, use_container_width=True, hide_index=True,
+        show, width='stretch', hide_index=True,
         column_config=col_config,
     )
 
@@ -1774,7 +1683,7 @@ def page_model_info():
         {"Hazard": "Fire",   "Engine": "XGBoost",   "AUC": 0.8776, "Quality": "Excellent", "Notes": "XGBoost won by bootstrap; FIRMS satellite fire features + WUI data."},
         {"Hazard": "Wind",   "Engine": "Attention",  "AUC": 0.8689, "Quality": "Excellent", "Notes": "NOAA-all wind (not SPC-convective-only). Not comparable to v4 wind AUC."},
     ]
-    st.dataframe(pd.DataFrame(national_data), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(national_data), width='stretch', hide_index=True)
 
     nat_hazards = ["Winter", "Flood", "Fire", "Wind"]
     nat_aucs    = [0.9415, 0.9026, 0.8776, 0.8689]
@@ -1798,7 +1707,7 @@ def page_model_info():
         height=380,
         margin=dict(l=40, r=20, t=60, b=40),
     )
-    st.plotly_chart(fig_nat, use_container_width=True)
+    st.plotly_chart(fig_nat, width='stretch')
 
     nc1, nc2 = st.columns(2)
     nc1.info("**Deployed Mean AUC: 0.898** — averaged over fire, flood, wind, winter (CONUS-wide, hybrid engine).")
@@ -1820,7 +1729,7 @@ def page_model_info():
         {"Hazard": "Wind",   "Engine": "Attention",  "Verified AUC": 0.8689, "Coupling Gate": "0.111"},
         {"Hazard": "Winter", "Engine": "Attention",  "Verified AUC": 0.9415, "Coupling Gate": "0.111"},
     ])
-    st.dataframe(engine_data, use_container_width=True, hide_index=True)
+    st.dataframe(engine_data, width='stretch', hide_index=True)
 
     st.markdown("""
     **Attention engine** — CONUS-wide spatial attention model with learned gated coupling.
@@ -1865,7 +1774,7 @@ def page_model_info():
         {"Metric": "Winter AUC",   "v4.0": "0.850",                  "v5.0": "0.942 (+0.092)"},
         {"Metric": "Mean AUC",     "v4.0": "0.877",                  "v5.0": "0.898 (+0.021)"},
     ])
-    st.dataframe(comparison, use_container_width=True, hide_index=True)
+    st.dataframe(comparison, width='stretch', hide_index=True)
 
     # ---- Calibration ----
     st.markdown("---")
@@ -2125,16 +2034,16 @@ def page_national():
         )
         return
 
-    now = datetime.now().date()
-    # Use next month's CSV if current month is in the last 3 days
-    # (June predictions are more actionable than stale May data)
-    cur_month = now.month + 1 if now.day >= 28 and now.month < 12 else now.month
-    if cur_month > 12:
-        cur_month = 12
+    # Same outlook date as the State tab (today + 14 days) so both tabs show
+    # the same month. The old rule here (next month from the 28th, never
+    # rolling December into January) disagreed with the State tab for about
+    # half of every month.
+    outlook = datetime.now().date() + timedelta(days=MAX_FORECAST_DAYS)
+    cur_month = outlook.month
     _month_names = {1:'January',2:'February',3:'March',4:'April',5:'May',
                     6:'June',7:'July',8:'August',9:'September',10:'October',
                     11:'November',12:'December'}
-    month_label = f"{_month_names[cur_month]} {now.year}"
+    month_label = outlook.strftime('%B %Y')
 
     # ---- Top controls ----
     c1, c2 = st.columns([1.5, 1.5])
@@ -2198,7 +2107,7 @@ def page_national():
     with map_col:
         fig = render_national_choropleth(df, geojson, hazard, map_style=map_style,
                                           height=560)
-        st.plotly_chart(fig, use_container_width=True,
+        st.plotly_chart(fig, width='stretch',
                         on_select="rerun", selection_mode='points',
                         key=_map_key)
 
@@ -2365,7 +2274,7 @@ def main():
     # return the memory to the OS (see memory_guard.py for why both are needed).
     memory_guard.touch()
     memory_guard.start(clear=[
-        load_hazard_data.clear, load_geojson.clear, load_national_geojson.clear,
+        load_geojson.clear, load_national_geojson.clear,
         predict_all_national.clear, compute_state_predictions_cached.clear,
     ])
 

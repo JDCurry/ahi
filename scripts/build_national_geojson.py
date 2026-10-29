@@ -8,7 +8,7 @@ Fixes:
   - NM Doña Ana encoding normalization
 
 Each feature gets a `_id` property: STATE|COUNTY_NAME or STATE|NAME_CITY.
-The `_id` must match what precompute_national.py produces in `county_id`.
+The `_id` must match what precompute_v5.py produces in `county_id`.
 
 Usage:
     python scripts/build_national_geojson.py
