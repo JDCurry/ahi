@@ -19,3 +19,6 @@ onnxruntime==1.23.2
 xgboost==2.1.2
 pyarrow==21.0.0
 pyyaml==6.0.2
+# Python itself is pinned in .python-version (3.12.12). Without it Render
+# builds on its current default (3.14 as of 2026-10), where numpy 1.26 has no
+# wheel and onnxruntime 1.23 does not exist, and the build fails.
